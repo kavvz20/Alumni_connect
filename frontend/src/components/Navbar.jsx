@@ -1,0 +1,246 @@
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Sparkles,
+  Users,
+  Calendar,
+  Briefcase,
+  MessageSquare,
+  Compass,
+  Award,
+  ShieldCheck,
+  LogIn,
+  LogOut,
+  User,
+} from "lucide-react";
+
+export const Navbar = ({
+  currentUser,
+  onLogout,
+}) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const navTabs = [
+    { path: "/alumni", label: "Alumni Directory", icon: Users },
+    { path: "/mentorship", label: "Mentorship", icon: Calendar },
+    { path: "/referrals", label: "Referrals", icon: Briefcase },
+    { path: "/chat", label: "Chat", icon: MessageSquare },
+    { path: "/opportunities", label: "Opportunities", icon: Compass },
+    { path: "/forum", label: "Forum", icon: MessageSquare },
+    { path: "/events", label: "Events", icon: Calendar },
+    { path: "/stories", label: "Stories", icon: Award },
+    { path: "/profile", label: "My Profile", icon: User },
+    { path: "/admin", label: "Admin", icon: ShieldCheck, adminOnly: true },
+  ];
+
+  const visibleTabs = navTabs.filter((tab) => {
+    if (currentUser?.role === "admin") {
+      return tab.path === "/admin" || tab.path === "/events";
+    }
+    return !tab.adminOnly;
+  });
+
+  return (
+    <header style={{
+      position: "sticky",
+      top: 0,
+      zIndex: 100,
+      background: "rgba(251, 249, 244, 0.97)",
+      backdropFilter: "blur(20px)",
+      borderBottom: "1px solid var(--border-color)",
+      boxShadow: "0 2px 14px rgba(28, 25, 23, 0.06)",
+    }}>
+      {/* ========================================================================= */}
+      {/* 1st Tier (Main Top Navbar): Logo, Branding, User Profile & Auth Controls  */}
+      {/* ========================================================================= */}
+      <div style={{
+        maxWidth: "1440px",
+        margin: "0 auto",
+        padding: "0 24px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        height: "64px",
+        borderBottom: currentUser ? "1px solid rgba(0, 0, 0, 0.06)" : "none",
+      }}>
+        {/* Brand Logo */}
+        <div 
+          onClick={() => navigate(currentUser?.role === "admin" ? "/admin" : "/alumni")}
+          style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", flexShrink: 0 }}
+        >
+          <div style={{
+            width: "38px",
+            height: "38px",
+            borderRadius: "10px",
+            background: "#18181b",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
+          }}>
+            <Sparkles size={20} color="#fbf9f4" />
+          </div>
+          <div>
+            <div style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: "1.2rem",
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              color: "#18181b",
+              lineHeight: 1.1,
+            }}>
+              ALUMNI CONNECT
+            </div>
+            <div style={{ fontSize: "0.7rem", color: "#92400e", fontWeight: 700, letterSpacing: "0.1em" }}>
+              THAPAR ECOSYSTEM
+            </div>
+          </div>
+        </div>
+
+        {/* User Identity & Auth Controls */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+          {currentUser ? (
+            <div style={{
+              background: "#ffffff",
+              border: "1px solid rgba(0, 0, 0, 0.12)",
+              borderRadius: "var(--radius-full)",
+              padding: "4px 10px 4px 6px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
+            }}>
+              {/* User Avatar & Info (Click to view profile) */}
+              <div
+                onClick={() => navigate(currentUser?.role === "admin" ? "/admin" : "/profile")}
+                style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                title="View and edit your profile"
+              >
+                <div style={{
+                  width: "32px",
+                  height: "32px",
+                  borderRadius: "50%",
+                  background: currentUser?.role === "student"
+                    ? "linear-gradient(135deg, #0284c7, #0369a1)"
+                    : currentUser?.role === "admin"
+                    ? "linear-gradient(135deg, #059669, #047857)"
+                    : "linear-gradient(135deg, #d97706, #b45309)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 800,
+                  fontSize: "0.85rem",
+                  color: "#ffffff",
+                }}>
+                  {currentUser?.name?.[0] || "U"}
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ fontSize: "0.86rem", fontWeight: 700, color: "#18181b", lineHeight: 1.1 }}>
+                    {currentUser.name}
+                  </span>
+
+                  <span style={{
+                    fontSize: "0.68rem",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    color: currentUser.role === "student" ? "#0284c7" : currentUser.role === "admin" ? "#059669" : "#b45309",
+                  }}>
+                    {currentUser.role} {currentUser.currentCompany ? `(${currentUser.currentCompany})` : ""}
+                  </span>
+                </div>
+              </div>
+
+              {/* Sign Out */}
+              <button
+                onClick={onLogout}
+                className="btn btn-secondary btn-sm"
+                style={{
+                  padding: "5px 10px",
+                  fontSize: "0.78rem",
+                  borderRadius: "var(--radius-full)",
+                  color: "#be123c",
+                  borderColor: "rgba(190, 18, 60, 0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  marginLeft: "6px",
+                }}
+                title="Sign out of this account"
+              >
+                <LogOut size={13} /> Sign Out
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate("/login")}
+              className="btn btn-primary btn-sm"
+              style={{ padding: "8px 18px" }}
+            >
+              <LogIn size={15} /> Sign In
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2nd Tier (Sub-Navbar): Feature Navigation Tabs Dedicated Bar             */}
+      {/* ========================================================================= */}
+      {currentUser && (
+        <div style={{
+          background: "#f1ece0",
+          borderTop: "1px solid rgba(0, 0, 0, 0.04)",
+        }}>
+          <div style={{
+            maxWidth: "1440px",
+            margin: "0 auto",
+            padding: "0 24px",
+            display: "flex",
+            alignItems: "center",
+            height: "46px",
+            overflowX: "auto",
+            scrollbarWidth: "none",
+          }}>
+            <nav style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}>
+              {visibleTabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = location.pathname === tab.path;
+                return (
+                  <button
+                    key={tab.path}
+                    onClick={() => navigate(tab.path)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "7px",
+                      padding: "6px 14px",
+                      borderRadius: "var(--radius-sm)",
+                      background: isActive ? "#18181b" : "transparent",
+                      color: isActive ? "#fbf9f4" : "#44403c",
+                      border: isActive ? "1px solid #18181b" : "1px solid transparent",
+                      fontFamily: "var(--font-heading)",
+                      fontSize: "0.85rem",
+                      fontWeight: isActive ? 600 : 500,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                      whiteSpace: "nowrap",
+                      boxShadow: isActive ? "0 2px 8px rgba(0, 0, 0, 0.15)" : "none",
+                    }}
+                  >
+                    <Icon size={15} color={isActive ? "#fbf9f4" : "#57534e"} />
+                    <span style={{ color: isActive ? "#fbf9f4" : "#44403c" }}>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};
