@@ -29,7 +29,19 @@ const request = async (endpoint, options = {}) => {
       ...options,
       headers,
     });
-    const data = await response.json();
+    
+    const contentType = response.headers.get("content-type");
+    let data;
+    if (contentType && contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      if (!response.ok) {
+        throw new Error(`Server returned status ${response.status}: ${text.slice(0, 100)}`);
+      }
+      throw new Error("Cannot reach backend server. Please verify VITE_BACKEND_URL is configured and backend is running.");
+    }
+
     if (!response.ok) {
       throw new Error(data.message || `Request failed with status ${response.status}`);
     }
