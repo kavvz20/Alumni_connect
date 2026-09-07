@@ -1,8 +1,15 @@
 import { io } from "socket.io-client";
 
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
+// Auto-sanitize backend URL to prevent trailing slashes or duplicate /api/v1 prefixes
+const rawBackendUrl = (import.meta.env.VITE_BACKEND_URL || "").trim();
+const cleanBackendUrl = rawBackendUrl
+  .replace(/\/+$/, "")
+  .replace(/\/api\/v1\/?$/, "")
+  .replace(/\/api\/?$/, "");
+
+export const BACKEND_URL = cleanBackendUrl;
 export const API_BASE = BACKEND_URL ? `${BACKEND_URL}/api/v1` : "/api/v1";
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || BACKEND_URL || (typeof window !== "undefined" && window.location.hostname === "localhost" ? "http://localhost:8000" : window.location.origin);
+export const SOCKET_URL = (import.meta.env.VITE_SOCKET_URL || "").trim().replace(/\/+$/, "") || BACKEND_URL || (typeof window !== "undefined" && window.location.hostname === "localhost" ? "http://localhost:8000" : window.location.origin);
 
 let socketInstance = null;
 

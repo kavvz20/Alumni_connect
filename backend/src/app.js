@@ -35,9 +35,22 @@ app.use("/api/v1/events", eventRouter);
 app.use("/api/v1/success-stories", successStoryRouter);
 app.use("/api/v1/reports", reportRouter);
 
-// Health check endpoint
+// Health check endpoints
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Alumni Connect API is online", timestamp: new Date().toISOString() });
+});
+
 app.get("/api/v1/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// Fallback JSON 404 handler for undefined routes
+app.use((req, res) => {
+  res.status(404).json({
+    statusCode: 404,
+    message: `Endpoint not found: Cannot ${req.method} ${req.originalUrl}`,
+    success: false,
+  });
 });
 
 export { app };
