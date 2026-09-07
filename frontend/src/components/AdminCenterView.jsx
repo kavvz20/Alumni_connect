@@ -632,7 +632,7 @@ export const AdminCenterView = ({ currentUser }) => {
                   </div>
 
                   <button
-                    onClick={() => handleCopyCredentials(`Email: ${onboardSuccess.user.email}\nPassword: ${onboardSuccess.defaultPassword}\nPortal: http://localhost:5173/login`)}
+                    onClick={() => handleCopyCredentials(`Email: ${onboardSuccess.user.email}\nPassword: ${onboardSuccess.defaultPassword}\nPortal: ${typeof window !== 'undefined' ? window.location.origin : ''}/login`)}
                     className="btn btn-secondary btn-sm"
                     style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                   >
