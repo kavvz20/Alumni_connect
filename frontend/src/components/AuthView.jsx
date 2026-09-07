@@ -46,14 +46,14 @@ export const AuthView = ({ onAuthSuccess }) => {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      padding: "36px 20px",
+      padding: "24px 16px",
     }}>
       <div style={{
         maxWidth: "1080px",
         width: "100%",
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))",
-        gap: "48px",
+        gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))",
+        gap: "36px",
         alignItems: "center",
       }}>
         {/* ========================================================================= */}
@@ -73,22 +73,22 @@ export const AuthView = ({ onAuthSuccess }) => {
             fontWeight: 700,
             textTransform: "uppercase",
             letterSpacing: "0.08em",
-            marginBottom: "20px",
+            marginBottom: "16px",
           }}>
             <Sparkles size={16} /> Thapar Alumni Ecosystem
           </div>
 
           <h1 style={{
-            fontSize: "3rem",
+            fontSize: "clamp(2rem, 5vw, 3rem)",
             fontWeight: 800,
             lineHeight: 1.15,
-            marginBottom: "20px",
+            marginBottom: "16px",
             color: "#18181b",
           }}>
             Bridging Students with Alumni
           </h1>
 
-          <p style={{ fontSize: "1.08rem", color: "#524f4a", lineHeight: 1.6, marginBottom: "32px" }}>
+          <p style={{ fontSize: "1rem", color: "#524f4a", lineHeight: 1.6, marginBottom: "28px" }}>
             An official, institution-managed ecosystem for 1-on-1 career mentorship, internal job referrals, peer forums, and verified alumni networking.
           </p>
 

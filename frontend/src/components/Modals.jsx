@@ -278,7 +278,7 @@ export const ReferralRequestModal = ({ isOpen, onClose, targetAlumni, alumnus, t
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+          <div className="responsive-form-grid-2" style={{ marginBottom: "14px" }}>
             <div>
               <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>Company</label>
               <input
@@ -407,7 +407,7 @@ export const PostOpportunityModal = ({ isOpen, onClose, currentUser, onSuccess }
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+          <div className="responsive-form-grid-2" style={{ marginBottom: "14px" }}>
             <div>
               <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>Type</label>
               <select className="select-control" value={type} onChange={(e) => setType(e.target.value)}>
@@ -732,7 +732,7 @@ export const CreateEventModal = ({ isOpen, onClose, currentUser, onSuccess }) =>
             />
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+          <div className="responsive-form-grid-2" style={{ marginBottom: "14px" }}>
             <div>
               <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>Event Date & Time</label>
               <input

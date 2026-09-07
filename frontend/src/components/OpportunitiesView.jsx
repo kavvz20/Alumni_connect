@@ -51,9 +51,9 @@ export const OpportunitiesView = ({ currentUser, onOpenPostModal, onOpenReferral
   };
 
   return (
-    <div style={{ maxWidth: "1240px", margin: "0 auto", padding: "32px 20px" }}>
+    <div className="page-container">
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+      <div className="responsive-page-header">
         <div>
           <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Career Opportunities & Referrals</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
@@ -69,7 +69,7 @@ export const OpportunitiesView = ({ currentUser, onOpenPostModal, onOpenReferral
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="glass-panel" style={{ padding: "18px 20px", marginBottom: "30px" }}>
+      <div className="glass-panel" style={{ padding: "18px 20px", marginBottom: "28px" }}>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "16px" }}>
           {/* Types Pills */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
@@ -94,15 +94,15 @@ export const OpportunitiesView = ({ currentUser, onOpenPostModal, onOpenReferral
           </div>
 
           {/* Search form */}
-          <form onSubmit={handleSearchSubmit} style={{ display: "flex", gap: "8px" }}>
+          <form onSubmit={handleSearchSubmit} style={{ display: "flex", flex: "1 1 220px", maxWidth: "340px", gap: "8px" }}>
             <input
               className="input-control"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by title, role, company..."
-              style={{ width: "240px", padding: "8px 12px", fontSize: "0.85rem" }}
+              style={{ flex: 1, padding: "8px 12px", fontSize: "0.85rem" }}
             />
-            <button type="submit" className="btn btn-secondary btn-sm">
+            <button type="submit" className="btn btn-secondary btn-sm" style={{ flexShrink: 0 }}>
               <Search size={15} />
             </button>
           </form>
@@ -123,11 +123,7 @@ export const OpportunitiesView = ({ currentUser, onOpenPostModal, onOpenReferral
           </p>
         </div>
       ) : (
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(380px, 1fr))",
-          gap: "24px",
-        }}>
+        <div className="responsive-cards-grid">
           {opportunities.map((opp) => {
             const badgeTypeColor =
               opp.type === "internship" ? "badge-indigo" :

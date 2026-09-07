@@ -41,9 +41,9 @@ export const SuccessStoriesView = ({ currentUser, onOpenSubmitStoryModal }) => {
   }, [category]);
 
   return (
-    <div style={{ maxWidth: "1160px", margin: "0 auto", padding: "32px 20px" }}>
+    <div className="page-container">
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+      <div className="responsive-page-header">
         <div>
           <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Alumni Success Stories</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>

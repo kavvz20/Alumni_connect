@@ -220,7 +220,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "28px", alignItems: "start" }}>
+      <div className="responsive-split-grid">
         {/* ========================================================================= */}
         {/* Left Column: Complete Profile Details Form                                */}
         {/* ========================================================================= */}
@@ -257,7 +257,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
 
           <form onSubmit={handleSaveProfile} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
             {/* Full Name & Institutional Email */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+            <div className="responsive-form-grid-2">
               <div>
                 <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
                   Full Name
@@ -284,7 +284,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
             </div>
 
             {/* Branch & Batch */}
-            <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "14px" }}>
+            <div className="responsive-form-grid-2">
               <div>
                 <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
                   Branch / Department
@@ -378,7 +378,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                   <Briefcase size={18} color="#92400e" /> Alumni Professional Profile
                 </h4>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                <div className="responsive-form-grid-2">
                   <div>
                     <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
                       Current Company
@@ -404,7 +404,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                <div className="responsive-form-grid-2">
                   <div>
                     <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
                       Industry

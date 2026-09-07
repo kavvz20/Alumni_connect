@@ -54,9 +54,9 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
   };
 
   return (
-    <div style={{ maxWidth: "1320px", margin: "0 auto", padding: "32px 20px" }}>
+    <div className="page-container">
       {/* Title */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
+      <div className="responsive-page-header">
         <div>
           <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Alumni Directory</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
@@ -66,9 +66,9 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
       </div>
 
       {/* Filter Toolbar */}
-      <div className="glass-panel" style={{ padding: "20px", marginBottom: "32px" }}>
-        <form onSubmit={handleSearchSubmit} style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
-          <div style={{ flex: 1, position: "relative" }}>
+      <div className="glass-panel" style={{ padding: "18px", marginBottom: "28px" }}>
+        <form onSubmit={handleSearchSubmit} style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px" }}>
+          <div style={{ flex: "1 1 240px", position: "relative" }}>
             <Search size={18} style={{ position: "absolute", left: "14px", top: "13px", color: "var(--text-subtle)" }} />
             <input
               className="input-control"
@@ -79,14 +79,14 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
             />
           </div>
 
-          <button type="submit" className="btn btn-primary">
+          <button type="submit" className="btn btn-primary" style={{ flexShrink: 0 }}>
             <Search size={16} /> Search
           </button>
         </form>
 
         {/* Quick Dropdown Filters */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center" }}>
-          <div style={{ width: "200px" }}>
+        <div className="responsive-filter-bar">
+          <div style={{ flex: "1 1 180px", minWidth: "160px" }}>
             <select
               className="select-control"
               value={branch}
@@ -100,7 +100,7 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
             </select>
           </div>
 
-          <div style={{ width: "170px" }}>
+          <div style={{ flex: "1 1 150px", minWidth: "140px" }}>
             <select
               className="select-control"
               value={industry}
@@ -114,7 +114,7 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
             </select>
           </div>
 
-          <div style={{ width: "180px" }}>
+          <div style={{ flex: "1 1 160px", minWidth: "140px" }}>
             <input
               className="input-control"
               value={company}
@@ -123,7 +123,7 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
             />
           </div>
 
-          <div style={{ width: "180px" }}>
+          <div style={{ flex: "1 1 160px", minWidth: "140px" }}>
             <input
               className="input-control"
               value={skills}
@@ -144,6 +144,7 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
             padding: "8px 14px",
             borderRadius: "var(--radius-sm)",
             border: `1px solid ${isVerified ? "rgba(16, 185, 129, 0.3)" : "var(--border-color)"}`,
+            flexShrink: 0,
           }}>
             <input
               type="checkbox"
@@ -172,6 +173,7 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                 fontSize: "0.82rem",
                 cursor: "pointer",
                 padding: "6px 10px",
+                flexShrink: 0,
               }}
             >
               Clear Filters
@@ -186,11 +188,7 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
           Loading alumni network...
         </div>
       ) : (
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
-          gap: "24px",
-        }}>
+        <div className="responsive-cards-grid">
           {alumniList.map((alumnus) => (
             <div key={alumnus._id} className="glass-panel glass-panel-hover" style={{ padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
               <div>

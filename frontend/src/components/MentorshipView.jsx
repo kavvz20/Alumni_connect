@@ -44,9 +44,9 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
   };
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 20px" }}>
+    <div className="page-container">
       {/* Title */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+      <div className="responsive-page-header">
         <div>
           <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Mentorship & Google Meet Hub</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
@@ -64,7 +64,7 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "24px" }}>
         {["", "pending", "accepted", "completed", "rejected"].map((st) => (
           <button
             key={st}

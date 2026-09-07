@@ -35,9 +35,9 @@ export const EventsView = ({ currentUser, onOpenCreateEventModal }) => {
   }, [timeframe, mode]);
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 20px" }}>
+    <div className="page-container">
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+      <div className="responsive-page-header">
         <div>
           <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Campus Talks, Meets & Webinars</h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
@@ -53,8 +53,8 @@ export const EventsView = ({ currentUser, onOpenCreateEventModal }) => {
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "28px", alignItems: "center" }}>
-        <div style={{ display: "flex", gap: "6px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "28px", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
           {["upcoming", "past", ""].map((tf) => (
             <button
               key={tf}
@@ -77,7 +77,7 @@ export const EventsView = ({ currentUser, onOpenCreateEventModal }) => {
           ))}
         </div>
 
-        <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+        <div style={{ display: "flex", gap: "8px" }}>
           <select
             className="select-control"
             value={mode}
@@ -105,11 +105,7 @@ export const EventsView = ({ currentUser, onOpenCreateEventModal }) => {
           </p>
         </div>
       ) : (
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
-          gap: "24px",
-        }}>
+        <div className="responsive-cards-grid">
           {events.map((ev) => {
             const isOnline = ev.mode === "online";
             const dateObj = new Date(ev.eventDate);

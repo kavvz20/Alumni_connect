@@ -8,6 +8,7 @@ import {
   X,
   Search,
   CheckCircle2,
+  ArrowLeft,
 } from "lucide-react";
 
 export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
@@ -238,24 +239,16 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
     );
   });
 
+  const [mobileShowChat, setMobileShowChat] = useState(Boolean(initialTarget));
+
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "28px 20px" }}>
+    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "20px 14px" }}>
       {/* Container Panel: Clean White on Cream Canvas */}
-      <div style={{
-        height: "calc(100vh - 200px)",
-        minHeight: "560px",
-        background: "#ffffff",
-        border: "1px solid var(--border-color)",
-        borderRadius: "var(--radius-md)",
-        boxShadow: "0 8px 30px rgba(0, 0, 0, 0.05)",
-        display: "grid",
-        gridTemplateColumns: "340px 1fr",
-        overflow: "hidden",
-      }}>
+      <div className="chat-container-grid">
         {/* ========================================================================= */}
         {/* Left Sidebar: Conversations & Contacts List                              */}
         {/* ========================================================================= */}
-        <div style={{
+        <div className={`chat-sidebar-panel ${mobileShowChat ? "mobile-hidden" : ""}`} style={{
           background: "#fbf9f4",
           borderRight: "1px solid var(--border-color)",
           display: "flex",
@@ -331,7 +324,10 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                 return (
                   <div
                     key={conv._id}
-                    onClick={() => setActiveConversation(conv)}
+                    onClick={() => {
+                      setActiveConversation(conv);
+                      setMobileShowChat(true);
+                    }}
                     style={{
                       padding: "12px 14px",
                       borderRadius: "var(--radius-sm)",
@@ -390,22 +386,32 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
         {/* ========================================================================= */}
         {/* Right Chat Area: Active Conversation Window                               */}
         {/* ========================================================================= */}
-        <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#ffffff" }}>
+        <div className={`chat-main-panel ${!mobileShowChat ? "mobile-hidden" : ""}`} style={{ display: "flex", flexDirection: "column", height: "100%", background: "#ffffff" }}>
           {activeConversation ? (
             <>
               {/* Chat Header */}
               <div style={{
-                padding: "16px 24px",
+                padding: "14px 20px",
                 borderBottom: "1px solid var(--border-color)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
                 background: "#ffffff",
+                gap: "8px",
               }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+                  <button
+                    onClick={() => setMobileShowChat(false)}
+                    className="btn btn-secondary btn-sm chat-back-btn"
+                    style={{ padding: "5px 8px" }}
+                    title="Back to conversations list"
+                  >
+                    <ArrowLeft size={16} />
+                  </button>
+
                   <div style={{
-                    width: "40px",
-                    height: "40px",
+                    width: "36px",
+                    height: "36px",
                     borderRadius: "50%",
                     background: activeCounterpart?.role === "student"
                       ? "#0284c7"
@@ -417,21 +423,22 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                     justifyContent: "center",
                     fontWeight: 800,
                     color: "#ffffff",
+                    flexShrink: 0,
                   }}>
                     {activeCounterpart?.name?.[0] || "U"}
                   </div>
 
-                  <div>
-                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#18181b" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <h3 style={{ fontSize: "0.98rem", fontWeight: 800, color: "#18181b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {activeCounterpart?.name || "Conversation"}
                     </h3>
-                    <div style={{ fontSize: "0.76rem", color: "#78716c" }}>
+                    <div style={{ fontSize: "0.72rem", color: "#78716c", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {activeCounterpart?.currentRole} {activeCounterpart?.currentCompany ? `@ ${activeCounterpart.currentCompany}` : ""} ({activeCounterpart?.role})
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
                   <span style={{
                     width: "8px",
                     height: "8px",
@@ -439,7 +446,7 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                     background: "#059669",
                     display: "inline-block",
                   }} />
-                  <span style={{ fontSize: "0.75rem", color: "#059669", fontWeight: 700 }}>Live Socket Active</span>
+                  <span style={{ fontSize: "0.75rem", color: "#059669", fontWeight: 700 }}>Live</span>
                 </div>
               </div>
 

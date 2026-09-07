@@ -289,10 +289,11 @@ export const AdminCenterView = ({ currentUser }) => {
       </div>
 
       {/* Main Tab Navigation */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "28px", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px" }}>
+      <div style={{ display: "flex", gap: "10px", marginBottom: "28px", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px", overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
         <button
           onClick={() => setActiveTab("onboarding")}
           className={`btn ${activeTab === "onboarding" ? "btn-primary" : "btn-secondary"}`}
+          style={{ whiteSpace: "nowrap", flexShrink: 0 }}
         >
           <UserPlus size={16} /> User Provisioning (Add Accounts)
         </button>
@@ -300,6 +301,7 @@ export const AdminCenterView = ({ currentUser }) => {
         <button
           onClick={() => setActiveTab("verification")}
           className={`btn ${activeTab === "verification" ? "btn-primary" : "btn-secondary"}`}
+          style={{ whiteSpace: "nowrap", flexShrink: 0 }}
         >
           <CheckCircle2 size={16} /> Alumni Verification Queue ({alumniList.length})
         </button>
@@ -307,6 +309,7 @@ export const AdminCenterView = ({ currentUser }) => {
         <button
           onClick={() => setActiveTab("moderation")}
           className={`btn ${activeTab === "moderation" ? "btn-primary" : "btn-secondary"}`}
+          style={{ whiteSpace: "nowrap", flexShrink: 0 }}
         >
           <AlertTriangle size={16} /> Content Moderation ({reports.length})
         </button>
@@ -328,6 +331,8 @@ export const AdminCenterView = ({ currentUser }) => {
             borderRadius: "var(--radius-md)",
             border: "1px solid var(--border-color)",
             width: "fit-content",
+            maxWidth: "100%",
+            overflowX: "auto",
           }}>
             <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#78716c" }}>MODE:</span>
             <button
@@ -344,7 +349,7 @@ export const AdminCenterView = ({ currentUser }) => {
             </button>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "28px", alignItems: "start" }}>
+          <div className="responsive-split-grid">
             {/* Left Column: Form (Manual or CSV) */}
             <div style={{
               background: "#ffffff",
@@ -376,7 +381,7 @@ export const AdminCenterView = ({ currentUser }) => {
                       <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "8px" }}>
                         ACCOUNT ROLE
                       </label>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                      <div className="responsive-form-grid-2">
                         <button
                           type="button"
                           onClick={() => setManualRole("alumni")}

@@ -57,34 +57,36 @@ export const Navbar = ({
       <div style={{
         maxWidth: "1440px",
         margin: "0 auto",
-        padding: "0 24px",
+        padding: "0 16px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        height: "64px",
+        height: "60px",
         borderBottom: currentUser ? "1px solid rgba(0, 0, 0, 0.06)" : "none",
+        gap: "12px",
       }}>
         {/* Brand Logo */}
         <div 
           onClick={() => navigate(currentUser?.role === "admin" ? "/admin" : "/alumni")}
-          style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer", flexShrink: 0 }}
+          style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", flexShrink: 0 }}
         >
           <div style={{
-            width: "38px",
-            height: "38px",
+            width: "36px",
+            height: "36px",
             borderRadius: "10px",
             background: "#18181b",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
+            flexShrink: 0,
           }}>
-            <Sparkles size={20} color="#fbf9f4" />
+            <Sparkles size={18} color="#fbf9f4" />
           </div>
           <div>
             <div style={{
               fontFamily: "var(--font-heading)",
-              fontSize: "1.2rem",
+              fontSize: "1.05rem",
               fontWeight: 800,
               letterSpacing: "-0.03em",
               color: "#18181b",
@@ -92,24 +94,25 @@ export const Navbar = ({
             }}>
               ALUMNI CONNECT
             </div>
-            <div style={{ fontSize: "0.7rem", color: "#92400e", fontWeight: 700, letterSpacing: "0.1em" }}>
+            <div style={{ fontSize: "0.65rem", color: "#92400e", fontWeight: 700, letterSpacing: "0.1em" }}>
               THAPAR ECOSYSTEM
             </div>
           </div>
         </div>
 
         {/* User Identity & Auth Controls */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
           {currentUser ? (
             <div style={{
               background: "#ffffff",
               border: "1px solid rgba(0, 0, 0, 0.12)",
               borderRadius: "var(--radius-full)",
-              padding: "4px 10px 4px 6px",
+              padding: "4px 8px 4px 6px",
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "6px",
               boxShadow: "0 1px 4px rgba(0, 0, 0, 0.04)",
+              maxWidth: "100%",
             }}>
               {/* User Avatar & Info (Click to view profile) */}
               <div
@@ -118,8 +121,8 @@ export const Navbar = ({
                 title="View and edit your profile"
               >
                 <div style={{
-                  width: "32px",
-                  height: "32px",
+                  width: "30px",
+                  height: "30px",
                   borderRadius: "50%",
                   background: currentUser?.role === "student"
                     ? "linear-gradient(135deg, #0284c7, #0369a1)"
@@ -130,24 +133,25 @@ export const Navbar = ({
                   alignItems: "center",
                   justifyContent: "center",
                   fontWeight: 800,
-                  fontSize: "0.85rem",
+                  fontSize: "0.82rem",
                   color: "#ffffff",
+                  flexShrink: 0,
                 }}>
                   {currentUser?.name?.[0] || "U"}
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontSize: "0.86rem", fontWeight: 700, color: "#18181b", lineHeight: 1.1 }}>
+                  <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#18181b", lineHeight: 1.1, maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {currentUser.name}
                   </span>
 
                   <span style={{
-                    fontSize: "0.68rem",
+                    fontSize: "0.65rem",
                     fontWeight: 700,
                     textTransform: "uppercase",
                     color: currentUser.role === "student" ? "#0284c7" : currentUser.role === "admin" ? "#059669" : "#b45309",
                   }}>
-                    {currentUser.role} {currentUser.currentCompany ? `(${currentUser.currentCompany})` : ""}
+                    {currentUser.role}
                   </span>
                 </div>
               </div>
@@ -157,28 +161,28 @@ export const Navbar = ({
                 onClick={onLogout}
                 className="btn btn-secondary btn-sm"
                 style={{
-                  padding: "5px 10px",
-                  fontSize: "0.78rem",
+                  padding: "4px 8px",
+                  fontSize: "0.75rem",
                   borderRadius: "var(--radius-full)",
                   color: "#be123c",
                   borderColor: "rgba(190, 18, 60, 0.25)",
                   display: "flex",
                   alignItems: "center",
-                  gap: "5px",
-                  marginLeft: "6px",
+                  gap: "4px",
+                  marginLeft: "4px",
                 }}
                 title="Sign out of this account"
               >
-                <LogOut size={13} /> Sign Out
+                <LogOut size={12} />
               </button>
             </div>
           ) : (
             <button
               onClick={() => navigate("/login")}
               className="btn btn-primary btn-sm"
-              style={{ padding: "8px 18px" }}
+              style={{ padding: "7px 14px", fontSize: "0.82rem" }}
             >
-              <LogIn size={15} /> Sign In
+              <LogIn size={14} /> Sign In
             </button>
           )}
         </div>
