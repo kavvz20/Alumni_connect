@@ -25,7 +25,9 @@ export const getSocket = () => {
 
 // Generic fetch handler with error handling
 const request = async (endpoint, options = {}) => {
-  const url = `${API_BASE}${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  const rawUrl = `${API_BASE}${cleanEndpoint}`;
+  const url = rawUrl.replace(/([^:]\/)\/+/g, "$1");
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers || {}),

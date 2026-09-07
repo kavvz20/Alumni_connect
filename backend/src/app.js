@@ -23,6 +23,14 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Normalize duplicate slashes in request URLs (e.g. //api/v1 -> /api/v1)
+app.use((req, res, next) => {
+  if (req.url && req.url.includes("//")) {
+    req.url = req.url.replace(/\/{2,}/g, "/");
+  }
+  next();
+});
+
 // API Routes
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/alumni", alumniRouter);
