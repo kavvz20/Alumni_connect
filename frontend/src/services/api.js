@@ -1,7 +1,8 @@
 import { io } from "socket.io-client";
 
-export const API_BASE = "/api/v1";
-export const SOCKET_URL = typeof window !== "undefined" ? window.location.origin : "http://localhost:8000";
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
+export const API_BASE = BACKEND_URL ? `${BACKEND_URL}/api/v1` : "/api/v1";
+export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || BACKEND_URL || (typeof window !== "undefined" && window.location.hostname === "localhost" ? "http://localhost:8000" : window.location.origin);
 
 let socketInstance = null;
 
