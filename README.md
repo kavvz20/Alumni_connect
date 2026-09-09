@@ -10,7 +10,7 @@
 ![Vite](https://img.shields.io/badge/Vite_8-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 
 <p align="center">
-  <b>A full-stack institutional web ecosystem designed to bridge the gap between students, alumni, and administrators through real-time communication, intelligent mentor matching, verified internal job referrals, and community engagement.</b>
+  <b>A full-stack institutional web ecosystem designed to bridge the gap between students, alumni, and administrators through real-time communication, structured 1-on-1 mentorship, verified internal job referrals, and community engagement.</b>
 </p>
 
 [Key Features](#-key-features) • [Tech Stack](#-tech-stack) • [Architecture](#-architecture) • [Getting Started](#-getting-started) • [Environment Variables](#-environment-variables) • [API Reference](#-api-reference) • [Role Capabilities](#-role-based-access-control-rbac)
@@ -21,23 +21,23 @@
 
 ## 🌟 Key Features
 
-### 🤝 1. Intelligent Mentorship Lifecycle
-- **AI-Powered Mentor Matching:** Recommends relevant mentors based on domain interest, skills, target companies, and career aspirations.
-- **Mentorship Request Hub:** Students can schedule 1-on-1 mentorship requests with custom agendas; mentors can accept, decline, or provide notes.
+### 👥 1. Alumni Directory & Profile Discovery
+- **Multi-Faceted Search:** Search and filter verified alumni by graduation year, current company, domain skills, and industry.
+- **Custom Profile Editor:** Edit bio, skills chips, LinkedIn/GitHub links, and upload canvas-compressed profile photos.
+- **Dynamic Avatars:** Fallback initials with role-differentiated gradients if no avatar is uploaded.
 
-### 💼 2. Opportunities & Verified Referral Portal
+### 🤝 2. Structured Mentorship Lifecycle
+- **1-on-1 Mentorship Booking:** Students can submit structured mentorship requests directly to alumni with meeting agendas and preferred timelines.
+- **Session Management:** Mentors can accept, decline, or complete requests while logging session notes.
+
+### 💼 3. Opportunities & Verified Referral Portal
 - **Opportunities Board:** Alumni post verified internships, full-time roles, and research openings.
 - **1-Click Referral Requests:** Students can request referrals directly on specific job listings with portfolio/resume links and pitch notes.
-- **Referral Tracker:** Tracks submitted referral requests and candidate statuses in real time.
+- **Referral Tracker:** Tracks submitted referral requests and candidate review statuses in real time.
 
-### 💬 3. Real-Time Chat & Direct Messaging
-- **Low-Latency WebSockets:** Powered by Socket.io for instantaneous message delivery.
-- **Conversation Threads:** 1-on-1 chatting between students and alumni with online indicators and unread indicators.
-
-### 👥 4. Alumni Directory & Profile Customization
-- **Multi-Faceted Search:** Search and filter alumni by graduation year, current company, industry, skill tags, and location.
-- **Profile Photo Uploads:** Integrated client-side HTML5 canvas compression (automatically downscales high-res photos to ~25KB WebP/JPEG data URLs) for instantaneous avatar updates.
-- **Dynamic Avatars:** Fallback initials with role-differentiated gradients if no avatar is uploaded.
+### 💬 4. Real-Time Chat & Direct Messaging
+- **Low-Latency WebSockets:** Powered by Socket.io for instantaneous message delivery ($< 50$ms).
+- **Conversation Threads:** 1-on-1 chatting between students and alumni with online indicators and unread message counters.
 
 ### 🏛️ 5. Administrative Command Center
 - **Verification Queue:** Review pending alumni credentials (degree proofs, LinkedIn profiles) before granting verified alumni badges.
@@ -117,10 +117,10 @@ Alumni/
 ├── frontend/                         # React 19 + Vite SPA
 │   ├── src/
 │   │   ├── components/               # Modular UI views & widgets
-│   │   │   ├── AIMentorMatchView.jsx # AI-based mentorship matching
 │   │   │   ├── AdminCenterView.jsx   # Admin moderation & user management
 │   │   │   ├── AlumniDirectoryView.jsx# Filterable alumni directory
 │   │   │   ├── AuthModal.jsx         # Login & registration modal
+│   │   │   ├── AuthView.jsx          # Dedicated login/signup view
 │   │   │   ├── Avatar.jsx            # Dynamic profile photo & initials component
 │   │   │   ├── ChatView.jsx          # Real-time WebSocket messaging UI
 │   │   │   ├── EventsView.jsx        # Institutional events & webinars
@@ -228,7 +228,6 @@ npm run dev
 | Feature | Student | Alumni | Administrator |
 | :--- | :---: | :---: | :---: |
 | **Browse Alumni Directory** | ✅ | ✅ | ✅ |
-| **AI Mentor Match Search** | ✅ | ✅ | ✅ |
 | **Request 1-on-1 Mentorship** | ✅ | ❌ | ❌ |
 | **Accept / Manage Mentorship** | ❌ | ✅ | ✅ |
 | **Browse Opportunities** | ✅ | ✅ | ✅ |
