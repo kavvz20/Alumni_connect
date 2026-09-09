@@ -104,6 +104,11 @@ export const api = {
       headers: adminId ? { "x-user-id": adminId } : {},
       body: JSON.stringify({ isVerified, adminId }),
     }),
+  deleteUser: (userId, adminId) =>
+    request(`/users/${userId}`, {
+      method: "DELETE",
+      headers: adminId ? { "x-user-id": adminId } : {},
+    }),
 
   // Alumni & AI Matching
   getAlumni: (params = {}) => {

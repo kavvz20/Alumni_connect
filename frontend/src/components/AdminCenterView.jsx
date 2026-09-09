@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
+import { Avatar } from "./Avatar";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -16,6 +17,7 @@ import {
   Mail,
   Lock,
   Plus,
+  Trash2,
 } from "lucide-react";
 
 export const AdminCenterView = ({ currentUser }) => {
@@ -114,6 +116,28 @@ export const AdminCenterView = ({ currentUser }) => {
       fetchReports();
     } catch (err) {
       alert(err.message || "Failed to update report status");
+    }
+  };
+
+  const handleDeleteUser = async (userToDelete) => {
+    if (!userToDelete?._id) return;
+    if (userToDelete.role === "admin") {
+      alert("Administrator accounts cannot be deleted.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete '${userToDelete.name}' (${userToDelete.role})?\n\nThis will remove their account and directory profile immediately.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await api.deleteUser(userToDelete._id, currentUser?._id);
+      alert(`Account for '${userToDelete.name}' has been deleted successfully.`);
+      fetchAllUsers();
+      fetchAlumni();
+    } catch (err) {
+      alert(err.message || "Failed to delete user account.");
     }
   };
 
@@ -741,13 +765,17 @@ export const AdminCenterView = ({ currentUser }) => {
                     <th style={{ padding: "10px 14px" }}>Role</th>
                     <th style={{ padding: "10px 14px" }}>Company / Branch</th>
                     <th style={{ padding: "10px 14px" }}>Alumni Verification</th>
+                    <th style={{ padding: "10px 14px", textAlign: "right" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredDirectoryUsers.map((u) => (
                     <tr key={u._id} style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.05)" }}>
-                      <td style={{ padding: "12px 14px", fontWeight: 700, color: "#18181b" }}>
-                        {u.name}
+                      <td style={{ padding: "12px 14px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <Avatar user={u} size={32} borderRadius="8px" />
+                          <span style={{ fontWeight: 700, color: "#18181b" }}>{u.name}</span>
+                        </div>
                       </td>
                       <td style={{ padding: "12px 14px", color: "#524f4a" }}>
                         {u.email}
@@ -768,6 +796,30 @@ export const AdminCenterView = ({ currentUser }) => {
                         ) : (
                           <span style={{ color: "#a8a29e", fontSize: "0.82rem" }}>
                             {u.role === "admin" ? "Administrator" : "—"}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: "12px 14px", textAlign: "right" }}>
+                        {u.role !== "admin" ? (
+                          <button
+                            onClick={() => handleDeleteUser(u)}
+                            className="btn btn-secondary btn-sm"
+                            style={{
+                              color: "#be123c",
+                              borderColor: "rgba(190, 18, 60, 0.25)",
+                              padding: "5px 10px",
+                              fontSize: "0.78rem",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                            title={`Delete ${u.name}'s account`}
+                          >
+                            <Trash2 size={13} /> Delete
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: "0.78rem", color: "#a8a29e", fontStyle: "italic" }}>
+                            Protected
                           </span>
                         )}
                       </td>
@@ -803,15 +855,20 @@ export const AdminCenterView = ({ currentUser }) => {
                   <th style={{ padding: "12px 14px" }}>Company & Role</th>
                   <th style={{ padding: "12px 14px" }}>Batch & Branch</th>
                   <th style={{ padding: "12px 14px" }}>Verified Status</th>
-                  <th style={{ padding: "12px 14px", textAlign: "right" }}>Action</th>
+                  <th style={{ padding: "12px 14px", textAlign: "right" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {alumniList.map((alumnus) => (
                   <tr key={alumnus._id} style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.05)" }}>
-                    <td style={{ padding: "14px", fontWeight: 700, color: "#18181b" }}>
-                      {alumnus.name}
-                      <div style={{ fontSize: "0.75rem", color: "#78716c", fontWeight: 400 }}>{alumnus.email}</div>
+                    <td style={{ padding: "14px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <Avatar user={alumnus} size={36} borderRadius="10px" />
+                        <div>
+                          <div style={{ fontWeight: 700, color: "#18181b" }}>{alumnus.name}</div>
+                          <div style={{ fontSize: "0.75rem", color: "#78716c" }}>{alumnus.email}</div>
+                        </div>
+                      </div>
                     </td>
                     <td style={{ padding: "14px", fontSize: "0.88rem", color: "#92400e", fontWeight: 600 }}>
                       {alumnus.currentRole} {alumnus.currentCompany ? `@ ${alumnus.currentCompany}` : ""}
@@ -825,13 +882,30 @@ export const AdminCenterView = ({ currentUser }) => {
                       </span>
                     </td>
                     <td style={{ padding: "14px", textAlign: "right" }}>
-                      <button
-                        onClick={() => handleToggleVerify(alumnus._id, alumnus.isVerified)}
-                        className={`btn btn-sm ${alumnus.isVerified ? "btn-secondary" : "btn-primary"}`}
-                        style={{ fontSize: "0.8rem" }}
-                      >
-                        {alumnus.isVerified ? "Revoke Badge" : "Grant Verified Badge"}
-                      </button>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                        <button
+                          onClick={() => handleToggleVerify(alumnus._id, alumnus.isVerified)}
+                          className={`btn btn-sm ${alumnus.isVerified ? "btn-secondary" : "btn-primary"}`}
+                          style={{ fontSize: "0.8rem" }}
+                        >
+                          {alumnus.isVerified ? "Revoke Badge" : "Grant Verified Badge"}
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteUser(alumnus)}
+                          className="btn btn-secondary btn-sm"
+                          style={{
+                            color: "#be123c",
+                            borderColor: "rgba(190, 18, 60, 0.25)",
+                            padding: "6px 9px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                          }}
+                          title={`Delete ${alumnus.name}'s account`}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

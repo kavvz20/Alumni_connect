@@ -507,6 +507,71 @@ const bulkOnboardUsers = async (req, res) => {
   }
 };
 
+const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const callerId = req.headers["x-user-id"] || req.user?._id || req.body?.adminId || req.query?.adminId;
+
+    if (!isValidId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "userId must be a valid ID.",
+      });
+    }
+
+    // Verify admin privileges
+    if (req.user?.role !== "admin") {
+      if (!callerId || !isValidId(callerId)) {
+        return res.status(403).json({
+          success: false,
+          message: "Admin privileges required.",
+        });
+      }
+      const adminUser = await User.findById(callerId);
+      if (!adminUser || adminUser.role !== "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "Only administrators can delete user accounts.",
+        });
+      }
+    }
+
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    if (targetUser.role === "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Administrator accounts cannot be deleted.",
+      });
+    }
+
+    await User.findByIdAndDelete(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: `Account for ${targetUser.name} (${targetUser.role}) has been permanently deleted.`,
+      data: {
+        userId,
+        name: targetUser.name,
+        email: targetUser.email,
+        role: targetUser.role,
+      },
+    });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to delete user account.",
+    });
+  }
+};
+
 export {
   createUser,
   loginUser,
@@ -516,4 +581,5 @@ export {
   verifyAlumni,
   onboardUser,
   bulkOnboardUsers,
+  deleteUser,
 };
