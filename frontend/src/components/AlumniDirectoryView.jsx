@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
+import { Avatar } from "./Avatar";
 import {
   Search,
   CheckCircle2,
@@ -213,21 +214,11 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
 
                 {/* Profile row */}
                 <div style={{ display: "flex", gap: "14px", marginBottom: "16px" }}>
-                  <div style={{
-                    width: "54px",
-                    height: "54px",
-                    borderRadius: "16px",
-                    background: "linear-gradient(135deg, #f59e0b 0%, #ec4899 100%)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.3rem",
-                    fontWeight: 700,
-                    color: "#fff",
-                    flexShrink: 0,
-                  }}>
-                    {alumnus.name[0]}
-                  </div>
+                  <Avatar
+                    user={alumnus}
+                    size={54}
+                    borderRadius="16px"
+                  />
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>

@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Avatar } from "./Avatar";
 import {
   Sparkles,
   Users,
@@ -120,25 +121,10 @@ export const Navbar = ({
                 style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
                 title="View and edit your profile"
               >
-                <div style={{
-                  width: "30px",
-                  height: "30px",
-                  borderRadius: "50%",
-                  background: currentUser?.role === "student"
-                    ? "linear-gradient(135deg, #0284c7, #0369a1)"
-                    : currentUser?.role === "admin"
-                    ? "linear-gradient(135deg, #059669, #047857)"
-                    : "linear-gradient(135deg, #d97706, #b45309)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: 800,
-                  fontSize: "0.82rem",
-                  color: "#ffffff",
-                  flexShrink: 0,
-                }}>
-                  {currentUser?.name?.[0] || "U"}
-                </div>
+                <Avatar
+                  user={currentUser}
+                  size={30}
+                />
 
                 <div style={{ display: "flex", flexDirection: "column" }}>
                   <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#18181b", lineHeight: 1.1, maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

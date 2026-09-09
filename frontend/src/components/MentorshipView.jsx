@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
+import { Avatar } from "./Avatar";
 import {
   Calendar,
   CheckCircle2,
@@ -128,21 +129,11 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
               <div key={req._id} className="glass-panel glass-panel-hover" style={{ padding: "24px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
                   <div style={{ display: "flex", gap: "14px" }}>
-                    <div style={{
-                      width: "48px",
-                      height: "48px",
-                      borderRadius: "14px",
-                      background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "1.2rem",
-                      fontWeight: 700,
-                      color: "#fff",
-                      flexShrink: 0,
-                    }}>
-                      {counterpart?.name?.[0] || "U"}
-                    </div>
+                    <Avatar
+                      user={counterpart}
+                      size={48}
+                      borderRadius="14px"
+                    />
 
                     <div>
                       <div style={{ fontSize: "0.75rem", color: "var(--text-subtle)", textTransform: "uppercase", letterSpacing: "0.05em" }}>

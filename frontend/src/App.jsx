@@ -189,6 +189,7 @@ export function App() {
                   currentUser={currentUser}
                   onScheduleMeeting={handleScheduleMeeting}
                   onStartChat={handleStartChat}
+                  onOpenNewRequestModal={() => setMentorshipModal({ open: true, target: null })}
                 />
               </RequireAuth>
             }
@@ -201,7 +202,7 @@ export function App() {
               <RequireAuth user={currentUser}>
                 <ReferralHubView
                   currentUser={currentUser}
-                  onRequestReferral={(opp) => handleOpenReferral(null, opp)}
+                  onRequestReferral={(opp) => handleOpenReferral(opp?.postedBy || null, opp)}
                   onStartChat={handleStartChat}
                 />
               </RequireAuth>
@@ -229,7 +230,7 @@ export function App() {
                 <OpportunitiesView
                   currentUser={currentUser}
                   onOpenPostModal={() => setPostOppModalOpen(true)}
-                  onRequestReferral={(opp) => handleOpenReferral(null, opp)}
+                  onRequestReferral={(opp) => handleOpenReferral(opp?.postedBy || null, opp)}
                 />
               </RequireAuth>
             }
@@ -292,8 +293,8 @@ export function App() {
                 <ProfileView
                   currentUser={currentUser}
                   onUserUpdated={(updated) => {
-                    setCurrentUser(updated);
-                    localStorage.setItem("alumni_user", JSON.stringify(updated));
+                    handleSelectUser(updated);
+                    fetchUsers();
                   }}
                 />
               </RequireAuth>
@@ -327,8 +328,12 @@ export function App() {
         isOpen={mentorshipModal.open}
         onClose={() => setMentorshipModal({ open: false, target: null })}
         mentor={mentorshipModal.target}
+        usersList={usersList}
         currentUser={currentUser}
-        onSuccess={() => navigate("/mentorship")}
+        onSuccess={() => {
+          fetchUsers();
+          navigate("/mentorship");
+        }}
       />
 
       <ScheduleMeetingModal
@@ -343,8 +348,12 @@ export function App() {
         onClose={() => setReferralModal({ open: false, target: null, opp: null })}
         alumnus={referralModal.target}
         opportunity={referralModal.opp}
+        usersList={usersList}
         currentUser={currentUser}
-        onSuccess={() => navigate("/referrals")}
+        onSuccess={() => {
+          fetchUsers();
+          navigate("/referrals");
+        }}
       />
 
       <PostOpportunityModal

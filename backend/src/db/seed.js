@@ -38,6 +38,7 @@ export const seedDatabase = async () => {
         resumeUrl: "https://recruitsage.thapar.edu/resumes/aarav_sharma.pdf",
         linkedinUrl: "https://linkedin.com/in/aarav-sharma-demo",
         githubUrl: "https://github.com/aarav-demo",
+        profilePicture: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=300&auto=format&fit=crop&q=80",
       },
       { upsert: true, new: true }
     );
@@ -62,6 +63,7 @@ export const seedDatabase = async () => {
         isVerified: true,
         linkedinUrl: "https://linkedin.com/in/priya-patel-demo",
         githubUrl: "https://github.com/priya-demo",
+        profilePicture: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80",
       },
       { upsert: true, new: true }
     );
@@ -85,6 +87,7 @@ export const seedDatabase = async () => {
         willingToRefer: true,
         isVerified: true,
         linkedinUrl: "https://linkedin.com/in/rohan-gupta-demo",
+        profilePicture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
       },
       { upsert: true, new: true }
     );
@@ -108,6 +111,7 @@ export const seedDatabase = async () => {
         willingToRefer: false,
         isVerified: true,
         linkedinUrl: "https://linkedin.com/in/ananya-verma-demo",
+        profilePicture: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80",
       },
       { upsert: true, new: true }
     );

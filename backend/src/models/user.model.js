@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema({
   skills: { type: [String], default: [] },
   linkedinUrl: String,
   githubUrl: String,
+  profilePicture: { type: String, default: "" },
   bio: String,
 
   currentCompany: String,

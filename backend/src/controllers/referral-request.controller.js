@@ -65,7 +65,7 @@ const createReferralRequest = async (req, res) => {
       });
     }
 
-    if (!alumni.willingToRefer) {
+    if (!alumni.willingToRefer && !opportunityId) {
       return res.status(400).json({
         success: false,
         message: "This alumnus is not currently opted in to give referrals.",

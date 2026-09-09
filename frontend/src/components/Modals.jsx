@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
+import { Avatar } from "./Avatar";
 import {
   X,
   Calendar,
@@ -9,42 +10,69 @@ import {
   Plus,
   Compass,
   Award,
+  User,
 } from "lucide-react";
 
 /**
  * 1. Mentorship Request Modal
  */
-export const MentorshipRequestModal = ({ isOpen, onClose, targetAlumni, mentor, target, currentUser, onSuccess, onSwitchToStudent }) => {
-  const alumnus = targetAlumni || mentor || target;
+export const MentorshipRequestModal = ({
+  isOpen,
+  onClose,
+  targetAlumni,
+  mentor,
+  target,
+  usersList = [],
+  currentUser,
+  onSuccess,
+  onSwitchToStudent,
+}) => {
+  const initialMentor = targetAlumni || mentor || target || null;
+  const [selectedMentorId, setSelectedMentorId] = useState(initialMentor?._id || "");
   const [agenda, setAgenda] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  React.useEffect(() => {
+  const availableMentors = usersList.filter(
+    (u) => u.role === "alumni" && u._id !== currentUser?._id
+  );
+
+  const activeMentor =
+    initialMentor ||
+    availableMentors.find((m) => m._id === selectedMentorId) ||
+    availableMentors[0] ||
+    null;
+
+  useEffect(() => {
     if (isOpen) {
       setAgenda("");
+      if (initialMentor?._id) {
+        setSelectedMentorId(initialMentor._id);
+      } else if (availableMentors.length > 0 && !selectedMentorId) {
+        setSelectedMentorId(availableMentors[0]._id);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialMentor, availableMentors.length]);
 
-  if (!isOpen || !alumnus) return null;
+  if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!agenda.trim()) return;
+    if (!agenda.trim() || !activeMentor?._id) return;
 
     setSubmitting(true);
     try {
       await api.createMentorshipRequest(
         {
-          alumniId: alumnus._id,
+          alumniId: activeMentor._id,
           agenda: agenda.trim(),
         },
         currentUser?._id
       );
-      alert("Mentorship request sent successfully!");
+      alert(`Mentorship request sent to ${activeMentor.name} successfully!`);
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
-      alert(err.message || "Failed to send request.");
+      alert(err.message || "Failed to send mentorship request.");
     } finally {
       setSubmitting(false);
     }
@@ -57,7 +85,11 @@ export const MentorshipRequestModal = ({ isOpen, onClose, targetAlumni, mentor, 
           <div>
             <h2 style={{ fontSize: "1.35rem", fontWeight: 700 }}>Request 1-on-1 Mentorship Call</h2>
             <div style={{ fontSize: "0.85rem", color: "var(--accent-amber)" }}>
-              With {alumnus.name} ({alumnus.currentRole || "Alumnus"} {alumnus.currentCompany ? `@ ${alumnus.currentCompany}` : ""})
+              {activeMentor ? (
+                <>With {activeMentor.name} ({activeMentor.currentRole || "Alumnus"} {activeMentor.currentCompany ? `@ ${activeMentor.currentCompany}` : ""})</>
+              ) : (
+                "Select a verified alumnus mentor"
+              )}
             </div>
           </div>
           <button onClick={onClose} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
@@ -83,13 +115,61 @@ export const MentorshipRequestModal = ({ isOpen, onClose, targetAlumni, mentor, 
                   }}
                   className="btn btn-primary"
                 >
-                  Switch to Student (Aarav Sharma) & Continue
+                  Switch to Student & Continue
                 </button>
               )}
             </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            {/* Mentor Selector when opened globally or without preset */}
+            {!initialMentor && (
+              <div style={{ marginBottom: "18px" }}>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px" }}>
+                  Select Alumni Mentor
+                </label>
+                <select
+                  className="select-control"
+                  value={selectedMentorId}
+                  onChange={(e) => setSelectedMentorId(e.target.value)}
+                  required
+                >
+                  {availableMentors.map((m) => (
+                    <option key={m._id} value={m._id}>
+                      {m.name} — {m.currentRole || "Alumnus"} {m.currentCompany ? `@ ${m.currentCompany}` : ""} ({m.branch || "Thapar"})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Mentor Preview Card */}
+            {activeMentor && (
+              <div style={{
+                background: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-md)",
+                padding: "14px 16px",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                marginBottom: "20px",
+              }}>
+                <Avatar user={activeMentor} size={46} borderRadius="12px" />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.98rem" }}>{activeMentor.name}</div>
+                  <div style={{ fontSize: "0.82rem", color: "var(--accent-amber)" }}>
+                    {activeMentor.currentRole || "Alumnus"} {activeMentor.currentCompany ? `@ ${activeMentor.currentCompany}` : ""}
+                  </div>
+                  {activeMentor.skills?.length > 0 && (
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-subtle)", marginTop: "2px" }}>
+                      Expertise: {Array.isArray(activeMentor.skills) ? activeMentor.skills.slice(0, 4).join(", ") : activeMentor.skills}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div style={{ marginBottom: "20px" }}>
               <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px" }}>
                 Call Agenda & What You Wish To Learn
@@ -100,7 +180,7 @@ export const MentorshipRequestModal = ({ isOpen, onClose, targetAlumni, mentor, 
                 onChange={(e) => setAgenda(e.target.value)}
                 placeholder="e.g. Would love 20 minutes to review my resume for SDE roles, discuss how you cracked Google, and get feedback on distributed system fundamentals."
                 required
-                style={{ minHeight: "120px" }}
+                style={{ minHeight: "110px" }}
               />
             </div>
 
@@ -108,7 +188,7 @@ export const MentorshipRequestModal = ({ isOpen, onClose, targetAlumni, mentor, 
               <button type="button" onClick={onClose} className="btn btn-secondary">
                 Cancel
               </button>
-              <button type="submit" disabled={submitting} className="btn btn-primary">
+              <button type="submit" disabled={submitting || !activeMentor} className="btn btn-primary">
                 <Send size={15} /> Send Request
               </button>
             </div>
@@ -214,9 +294,32 @@ export const ScheduleMeetingModal = ({ isOpen, onClose, requestItem, currentUser
 /**
  * 3. Referral Request Modal
  */
-export const ReferralRequestModal = ({ isOpen, onClose, targetAlumni, alumnus, target, opportunity, currentUser, onSuccess }) => {
-  const targetPerson = targetAlumni || alumnus || target || (opportunity?.postedBy && typeof opportunity.postedBy === "object" ? opportunity.postedBy : null);
+export const ReferralRequestModal = ({
+  isOpen,
+  onClose,
+  targetAlumni,
+  alumnus,
+  target,
+  opportunity,
+  usersList = [],
+  currentUser,
+  onSuccess,
+}) => {
+  const availableAlumni = usersList.filter(
+    (u) => u.role === "alumni" && u._id !== currentUser?._id
+  );
 
+  const initialPerson =
+    targetAlumni ||
+    alumnus ||
+    target ||
+    (opportunity?.postedBy && typeof opportunity.postedBy === "object"
+      ? opportunity.postedBy
+      : typeof opportunity?.postedBy === "string"
+      ? availableAlumni.find((u) => u._id === opportunity.postedBy)
+      : null);
+
+  const [selectedAlumniId, setSelectedAlumniId] = useState(initialPerson?._id || "");
   const [companyName, setCompanyName] = useState("");
   const [jobId, setJobId] = useState("");
   const [jobLink, setJobLink] = useState("");
@@ -224,25 +327,61 @@ export const ReferralRequestModal = ({ isOpen, onClose, targetAlumni, alumnus, t
   const [resumeUrl, setResumeUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  React.useEffect(() => {
+  const activeAlumnus =
+    initialPerson ||
+    availableAlumni.find((a) => a._id === selectedAlumniId) ||
+    availableAlumni[0] ||
+    null;
+
+  useEffect(() => {
     if (isOpen) {
-      setCompanyName(opportunity?.company || targetPerson?.currentCompany || "Company");
-      setJobId(opportunity?.title ? `REQ-${Date.now().toString().slice(-4)}` : "SWE-2026-001");
+      if (initialPerson?._id) {
+        setSelectedAlumniId(initialPerson._id);
+      } else if (availableAlumni.length > 0 && !selectedAlumniId) {
+        // Try finding alumnus from same company if opportunity exists
+        const matchingCompany = opportunity?.company
+          ? availableAlumni.find(
+              (a) =>
+                a.currentCompany?.toLowerCase() ===
+                opportunity.company.toLowerCase()
+            )
+          : null;
+        setSelectedAlumniId(matchingCompany?._id || availableAlumni[0]._id);
+      }
+
+      setCompanyName(
+        opportunity?.company ||
+          activeAlumnus?.currentCompany ||
+          "Target Company"
+      );
+      setJobId(
+        opportunity?.title
+          ? `REQ-${(opportunity._id || Date.now().toString()).slice(-4)}`
+          : "SWE-2026-001"
+      );
       setJobLink(opportunity?.applyLink || "https://careers.google.com/jobs");
       setEmail(currentUser?.email || "");
-      setResumeUrl(currentUser?.resumeUrl || "https://recruitsage.thapar.edu/resumes/my_resume.pdf");
+      setResumeUrl(
+        currentUser?.resumeUrl ||
+          "https://recruitsage.thapar.edu/resumes/my_resume.pdf"
+      );
     }
-  }, [isOpen, targetPerson, opportunity, currentUser]);
+  }, [isOpen, initialPerson, opportunity, currentUser, availableAlumni.length]);
 
-  if (!isOpen || !targetPerson) return null;
+  if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!activeAlumnus?._id) {
+      alert("Please select an alumnus to request a referral from.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.createReferralRequest(
         {
-          alumniId: targetPerson._id,
+          alumniId: activeAlumnus._id,
           opportunityId: opportunity?._id,
           companyName: companyName.trim(),
           jobId: jobId.trim(),
@@ -252,7 +391,9 @@ export const ReferralRequestModal = ({ isOpen, onClose, targetAlumni, alumnus, t
         },
         currentUser?._id
       );
-      alert("Referral application submitted to alumni successfully!");
+      alert(
+        `Referral request submitted to ${activeAlumnus.name} for ${companyName} successfully!`
+      );
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
@@ -265,22 +406,109 @@ export const ReferralRequestModal = ({ isOpen, onClose, targetAlumni, alumnus, t
   return (
     <div className="modal-backdrop">
       <div className="modal-content" style={{ padding: "28px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "20px",
+          }}
+        >
           <div>
-            <h2 style={{ fontSize: "1.35rem", fontWeight: 700 }}>Request Internal Referral</h2>
+            <h2 style={{ fontSize: "1.35rem", fontWeight: 700 }}>
+              Request Internal Referral
+            </h2>
             <div style={{ fontSize: "0.85rem", color: "var(--accent-amber)" }}>
-              Target Alumni: {targetPerson.name} ({targetPerson.currentRole || "Alumnus"} {targetPerson.currentCompany ? `@ ${targetPerson.currentCompany}` : ""})
+              {opportunity ? (
+                <>Opportunity: <strong>{opportunity.title}</strong> {opportunity.company ? `(${opportunity.company})` : ""}</>
+              ) : activeAlumnus ? (
+                <>Target Alumnus: <strong>{activeAlumnus.name}</strong> {activeAlumnus.currentCompany ? `@ ${activeAlumnus.currentCompany}` : ""}</>
+              ) : (
+                "Submit your credentials for referral"
+              )}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+            }}
+          >
             <X size={20} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="responsive-form-grid-2" style={{ marginBottom: "14px" }}>
+          {/* Alumnus Selector / Preview */}
+          {!initialPerson ? (
+            <div style={{ marginBottom: "16px" }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.8rem",
+                  color: "var(--text-muted)",
+                  marginBottom: "6px",
+                }}
+              >
+                Select Target Alumnus
+              </label>
+              <select
+                className="select-control"
+                value={selectedAlumniId}
+                onChange={(e) => setSelectedAlumniId(e.target.value)}
+                required
+              >
+                {availableAlumni.map((a) => (
+                  <option key={a._id} value={a._id}>
+                    {a.name} — {a.currentRole || "Alumnus"} {a.currentCompany ? `@ ${a.currentCompany}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : activeAlumnus ? (
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-md)",
+                padding: "12px 14px",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "16px",
+              }}
+            >
+              <Avatar user={activeAlumnus} size={42} borderRadius="12px" />
+              <div>
+                <div style={{ fontWeight: 700, fontSize: "0.92rem" }}>
+                  {activeAlumnus.name}
+                </div>
+                <div style={{ fontSize: "0.8rem", color: "var(--accent-amber)" }}>
+                  {activeAlumnus.currentRole || "Alumnus"}{" "}
+                  {activeAlumnus.currentCompany ? `@ ${activeAlumnus.currentCompany}` : ""}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          <div
+            className="responsive-form-grid-2"
+            style={{ marginBottom: "14px" }}
+          >
             <div>
-              <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>Company</label>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.8rem",
+                  color: "var(--text-muted)",
+                  marginBottom: "6px",
+                }}
+              >
+                Company
+              </label>
               <input
                 className="input-control"
                 value={companyName}
@@ -289,7 +517,16 @@ export const ReferralRequestModal = ({ isOpen, onClose, targetAlumni, alumnus, t
               />
             </div>
             <div>
-              <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>Company Job ID</label>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.8rem",
+                  color: "var(--text-muted)",
+                  marginBottom: "6px",
+                }}
+              >
+                Company Job ID / Req
+              </label>
               <input
                 className="input-control"
                 value={jobId}
@@ -300,7 +537,16 @@ export const ReferralRequestModal = ({ isOpen, onClose, targetAlumni, alumnus, t
           </div>
 
           <div style={{ marginBottom: "14px" }}>
-            <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>Job Posting URL</label>
+            <label
+              style={{
+                display: "block",
+                fontSize: "0.8rem",
+                color: "var(--text-muted)",
+                marginBottom: "6px",
+              }}
+            >
+              Job Posting URL
+            </label>
             <input
               type="url"
               className="input-control"
@@ -311,7 +557,16 @@ export const ReferralRequestModal = ({ isOpen, onClose, targetAlumni, alumnus, t
           </div>
 
           <div style={{ marginBottom: "14px" }}>
-            <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>Contact Email for Application</label>
+            <label
+              style={{
+                display: "block",
+                fontSize: "0.8rem",
+                color: "var(--text-muted)",
+                marginBottom: "6px",
+              }}
+            >
+              Contact Email for Application
+            </label>
             <input
               type="email"
               className="input-control"
@@ -322,8 +577,15 @@ export const ReferralRequestModal = ({ isOpen, onClose, targetAlumni, alumnus, t
           </div>
 
           <div style={{ marginBottom: "24px" }}>
-            <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>
-              Verified Resume Link (RecruitSage / Drive)
+            <label
+              style={{
+                display: "block",
+                fontSize: "0.8rem",
+                color: "var(--text-muted)",
+                marginBottom: "6px",
+              }}
+            >
+              Verified Resume Link (RecruitSage / Drive / Portfolio)
             </label>
             <input
               type="url"
@@ -334,11 +596,21 @@ export const ReferralRequestModal = ({ isOpen, onClose, targetAlumni, alumnus, t
             />
           </div>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
-            <button type="button" onClick={onClose} className="btn btn-secondary">
+          <div
+            style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}
+          >
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn-secondary"
+            >
               Cancel
             </button>
-            <button type="submit" disabled={submitting} className="btn btn-amber">
+            <button
+              type="submit"
+              disabled={submitting || !activeAlumnus}
+              className="btn btn-amber"
+            >
               <Briefcase size={15} /> Submit Referral Request
             </button>
           </div>

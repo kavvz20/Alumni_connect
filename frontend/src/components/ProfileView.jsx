@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { api } from "../services/api";
+import { Avatar } from "./Avatar";
 import {
   User,
   Lock,
@@ -11,11 +12,18 @@ import {
   KeyRound,
   ShieldCheck,
   ExternalLink,
+  Camera,
+  Upload,
+  Trash2,
+  Image as ImageIcon,
 } from "lucide-react";
 
 export const ProfileView = ({ currentUser, onUserUpdated }) => {
+  const fileInputRef = useRef(null);
+
   // General Profile State
   const [name, setName] = useState(currentUser?.name || "");
+  const [profilePicture, setProfilePicture] = useState(currentUser?.profilePicture || "");
   const [branch, setBranch] = useState(currentUser?.branch || "Computer Engineering");
   const [batch, setBatch] = useState(currentUser?.batch || 2026);
   const [skills, setSkills] = useState(
@@ -59,6 +67,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
   useEffect(() => {
     if (currentUser) {
       setName(currentUser.name || "");
+      setProfilePicture(currentUser.profilePicture || "");
       setBranch(currentUser.branch || "Computer Engineering");
       setBatch(currentUser.batch || 2026);
       setSkills(Array.isArray(currentUser.skills) ? currentUser.skills.join(", ") : "");
@@ -78,6 +87,22 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
     }
   }, [currentUser]);
 
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 3 * 1024 * 1024) {
+      alert("Image size should be under 3MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setProfilePicture(event.target?.result || "");
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Handle Profile Update
   const handleSaveProfile = async (e) => {
     e.preventDefault();
@@ -89,6 +114,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
 
     const updates = {
       name: name.trim(),
+      profilePicture: profilePicture.trim(),
       branch: branch.trim(),
       batch: Number(batch) || undefined,
       skills: skills.split(",").map((s) => s.trim()).filter(Boolean),
@@ -174,25 +200,11 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
           {/* User Avatar */}
-          <div style={{
-            width: "64px",
-            height: "64px",
-            borderRadius: "50%",
-            background: currentUser?.role === "student"
-              ? "#0284c7"
-              : currentUser?.role === "admin"
-              ? "#059669"
-              : "#18181b",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "1.6rem",
-            fontWeight: 800,
-            color: "#ffffff",
-            boxShadow: "0 4px 14px rgba(0, 0, 0, 0.15)",
-          }}>
-            {currentUser?.name?.[0] || "U"}
-          </div>
+          <Avatar
+            user={{ name, role: currentUser?.role, profilePicture }}
+            size={68}
+            style={{ boxShadow: "0 4px 14px rgba(0, 0, 0, 0.15)" }}
+          />
 
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
@@ -238,7 +250,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                 Complete Your Profile
               </h2>
               <span style={{ fontSize: "0.82rem", color: "#78716c" }}>
-                Keep your details up to date for networking and mentorship matching
+                Keep your details up to date for networking, directory visibility, and mentorship
               </span>
             </div>
           </div>
@@ -256,6 +268,82 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
           )}
 
           <form onSubmit={handleSaveProfile} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+            {/* Profile Picture Upload & Preview Card */}
+            <div style={{
+              background: "#fbf9f4",
+              border: "1px solid rgba(0, 0, 0, 0.08)",
+              borderRadius: "var(--radius-md)",
+              padding: "18px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <label style={{ fontSize: "0.86rem", fontWeight: 700, color: "#18181b", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Camera size={16} color="#92400e" /> Profile Picture
+                </label>
+                <span style={{ fontSize: "0.75rem", color: "#78716c" }}>
+                  Visible in Alumni Directory & platform
+                </span>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+                <Avatar
+                  user={{ name, role: currentUser?.role, profilePicture }}
+                  size={64}
+                  borderRadius="16px"
+                />
+
+                <div style={{ flex: 1, minWidth: "220px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <input
+                    type="url"
+                    className="input-control"
+                    value={profilePicture}
+                    onChange={(e) => setProfilePicture(e.target.value)}
+                    placeholder="Paste image URL (https://...)"
+                    style={{ fontSize: "0.84rem", padding: "8px 12px" }}
+                  />
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageFileChange}
+                      accept="image/*"
+                      style={{ display: "none" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="btn btn-secondary btn-sm"
+                      style={{ fontSize: "0.78rem", padding: "6px 12px", display: "flex", alignItems: "center", gap: "6px" }}
+                    >
+                      <Upload size={13} /> Upload Image File
+                    </button>
+
+                    {profilePicture && (
+                      <button
+                        type="button"
+                        onClick={() => setProfilePicture("")}
+                        style={{
+                          background: "transparent",
+                          border: "none",
+                          color: "#be123c",
+                          fontSize: "0.78rem",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          padding: "6px 8px",
+                        }}
+                      >
+                        <Trash2 size={13} /> Remove Photo
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
             {/* Full Name & Institutional Email */}
             <div className="responsive-form-grid-2">
               <div>

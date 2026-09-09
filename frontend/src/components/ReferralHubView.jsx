@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
+import { Avatar } from "./Avatar";
 import {
   Briefcase,
   ExternalLink,
@@ -11,7 +12,12 @@ import {
   Plus,
 } from "lucide-react";
 
-export const ReferralHubView = ({ currentUser, onOpenNewReferralModal }) => {
+export const ReferralHubView = ({
+  currentUser,
+  onOpenNewReferralModal,
+  onRequestReferral,
+  onStartChat,
+}) => {
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState("");
@@ -58,7 +64,13 @@ export const ReferralHubView = ({ currentUser, onOpenNewReferralModal }) => {
         </div>
 
         {currentUser?.role === "student" && (
-          <button onClick={onOpenNewReferralModal} className="btn btn-amber">
+          <button
+            onClick={() => {
+              if (onRequestReferral) onRequestReferral();
+              else if (onOpenNewReferralModal) onOpenNewReferralModal();
+            }}
+            className="btn btn-amber"
+          >
             <Plus size={16} /> Request Referral
           </button>
         )}
@@ -88,31 +100,32 @@ export const ReferralHubView = ({ currentUser, onOpenNewReferralModal }) => {
         ))}
       </div>
 
+      {/* Error */}
       {error && (
         <div style={{ padding: "16px", background: "rgba(244, 63, 94, 0.15)", borderRadius: "8px", color: "#fda4af", marginBottom: "20px" }}>
           {error}
         </div>
       )}
 
-      {/* Referrals List */}
+      {/* Referral Cards */}
       {loading ? (
         <div style={{ textAlign: "center", padding: "60px 0", color: "var(--text-muted)" }}>
-          Loading referral requests...
+          Loading referral tracker...
         </div>
       ) : referrals.length === 0 ? (
         <div className="glass-panel" style={{ padding: "50px", textAlign: "center" }}>
           <Briefcase size={48} style={{ color: "var(--text-subtle)", marginBottom: "16px" }} />
-          <h3 style={{ fontSize: "1.2rem", marginBottom: "8px" }}>No Referral Requests</h3>
+          <h3 style={{ fontSize: "1.2rem", marginBottom: "8px" }}>No Referral Applications Found</h3>
           <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
             {currentUser?.role === "student"
-              ? "Target alumni with 'Willing to Refer' enabled to apply for opportunities."
-              : "No incoming referral applications under this filter."}
+              ? "Browse the Opportunities tab or Alumni Directory to ask for verified internal referrals."
+              : "No students have requested referrals under this status."}
           </p>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           {referrals.map((item) => {
-            const isStudent = currentUser?.role === "student";
+            const isStudent = item.studentId?._id === currentUser?._id;
             const counterpart = isStudent ? item.alumniId : item.studentId;
 
             const statusColors = {
@@ -125,21 +138,24 @@ export const ReferralHubView = ({ currentUser, onOpenNewReferralModal }) => {
             return (
               <div key={item._id} className="glass-panel glass-panel-hover" style={{ padding: "24px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                      <Building size={16} color="#fbbf24" />
-                      <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff" }}>
-                        {item.companyName}
-                      </span>
-                      <span style={{ fontSize: "0.85rem", color: "var(--text-subtle)" }}>
-                        · Job ID: #{item.jobId}
-                      </span>
-                    </div>
+                  <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
+                    <Avatar user={counterpart} size={48} borderRadius="14px" />
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                        <Building size={16} color="#fbbf24" />
+                        <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff" }}>
+                          {item.companyName}
+                        </span>
+                        <span style={{ fontSize: "0.85rem", color: "var(--text-subtle)" }}>
+                          · Job ID: #{item.jobId}
+                        </span>
+                      </div>
 
-                    <div style={{ fontSize: "0.86rem", color: "var(--text-muted)" }}>
-                      {isStudent
-                        ? `Target Alumni: ${counterpart?.name} (${counterpart?.currentRole || "Engineer"})`
-                        : `Applicant: ${counterpart?.name} (${counterpart?.branch || "Student"}, Batch ${counterpart?.batch || ""})`}
+                      <div style={{ fontSize: "0.86rem", color: "var(--text-muted)" }}>
+                        {isStudent
+                          ? `Target Alumni: ${counterpart?.name} (${counterpart?.currentRole || "Engineer"})`
+                          : `Applicant: ${counterpart?.name} (${counterpart?.branch || "Student"}, Batch ${counterpart?.batch || ""})`}
+                      </div>
                     </div>
                   </div>
 

@@ -226,6 +226,7 @@ const updateUserProfile = async (req, res) => {
       "willingToRefer",
       "careerGoal",
       "resumeUrl",
+      "profilePicture",
     ];
 
     for (const key of allowedUpdates) {

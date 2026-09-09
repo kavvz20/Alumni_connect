@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { api, getSocket } from "../services/api";
+import { Avatar } from "./Avatar";
 import {
   MessageSquare,
   Send,
@@ -348,25 +349,7 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                       if (!isActive) e.currentTarget.style.background = "transparent";
                     }}
                   >
-                    <div style={{
-                      width: "38px",
-                      height: "38px",
-                      borderRadius: "50%",
-                      background: partner?.role === "student"
-                        ? "#0284c7"
-                        : partner?.role === "admin"
-                        ? "#059669"
-                        : "#18181b",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 800,
-                      color: "#ffffff",
-                      fontSize: "0.92rem",
-                      flexShrink: 0,
-                    }}>
-                      {partner?.name?.[0] || "U"}
-                    </div>
+                    <Avatar user={partner} size={38} />
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "#18181b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -409,24 +392,7 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                     <ArrowLeft size={16} />
                   </button>
 
-                  <div style={{
-                    width: "36px",
-                    height: "36px",
-                    borderRadius: "50%",
-                    background: activeCounterpart?.role === "student"
-                      ? "#0284c7"
-                      : activeCounterpart?.role === "admin"
-                      ? "#059669"
-                      : "#18181b",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 800,
-                    color: "#ffffff",
-                    flexShrink: 0,
-                  }}>
-                    {activeCounterpart?.name?.[0] || "U"}
-                  </div>
+                  <Avatar user={activeCounterpart} size={36} />
 
                   <div style={{ minWidth: 0 }}>
                     <h3 style={{ fontSize: "0.98rem", fontWeight: 800, color: "#18181b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -641,25 +607,7 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                     onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f0e6")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
                   >
-                    <div style={{
-                      width: "36px",
-                      height: "36px",
-                      borderRadius: "50%",
-                      background: u.role === "student"
-                        ? "#0284c7"
-                        : u.role === "admin"
-                        ? "#059669"
-                        : "#18181b",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 800,
-                      color: "#ffffff",
-                      fontSize: "0.88rem",
-                      flexShrink: 0,
-                    }}>
-                      {u.name?.[0] || "U"}
-                    </div>
+                    <Avatar user={u} size={36} />
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#18181b" }}>

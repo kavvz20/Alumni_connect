@@ -10,7 +10,13 @@ import {
   Search,
 } from "lucide-react";
 
-export const OpportunitiesView = ({ currentUser, onOpenPostModal, onOpenReferralFromOpportunity }) => {
+export const OpportunitiesView = ({
+  currentUser,
+  onOpenPostModal,
+  onRequestReferral,
+  onOpenReferralFromOpportunity,
+  onOpenReferralModal,
+}) => {
   const [opportunities, setOpportunities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState("");
@@ -180,9 +186,12 @@ export const OpportunitiesView = ({ currentUser, onOpenPostModal, onOpenReferral
                       </a>
                     )}
 
-                    {opp.type === "referral" && currentUser?.role === "student" && (
+                    {(opp.type === "referral" || currentUser?.role === "student") && (
                       <button
-                        onClick={() => onOpenReferralFromOpportunity(opp)}
+                        onClick={() => {
+                          const handler = onRequestReferral || onOpenReferralFromOpportunity || onOpenReferralModal;
+                          if (handler) handler(opp);
+                        }}
                         className="btn btn-amber btn-sm"
                         style={{ flex: 1 }}
                       >
