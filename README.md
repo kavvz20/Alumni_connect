@@ -61,7 +61,6 @@
 | **React Router DOM** | `v7.18` | Declarative client-side routing & navigation |
 | **Socket.io Client** | `v4.8` | Real-time bi-directional WebSocket client |
 | **Lucide React** | `v1.39` | High-quality, lightweight SVG icon suite |
-| **Firebase Client SDK** | `v12.18` | Client authentication and security |
 | **HTML5 Canvas API** | Native | In-browser client-side image compression & optimization |
 | **Vanilla CSS Design System** | Native | Tailored cream & obsidian aesthetic, glassmorphism, responsive grid |
 
@@ -73,7 +72,6 @@
 | **MongoDB Atlas + Mongoose** | `v9.9` | Cloud NoSQL database with schema-level validation |
 | **Socket.io** | `v4.8` | WebSocket server for direct messaging & notifications |
 | **BcryptJS** | `v3.0` | Salted cryptographic password hashing |
-| **Firebase Admin** | `v14.3` | Server-side identity validation |
 | **CORS & Dotenv** | Latest | Cross-origin resource sharing & environment orchestration |
 
 ---
