@@ -72,17 +72,29 @@ export const Navbar = ({
           style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", flexShrink: 0 }}
         >
           <div style={{
-            width: "36px",
-            height: "36px",
+            width: "38px",
+            height: "38px",
             borderRadius: "10px",
-            background: "#18181b",
+            background: "#ffffff",
+            border: "1px solid rgba(0, 0, 0, 0.08)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.2)",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
             flexShrink: 0,
+            overflow: "hidden",
+            padding: "3px",
           }}>
-            <Sparkles size={18} color="#fbf9f4" />
+            <img
+              src="/logo.png"
+              alt="Alumni Connect Logo"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                display: "block",
+              }}
+            />
           </div>
           <div>
             <div style={{
