@@ -124,6 +124,18 @@ export const api = {
       headers: studentId ? { "x-user-id": studentId } : {},
       body: JSON.stringify(payload),
     }),
+  scrapeLinkedInProfile: (linkedinUrl, rawText, userId) =>
+    request("/alumni/scrape-linkedin", {
+      method: "POST",
+      headers: userId ? { "x-user-id": userId } : {},
+      body: JSON.stringify({ linkedinUrl, rawText }),
+    }),
+  parseLinkedInPdf: (pdfBase64, rawText, userId) =>
+    request("/alumni/parse-linkedin-pdf", {
+      method: "POST",
+      headers: userId ? { "x-user-id": userId } : {},
+      body: JSON.stringify({ pdfBase64, rawText }),
+    }),
 
   // Mentorship Requests
   createMentorshipRequest: (payload, studentId) =>

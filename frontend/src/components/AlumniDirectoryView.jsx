@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import { Avatar } from "./Avatar";
 import {
@@ -9,9 +10,11 @@ import {
   MessageSquare,
   Filter,
   ExternalLink,
+  User,
 } from "lucide-react";
 
 export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpenReferralModal, onStartChat }) => {
+  const navigate = useNavigate();
   const [alumniList, setAlumniList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -213,7 +216,11 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                 </div>
 
                 {/* Profile row */}
-                <div style={{ display: "flex", gap: "14px", marginBottom: "16px" }}>
+                <div
+                  onClick={() => navigate(`/profile/${alumnus._id}`)}
+                  style={{ display: "flex", gap: "14px", marginBottom: "16px", cursor: "pointer" }}
+                  title="Click to view LinkedIn-style profile"
+                >
                   <Avatar
                     user={alumnus}
                     size={54}
@@ -291,13 +298,23 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                   )}
                 </div>
 
-                <button
-                  onClick={() => onStartChat(alumnus)}
-                  className="btn btn-secondary btn-sm"
-                  style={{ width: "100%" }}
-                >
-                  <MessageSquare size={14} /> Chat
-                </button>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => navigate(`/profile/${alumnus._id}`)}
+                    className="btn btn-secondary btn-sm"
+                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                  >
+                    <User size={14} /> View Profile
+                  </button>
+
+                  <button
+                    onClick={() => onStartChat(alumnus)}
+                    className="btn btn-secondary btn-sm"
+                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                  >
+                    <MessageSquare size={14} /> Chat
+                  </button>
+                </div>
               </div>
             </div>
           ))}

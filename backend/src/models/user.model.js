@@ -30,6 +30,14 @@ const userSchema = new mongoose.Schema({
   currentRole: String,
   industry: String,
   areasOfExpertise: { type: [String], default: [] },
+  experience: [
+    {
+      company: String,
+      role: String,
+      dates: String,
+      description: String,
+    },
+  ],
   availableForMentorshipCalls: { type: Boolean, default: false },
   willingToRefer: { type: Boolean, default: false },
   isVerified: { type: Boolean, default: false },

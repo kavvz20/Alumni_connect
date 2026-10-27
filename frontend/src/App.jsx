@@ -13,6 +13,7 @@ import { EventsView } from "./components/EventsView";
 import { SuccessStoriesView } from "./components/SuccessStoriesView";
 import { AdminCenterView } from "./components/AdminCenterView";
 import { ProfileView } from "./components/ProfileView";
+import { PublicProfileView } from "./components/PublicProfileView";
 import {
   MentorshipRequestModal,
   ScheduleMeetingModal,
@@ -30,7 +31,12 @@ const RequireAuth = ({ user, children }) => {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
   // If admin tries to access student-only pages, redirect to /admin
-  if (user.role === "admin" && location.pathname !== "/admin" && location.pathname !== "/events" && location.pathname !== "/profile") {
+  if (
+    user.role === "admin" &&
+    location.pathname !== "/admin" &&
+    location.pathname !== "/events" &&
+    !location.pathname.startsWith("/profile")
+  ) {
     return <Navigate to="/admin" replace />;
   }
   return children;
@@ -296,6 +302,34 @@ export function App() {
                     handleSelectUser(updated);
                     fetchUsers();
                   }}
+                />
+              </RequireAuth>
+            }
+          />
+
+          {/* LinkedIn-Style Public Profile View Route */}
+          <Route
+            path="/profile/:userId"
+            element={
+              <RequireAuth user={currentUser}>
+                <PublicProfileView
+                  currentUser={currentUser}
+                  onStartChat={handleStartChat}
+                  onOpenMentorshipModal={handleOpenMentorship}
+                  onOpenReferralModal={handleOpenReferral}
+                />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/u/:userId"
+            element={
+              <RequireAuth user={currentUser}>
+                <PublicProfileView
+                  currentUser={currentUser}
+                  onStartChat={handleStartChat}
+                  onOpenMentorshipModal={handleOpenMentorship}
+                  onOpenReferralModal={handleOpenReferral}
                 />
               </RequireAuth>
             }

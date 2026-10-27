@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { api, getSocket } from "../services/api";
 import { Avatar } from "./Avatar";
 import {
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 
 export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
+  const navigate = useNavigate();
   const initialTarget = targetUser || activeTargetUser;
 
   const [conversations, setConversations] = useState([]);
@@ -392,27 +394,53 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                     <ArrowLeft size={16} />
                   </button>
 
-                  <Avatar user={activeCounterpart} size={36} />
+                  <div
+                    onClick={() => activeCounterpart?._id && navigate(`/profile/${activeCounterpart._id}`)}
+                    style={{ display: "flex", alignItems: "center", gap: "10px", cursor: activeCounterpart?._id ? "pointer" : "default", minWidth: 0 }}
+                    title="Click to view full LinkedIn-style profile"
+                  >
+                    <Avatar user={activeCounterpart} size={36} />
 
-                  <div style={{ minWidth: 0 }}>
-                    <h3 style={{ fontSize: "0.98rem", fontWeight: 800, color: "#18181b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {activeCounterpart?.name || "Conversation"}
-                    </h3>
-                    <div style={{ fontSize: "0.72rem", color: "#78716c", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {activeCounterpart?.currentRole} {activeCounterpart?.currentCompany ? `@ ${activeCounterpart.currentCompany}` : ""} ({activeCounterpart?.role})
+                    <div style={{ minWidth: 0 }}>
+                      <h3 style={{ fontSize: "0.98rem", fontWeight: 800, color: "#18181b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {activeCounterpart?.name || "Conversation"}
+                      </h3>
+                      <div style={{ fontSize: "0.72rem", color: "#78716c", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {activeCounterpart?.currentRole} {activeCounterpart?.currentCompany ? `@ ${activeCounterpart.currentCompany}` : ""} ({activeCounterpart?.role})
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-                  <span style={{
-                    width: "8px",
-                    height: "8px",
-                    borderRadius: "50%",
-                    background: "#059669",
-                    display: "inline-block",
-                  }} />
-                  <span style={{ fontSize: "0.75rem", color: "#059669", fontWeight: 700 }}>Live</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
+                  {activeCounterpart?._id && (
+                    <button
+                      onClick={() => navigate(`/profile/${activeCounterpart._id}`)}
+                      className="btn btn-secondary btn-sm"
+                      style={{
+                        padding: "5px 12px",
+                        fontSize: "0.78rem",
+                        fontWeight: 600,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                      title="View full LinkedIn profile"
+                    >
+                      <User size={13} /> View Profile
+                    </button>
+                  )}
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      background: "#059669",
+                      display: "inline-block",
+                    }} />
+                    <span style={{ fontSize: "0.75rem", color: "#059669", fontWeight: 700 }}>Live</span>
+                  </div>
                 </div>
               </div>
 

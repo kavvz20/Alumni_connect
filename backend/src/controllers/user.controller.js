@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { User } from "../models/index.js";
 import { sendCredentialsEmail } from "../services/email.service.js";
+import { scrapeLinkedInData } from "../services/linkedin-scraper.service.js";
 
 const isValidId = (id) => mongoose.isValidObjectId(id);
 
@@ -222,6 +223,7 @@ const updateUserProfile = async (req, res) => {
       "currentRole",
       "industry",
       "areasOfExpertise",
+      "experience",
       "availableForMentorshipCalls",
       "willingToRefer",
       "careerGoal",
@@ -379,6 +381,37 @@ const onboardUser = async (req, res) => {
     const passwordToUse = (defaultPassword && defaultPassword.trim()) || "Thapar@2026";
     const hashedPassword = await bcrypt.hash(passwordToUse, 10);
 
+    let alumniEnrichment = { ...(req.body.enrichmentData || {}) };
+    if (req.body.currentCompany) alumniEnrichment.currentCompany = req.body.currentCompany;
+    if (req.body.currentRole) alumniEnrichment.currentRole = req.body.currentRole;
+    if (req.body.industry) alumniEnrichment.industry = req.body.industry;
+    if (req.body.branch) alumniEnrichment.branch = req.body.branch;
+    if (req.body.batch) alumniEnrichment.batch = req.body.batch;
+    if (req.body.skills) alumniEnrichment.skills = req.body.skills;
+    if (req.body.areasOfExpertise) alumniEnrichment.areasOfExpertise = req.body.areasOfExpertise;
+    if (req.body.bio) alumniEnrichment.bio = req.body.bio;
+    if (req.body.experience) alumniEnrichment.experience = req.body.experience;
+
+    if (role === "alumni" && linkedinUrl?.trim() && Object.keys(alumniEnrichment).length === 0) {
+      try {
+        const scrapeResult = await scrapeLinkedInData(linkedinUrl.trim());
+        if (scrapeResult?.success && scrapeResult.data) {
+          const d = scrapeResult.data;
+          alumniEnrichment = {
+            currentCompany: d.currentCompany || undefined,
+            currentRole: d.currentRole || undefined,
+            industry: d.industry || "Technology",
+            skills: Array.isArray(d.skills) && d.skills.length > 0 ? d.skills : undefined,
+            areasOfExpertise: Array.isArray(d.areasOfExpertise) && d.areasOfExpertise.length > 0 ? d.areasOfExpertise : undefined,
+            bio: d.bio || undefined,
+            profilePicture: d.profilePicture || undefined,
+          };
+        }
+      } catch (err) {
+        console.warn("LinkedIn auto-enrichment warning on manual onboard:", err.message);
+      }
+    }
+
     const newUser = await User.create({
       role,
       name: name.trim(),
@@ -386,6 +419,7 @@ const onboardUser = async (req, res) => {
       password: hashedPassword,
       linkedinUrl: role === "alumni" && linkedinUrl ? linkedinUrl.trim() : undefined,
       isVerified: role === "alumni" ? true : false,
+      ...alumniEnrichment,
     });
 
     // Send email dispatch
@@ -403,10 +437,11 @@ const onboardUser = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: `Account for ${newUser.name} provisioned successfully. Credentials emailed.`,
+      message: `Account for ${newUser.name} provisioned successfully. Credentials emailed.${Object.keys(alumniEnrichment).length > 0 ? " (Profile auto-enriched from LinkedIn)" : ""}`,
       data: {
         user: safeUser,
         defaultPassword: passwordToUse,
+        enrichedFromLinkedIn: Object.keys(alumniEnrichment).length > 0,
       },
     });
   } catch (error) {
@@ -462,13 +497,38 @@ const bulkOnboardUsers = async (req, res) => {
         continue;
       }
 
+      // Auto-scrape LinkedIn profile details for alumni if linkedinUrl is provided
+      let alumniEnrichment = {};
+      const cleanLinkedin = role === "alumni" && record.linkedinUrl ? record.linkedinUrl.trim() : undefined;
+
+      if (cleanLinkedin) {
+        try {
+          const scrapeResult = await scrapeLinkedInData(cleanLinkedin);
+          if (scrapeResult?.success && scrapeResult.data) {
+            const d = scrapeResult.data;
+            alumniEnrichment = {
+              currentCompany: record.currentCompany?.trim() || d.currentCompany || undefined,
+              currentRole: record.currentRole?.trim() || d.currentRole || undefined,
+              industry: record.industry?.trim() || d.industry || "Technology",
+              skills: Array.isArray(d.skills) && d.skills.length > 0 ? d.skills : undefined,
+              areasOfExpertise: Array.isArray(d.areasOfExpertise) && d.areasOfExpertise.length > 0 ? d.areasOfExpertise : undefined,
+              bio: record.bio?.trim() || d.bio || undefined,
+              profilePicture: d.profilePicture || undefined,
+            };
+          }
+        } catch (enrichErr) {
+          console.warn(`LinkedIn auto-enrichment warning for ${email}:`, enrichErr.message);
+        }
+      }
+
       const newUser = await User.create({
         role,
         name,
         email,
         password: hashedPassword,
-        linkedinUrl: role === "alumni" && record.linkedinUrl ? record.linkedinUrl.trim() : undefined,
+        linkedinUrl: cleanLinkedin,
         isVerified: role === "alumni" ? true : false,
+        ...alumniEnrichment,
       });
 
       await sendCredentialsEmail({
@@ -484,6 +544,9 @@ const bulkOnboardUsers = async (req, res) => {
         email: newUser.email,
         role: newUser.role,
         defaultPassword,
+        enrichedFromLinkedIn: Object.keys(alumniEnrichment).length > 0,
+        currentCompany: newUser.currentCompany,
+        currentRole: newUser.currentRole,
       });
     }
 

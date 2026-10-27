@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { api } from "../services/api";
 import {
   X,
@@ -9,6 +9,9 @@ import {
   CheckCircle2,
   Briefcase,
   GraduationCap,
+  RefreshCw,
+  Upload,
+  FileText,
 } from "lucide-react";
 
 export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }) => {
@@ -36,9 +39,83 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }
   const [availableForMentorshipCalls, setAvailableForMentorshipCalls] = useState(true);
   const [willingToRefer, setWillingToRefer] = useState(true);
   const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [scrapeLoading, setScrapeLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfSuccessMessage, setPdfSuccessMessage] = useState(null);
+  const authPdfInputRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const handlePdfUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setError("Please select a valid PDF file exported from LinkedIn.");
+      return;
+    }
+
+    setPdfLoading(true);
+    setError(null);
+    setPdfSuccessMessage(null);
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const base64Data = event.target?.result;
+        const res = await api.parseLinkedInPdf(base64Data);
+        if (res?.data) {
+          const d = res.data;
+          if (d.name) setName(d.name);
+          if (d.currentCompany) setCurrentCompany(d.currentCompany);
+          if (d.currentRole) setCurrentRole(d.currentRole);
+          if (d.industry) setIndustry(d.industry);
+          if (d.branch) setBranch(d.branch);
+          if (d.batch) setBatch(d.batch);
+          if (d.skills && d.skills.length > 0) setSkills(d.skills.join(", "));
+          if (d.areasOfExpertise && d.areasOfExpertise.length > 0) setAreasOfExpertise(d.areasOfExpertise.join(", "));
+          if (d.bio) setBio(d.bio);
+          if (d.linkedinUrl) setLinkedinUrl(d.linkedinUrl);
+          setPdfSuccessMessage(`Extracted details for ${d.name || "Alumnus"} from LinkedIn PDF!`);
+        }
+      } catch (err) {
+        setError("LinkedIn PDF parse error: " + (err.message || "Failed to parse LinkedIn PDF file."));
+      } finally {
+        setPdfLoading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAutoFillLinkedIn = async () => {
+    if (!linkedinUrl.trim()) {
+      setError("Please enter your LinkedIn profile URL first.");
+      return;
+    }
+
+    setScrapeLoading(true);
+    setError(null);
+    setPdfSuccessMessage(null);
+    try {
+      const res = await api.scrapeLinkedInProfile(linkedinUrl.trim());
+      if (res?.data) {
+        const d = res.data;
+        if (d.name && !name.trim()) setName(d.name);
+        if (d.currentCompany) setCurrentCompany(d.currentCompany);
+        if (d.currentRole) setCurrentRole(d.currentRole);
+        if (d.industry) setIndustry(d.industry);
+        if (d.skills && d.skills.length > 0) setSkills(d.skills.join(", "));
+        if (d.areasOfExpertise && d.areasOfExpertise.length > 0) setAreasOfExpertise(d.areasOfExpertise.join(", "));
+        if (d.bio && !bio.trim()) setBio(d.bio);
+        setPdfSuccessMessage("Profile fields auto-filled from LinkedIn!");
+      }
+    } catch (err) {
+      setError("LinkedIn Auto-fill: " + (err.message || "Could not retrieve details. You can enter them manually."));
+    } finally {
+      setScrapeLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -439,6 +516,113 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }
             {/* Alumni Specific */}
             {role === "alumni" && (
               <>
+                <div style={{
+                  marginBottom: "16px",
+                  padding: "14px",
+                  background: "#f0fdf4",
+                  border: "1px solid #bbf7d0",
+                  borderRadius: "8px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}>
+                  <input
+                    type="file"
+                    ref={authPdfInputRef}
+                    accept=".pdf,application/pdf"
+                    style={{ display: "none" }}
+                    onChange={handlePdfUpload}
+                  />
+
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "6px" }}>
+                    <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "#166534", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Sparkles size={14} color="#16a34a" /> Auto-fill from LinkedIn
+                    </label>
+                    <span style={{ fontSize: "0.72rem", color: "#4b5563" }}>
+                      Fills Name, Batch, Branch, Company, Role & Skills
+                    </span>
+                  </div>
+
+                  {/* Primary: PDF Upload */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      disabled={pdfLoading}
+                      onClick={() => authPdfInputRef.current?.click()}
+                      style={{
+                        background: "#0a66c2",
+                        color: "#ffffff",
+                        border: "none",
+                        borderRadius: "6px",
+                        padding: "7px 14px",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        cursor: pdfLoading ? "not-allowed" : "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      {pdfLoading ? (
+                        <><RefreshCw size={12} className="spin-animation" /> Parsing PDF...</>
+                      ) : (
+                        <><Upload size={13} /> Upload LinkedIn PDF (Recommended)</>
+                      )}
+                    </button>
+                    <span style={{ fontSize: "0.72rem", color: "#6b7280" }}>
+                      From LinkedIn &rarr; More (...) &rarr; Save to PDF
+                    </span>
+                  </div>
+
+                  {/* Secondary: URL input */}
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <input
+                      type="url"
+                      className="input-control"
+                      value={linkedinUrl}
+                      onChange={(e) => setLinkedinUrl(e.target.value)}
+                      placeholder="Or enter LinkedIn profile URL (https://linkedin.com/in/...)"
+                      style={{ flex: 1, fontSize: "0.82rem" }}
+                    />
+                    <button
+                      type="button"
+                      disabled={scrapeLoading || !linkedinUrl.trim()}
+                      onClick={handleAutoFillLinkedIn}
+                      className="btn btn-secondary btn-sm"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "0 12px",
+                        whiteSpace: "nowrap",
+                        fontWeight: 700,
+                        color: "#0a66c2",
+                        background: "#ffffff",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      {scrapeLoading ? <><RefreshCw size={12} className="spin-animation" /> Fetching...</> : <><Sparkles size={12} /> Fetch URL</>}
+                    </button>
+                  </div>
+
+                  {pdfSuccessMessage && (
+                    <div style={{
+                      padding: "6px 10px",
+                      background: "#dcfce7",
+                      border: "1px solid #86efac",
+                      borderRadius: "4px",
+                      fontSize: "0.76rem",
+                      color: "#15803d",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontWeight: 600,
+                    }}>
+                      <CheckCircle2 size={13} /> {pdfSuccessMessage}
+                    </div>
+                  )}
+                </div>
+
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "14px" }}>
                   <div>
                     <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>Current Company</label>
@@ -483,17 +667,6 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }
                       placeholder="e.g. Distributed Systems, SDE Prep"
                     />
                   </div>
-                </div>
-
-                <div style={{ marginBottom: "14px" }}>
-                  <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>LinkedIn Profile URL</label>
-                  <input
-                    type="url"
-                    className="input-control"
-                    value={linkedinUrl}
-                    onChange={(e) => setLinkedinUrl(e.target.value)}
-                    placeholder="https://linkedin.com/in/..."
-                  />
                 </div>
 
                 {/* Mentorship & Referral Toggles */}

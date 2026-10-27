@@ -1,4 +1,6 @@
 import { User } from "../models/index.js";
+import { scrapeLinkedInData } from "../services/linkedin-scraper.service.js";
+import { parseLinkedInPdfBuffer, parseLinkedInPdfText } from "../services/linkedin-pdf-parser.service.js";
 
 const asExactCaseInsensitiveMatch = (value) =>
   new RegExp(`^${value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
@@ -311,4 +313,88 @@ const matchAlumniMentor = async (req, res) => {
   }
 };
 
-export { getAlumni, matchAlumniMentor };
+const scrapeLinkedInProfile = async (req, res) => {
+  try {
+    const { linkedinUrl, rawText } = req.body;
+
+    if (!linkedinUrl?.trim() && !rawText?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "A LinkedIn profile URL or profile text summary is required.",
+      });
+    }
+
+    const result = await scrapeLinkedInData(linkedinUrl, rawText);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.message || "Failed to parse LinkedIn profile.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "LinkedIn profile data extracted successfully.",
+      source: result.source,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error("Scrape LinkedIn profile controller error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to scrape LinkedIn profile details.",
+    });
+  }
+};
+
+const parseLinkedInPdf = async (req, res) => {
+  try {
+    const { pdfBase64, rawText } = req.body;
+
+    if (rawText && rawText.trim()) {
+      const data = parseLinkedInPdfText(rawText.trim());
+      return res.status(200).json({
+        success: true,
+        source: "linkedin_pdf_text",
+        message: "LinkedIn PDF text parsed successfully.",
+        data,
+      });
+    }
+
+    if (!pdfBase64) {
+      return res.status(400).json({
+        success: false,
+        message: "pdfBase64 file data or rawText is required.",
+      });
+    }
+
+    // Strip data URL scheme prefix if present (e.g. data:application/pdf;base64,...)
+    const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, "").trim();
+    const buffer = Buffer.from(cleanBase64, "base64");
+
+    const result = await parseLinkedInPdfBuffer(buffer);
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.message || "Failed to parse LinkedIn PDF.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "LinkedIn PDF parsed successfully.",
+      source: result.source,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error("Parse LinkedIn PDF controller error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error while processing LinkedIn PDF.",
+    });
+  }
+};
+
+export { getAlumni, matchAlumniMentor, scrapeLinkedInProfile, parseLinkedInPdf };

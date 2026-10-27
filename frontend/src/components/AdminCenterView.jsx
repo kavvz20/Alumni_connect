@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { api } from "../services/api";
 import { Avatar } from "./Avatar";
 import {
@@ -18,6 +18,9 @@ import {
   Lock,
   Plus,
   Trash2,
+  Sparkles,
+  RefreshCw,
+  Upload,
 } from "lucide-react";
 
 export const AdminCenterView = ({ currentUser }) => {
@@ -41,6 +44,10 @@ export const AdminCenterView = ({ currentUser }) => {
   const [onboardSuccess, setOnboardSuccess] = useState(null);
   const [onboardError, setOnboardError] = useState(null);
   const [copied, setCopied] = useState(false);
+
+  // Manual LinkedIn Scrape state
+  const [manualScrapeLoading, setManualScrapeLoading] = useState(false);
+  const [manualScrapedData, setManualScrapedData] = useState(null);
 
   // CSV Import State
   const [csvFile, setCsvFile] = useState(null);
@@ -141,6 +148,72 @@ export const AdminCenterView = ({ currentUser }) => {
     }
   };
 
+  // Manual LinkedIn Scrape & PDF State
+  const manualPdfInputRef = useRef(null);
+  const [manualPdfLoading, setManualPdfLoading] = useState(false);
+
+  // Manual LinkedIn PDF Upload handler
+  const handleManualPdfUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setOnboardError("Please select a valid PDF file exported from LinkedIn.");
+      return;
+    }
+
+    setManualPdfLoading(true);
+    setOnboardError(null);
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const base64Data = event.target?.result;
+        const res = await api.parseLinkedInPdf(base64Data, null, currentUser?._id);
+        if (res?.data) {
+          const d = res.data;
+          if (d.name) {
+            setManualName(d.name);
+          }
+          if (d.linkedinUrl) {
+            setManualLinkedin(d.linkedinUrl);
+          }
+          setManualScrapedData(d);
+        }
+      } catch (err) {
+        setOnboardError("LinkedIn PDF parse error: " + (err.message || "Failed to parse LinkedIn PDF file."));
+      } finally {
+        setManualPdfLoading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Manual LinkedIn Auto-fill handler
+  const handleManualLinkedInAutoFill = async () => {
+    if (!manualLinkedin?.trim()) {
+      setOnboardError("Please enter a LinkedIn profile URL first.");
+      return;
+    }
+
+    setManualScrapeLoading(true);
+    setOnboardError(null);
+    try {
+      const res = await api.scrapeLinkedInProfile(manualLinkedin.trim(), null, currentUser?._id);
+      if (res?.data) {
+        const d = res.data;
+        if (d.name && !manualName.trim()) {
+          setManualName(d.name);
+        }
+        setManualScrapedData(d);
+      }
+    } catch (err) {
+      setOnboardError("LinkedIn auto-fill notice: " + (err.message || "Could not retrieve live LinkedIn data."));
+    } finally {
+      setManualScrapeLoading(false);
+    }
+  };
+
   // =========================================================================
   // Manual User Onboarding Handler
   // =========================================================================
@@ -161,6 +234,7 @@ export const AdminCenterView = ({ currentUser }) => {
       email: manualEmail.trim().toLowerCase(),
       linkedinUrl: manualRole === "alumni" && manualLinkedin.trim() ? manualLinkedin.trim() : undefined,
       defaultPassword: manualDefaultPassword.trim() || "Thapar@2026",
+      enrichmentData: manualRole === "alumni" && manualScrapedData ? manualScrapedData : undefined,
     };
 
     try {
@@ -169,6 +243,7 @@ export const AdminCenterView = ({ currentUser }) => {
       setManualName("");
       setManualEmail("");
       setManualLinkedin("");
+      setManualScrapedData(null);
       fetchAllUsers();
     } catch (err) {
       setOnboardError(err.message || "Failed to provision account.");
@@ -471,18 +546,129 @@ export const AdminCenterView = ({ currentUser }) => {
                       />
                     </div>
 
-                    {/* LinkedIn URL (Alumni only) */}
+                    {/* LinkedIn Auto-fill & PDF Upload (Alumni only) */}
                     {manualRole === "alumni" && (
-                      <div>
-                        <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
-                          LinkedIn Profile URL (Optional for Alumni)
-                        </label>
+                      <div style={{
+                        background: "#f8fafc",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "8px",
+                        padding: "14px 16px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                      }}>
                         <input
-                          className="input-control"
-                          value={manualLinkedin}
-                          onChange={(e) => setManualLinkedin(e.target.value)}
-                          placeholder="https://linkedin.com/in/username"
+                          type="file"
+                          ref={manualPdfInputRef}
+                          accept=".pdf,application/pdf"
+                          style={{ display: "none" }}
+                          onChange={handleManualPdfUpload}
                         />
+
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+                          <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1e293b", display: "flex", alignItems: "center", gap: "6px" }}>
+                            <Sparkles size={14} color="#0a66c2" /> Auto-Fill Alumnus from LinkedIn
+                          </label>
+                          <span style={{ fontSize: "0.74rem", color: "#64748b" }}>
+                            Auto-populates Name, Company, Role, Batch & Skills
+                          </span>
+                        </div>
+
+                        {/* Primary action: PDF Upload */}
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                          <button
+                            type="button"
+                            disabled={manualPdfLoading}
+                            onClick={() => manualPdfInputRef.current?.click()}
+                            style={{
+                              background: "#0a66c2",
+                              color: "#ffffff",
+                              border: "none",
+                              borderRadius: "6px",
+                              padding: "8px 14px",
+                              fontSize: "0.82rem",
+                              fontWeight: 700,
+                              cursor: manualPdfLoading ? "not-allowed" : "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                            }}
+                          >
+                            {manualPdfLoading ? (
+                              <><RefreshCw size={13} className="spin-animation" /> Parsing PDF...</>
+                            ) : (
+                              <><Upload size={13} /> Upload LinkedIn PDF (Recommended)</>
+                            )}
+                          </button>
+                          <span style={{ fontSize: "0.74rem", color: "#64748b" }}>
+                            From LinkedIn &rarr; More (...) &rarr; Save to PDF
+                          </span>
+                        </div>
+
+                        {/* Secondary: URL input */}
+                        <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+                          <input
+                            className="input-control"
+                            value={manualLinkedin}
+                            onChange={(e) => setManualLinkedin(e.target.value)}
+                            placeholder="Or enter LinkedIn profile URL (https://linkedin.com/in/...)"
+                            style={{ flex: 1, fontSize: "0.82rem" }}
+                          />
+                          <button
+                            type="button"
+                            disabled={manualScrapeLoading || !manualLinkedin.trim()}
+                            onClick={handleManualLinkedInAutoFill}
+                            className="btn btn-secondary btn-sm"
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              padding: "0 14px",
+                              whiteSpace: "nowrap",
+                              fontSize: "0.8rem",
+                              fontWeight: 700,
+                              color: "#0a66c2",
+                              background: "#ffffff",
+                            }}
+                          >
+                            {manualScrapeLoading ? (
+                              <><RefreshCw size={12} className="spin-animation" /> Fetching...</>
+                            ) : (
+                              <><Sparkles size={12} /> Fetch URL</>
+                            )}
+                          </button>
+                        </div>
+
+                        {manualScrapedData && (
+                          <div style={{
+                            marginTop: "6px",
+                            padding: "10px 12px",
+                            background: "rgba(10, 102, 194, 0.08)",
+                            border: "1px solid rgba(10, 102, 194, 0.2)",
+                            borderRadius: "6px",
+                            fontSize: "0.78rem",
+                            color: "#0a66c2",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "6px",
+                          }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <CheckCircle2 size={14} color="#047857" />
+                              <strong style={{ color: "#047857" }}>LinkedIn Profile Extracted Successfully</strong>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", color: "#334155" }}>
+                              {manualScrapedData.name && <span>👤 <strong>{manualScrapedData.name}</strong></span>}
+                              {manualScrapedData.currentCompany && <span>🏢 <strong>{manualScrapedData.currentCompany}</strong></span>}
+                              {manualScrapedData.currentRole && <span>💼 {manualScrapedData.currentRole}</span>}
+                              {manualScrapedData.batch && <span>🎓 Batch {manualScrapedData.batch}</span>}
+                            </div>
+                            {manualScrapedData.skills && manualScrapedData.skills.length > 0 && (
+                              <div style={{ fontSize: "0.74rem", color: "#64748b" }}>
+                                ⚡ Skills: {manualScrapedData.skills.slice(0, 6).join(", ")}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -553,9 +739,24 @@ export const AdminCenterView = ({ currentUser }) => {
                     <h4 style={{ fontSize: "1rem", fontWeight: 700, color: "#18181b", marginBottom: "6px" }}>
                       Select or Drop CSV File
                     </h4>
-                    <p style={{ fontSize: "0.82rem", color: "#78716c", marginBottom: "16px" }}>
+                    <p style={{ fontSize: "0.82rem", color: "#78716c", marginBottom: "8px" }}>
                       Accepted format: <code>.csv</code> with headers <code>name,email,role,linkedinUrl</code>
                     </p>
+                    <div style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      background: "rgba(10, 102, 194, 0.08)",
+                      border: "1px solid rgba(10, 102, 194, 0.2)",
+                      borderRadius: "6px",
+                      padding: "6px 12px",
+                      color: "#0a66c2",
+                      fontSize: "0.78rem",
+                      fontWeight: 600,
+                      marginBottom: "16px",
+                    }}>
+                      <Sparkles size={13} /> Alumni rows with a LinkedIn URL will be automatically enriched with their Company, Role, Skills & Bio!
+                    </div>
 
                     <input
                       type="file"
@@ -591,7 +792,7 @@ export const AdminCenterView = ({ currentUser }) => {
                           disabled={onboardLoading}
                           className="btn btn-primary btn-sm"
                         >
-                          {onboardLoading ? "Importing..." : `Provision All ${csvPreviewRows.length} Users`}
+                          {onboardLoading ? "Importing & Auto-Enriching..." : `Provision All ${csvPreviewRows.length} Users`}
                         </button>
                       </div>
 
@@ -602,7 +803,7 @@ export const AdminCenterView = ({ currentUser }) => {
                               <th style={{ padding: "8px 12px" }}>Name</th>
                               <th style={{ padding: "8px 12px" }}>Email</th>
                               <th style={{ padding: "8px 12px" }}>Role</th>
-                              <th style={{ padding: "8px 12px" }}>LinkedIn</th>
+                              <th style={{ padding: "8px 12px" }}>LinkedIn Profile</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -615,7 +816,22 @@ export const AdminCenterView = ({ currentUser }) => {
                                     {r.role}
                                   </span>
                                 </td>
-                                <td style={{ padding: "8px 12px", color: "#78716c" }}>{r.linkedinUrl || "—"}</td>
+                                <td style={{ padding: "8px 12px", color: "#78716c" }}>
+                                  {r.linkedinUrl ? (
+                                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                      <span style={{ maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                        {r.linkedinUrl}
+                                      </span>
+                                      {r.role === "alumni" && (
+                                        <span className="badge badge-emerald" style={{ fontSize: "0.68rem", padding: "1px 6px" }}>
+                                          <Sparkles size={10} /> Auto-Fill
+                                        </span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    "—"
+                                  )}
+                                </td>
                               </tr>
                             ))}
                           </tbody>
