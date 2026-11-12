@@ -155,7 +155,7 @@ export function App() {
       />
 
       {/* Main Content Body with React Router Routes */}
-      <main style={{ flex: 1, paddingBottom: "60px" }}>
+      <main role="main" id="main-content" style={{ flex: 1, paddingBottom: "60px" }}>
         <Routes>
           {/* Public / Auth Route */}
           <Route

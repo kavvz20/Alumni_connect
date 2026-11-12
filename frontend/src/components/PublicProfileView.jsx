@@ -162,6 +162,8 @@ export const PublicProfileView = ({
       {!isModal && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
           <button
+            type="button"
+            aria-label="Back to previous page"
             onClick={() => navigate(-1)}
             style={{
               background: "transparent",
@@ -181,6 +183,8 @@ export const PublicProfileView = ({
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button
+              type="button"
+              aria-label="Share profile link"
               onClick={handleCopyProfileLink}
               style={{
                 background: "#ffffff",
@@ -201,6 +205,8 @@ export const PublicProfileView = ({
             </button>
             {isMe && (
               <button
+                type="button"
+                aria-label="Edit your profile details"
                 onClick={() => navigate("/profile")}
                 className="btn btn-secondary btn-sm"
                 style={{ display: "flex", alignItems: "center", gap: "6px" }}
@@ -267,6 +273,8 @@ export const PublicProfileView = ({
           {/* Close button if in modal */}
           {isModal && onClose && (
             <button
+              type="button"
+              aria-label="Close profile modal"
               onClick={onClose}
               style={{
                 position: "relative",
@@ -341,6 +349,8 @@ export const PublicProfileView = ({
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
               {!isMe && (
                 <button
+                  type="button"
+                  aria-label={`Send message to ${user.name}`}
                   onClick={() => {
                     if (onStartChat) onStartChat(user);
                     else navigate("/chat");
@@ -362,6 +372,8 @@ export const PublicProfileView = ({
 
               {!isMe && user.role === "alumni" && user.availableForMentorshipCalls && (
                 <button
+                  type="button"
+                  aria-label={`Request mentorship call with ${user.name}`}
                   onClick={() => {
                     if (onOpenMentorshipModal) onOpenMentorshipModal(user);
                     else navigate("/mentorship");
@@ -385,6 +397,8 @@ export const PublicProfileView = ({
 
               {!isMe && user.role === "alumni" && user.willingToRefer && (
                 <button
+                  type="button"
+                  aria-label={`Ask referral from ${user.name}`}
                   onClick={() => {
                     if (onOpenReferralModal) onOpenReferralModal(user);
                     else navigate("/referrals");
@@ -411,6 +425,7 @@ export const PublicProfileView = ({
                   href={user.linkedinUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={`Open LinkedIn profile of ${user.name} in a new tab`}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -545,6 +560,7 @@ export const PublicProfileView = ({
               {user.email && (
                 <button
                   type="button"
+                  aria-label={`Copy email address ${user.email}`}
                   onClick={() => handleCopyEmail(user.email)}
                   style={{
                     background: "transparent",

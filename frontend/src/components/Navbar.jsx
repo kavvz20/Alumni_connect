@@ -43,7 +43,7 @@ export const Navbar = ({
   });
 
   return (
-    <header style={{
+    <header role="banner" style={{
       position: "sticky",
       top: 0,
       zIndex: 100,
@@ -68,7 +68,16 @@ export const Navbar = ({
       }}>
         {/* Brand Logo */}
         <div 
+          role="button"
+          tabIndex={0}
+          aria-label="Alumni Connect Home"
           onClick={() => navigate(currentUser?.role === "admin" ? "/admin" : "/alumni")}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              navigate(currentUser?.role === "admin" ? "/admin" : "/alumni");
+            }
+          }}
           style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", flexShrink: 0 }}
         >
           <div style={{
@@ -129,7 +138,16 @@ export const Navbar = ({
             }}>
               {/* User Avatar & Info (Click to view profile) */}
               <div
+                role="button"
+                tabIndex={0}
+                aria-label={`View profile for ${currentUser.name}`}
                 onClick={() => navigate(currentUser?.role === "admin" ? "/admin" : "/profile")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    navigate(currentUser?.role === "admin" ? "/admin" : "/profile");
+                  }
+                }}
                 style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
                 title="View and edit your profile"
               >
@@ -156,6 +174,8 @@ export const Navbar = ({
 
               {/* Sign Out */}
               <button
+                type="button"
+                aria-label="Sign out"
                 onClick={onLogout}
                 className="btn btn-secondary btn-sm"
                 style={{
@@ -176,6 +196,8 @@ export const Navbar = ({
             </div>
           ) : (
             <button
+              type="button"
+              aria-label="Sign in"
               onClick={() => navigate("/login")}
               className="btn btn-primary btn-sm"
               style={{ padding: "7px 14px", fontSize: "0.82rem" }}
@@ -204,17 +226,23 @@ export const Navbar = ({
             overflowX: "auto",
             scrollbarWidth: "none",
           }}>
-            <nav style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}>
+            <nav 
+              aria-label="Main Navigation"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
               {visibleTabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = location.pathname === tab.path;
                 return (
                   <button
                     key={tab.path}
+                    type="button"
+                    aria-current={isActive ? "page" : undefined}
+                    aria-label={tab.label}
                     onClick={() => navigate(tab.path)}
                     style={{
                       display: "flex",

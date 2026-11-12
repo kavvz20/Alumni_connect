@@ -71,10 +71,13 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
 
       {/* Filter Toolbar */}
       <div className="glass-panel" style={{ padding: "18px", marginBottom: "28px" }}>
-        <form onSubmit={handleSearchSubmit} style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px" }}>
+        <form onSubmit={handleSearchSubmit} role="search" aria-label="Search alumni network" style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px" }}>
           <div style={{ flex: "1 1 240px", position: "relative" }}>
             <Search size={18} style={{ position: "absolute", left: "14px", top: "13px", color: "var(--text-subtle)" }} />
             <input
+              id="alumni-search-input"
+              name="search"
+              aria-label="Search alumni by name, role, company, or expertise keywords"
               className="input-control"
               style={{ paddingLeft: "42px" }}
               value={search}
@@ -83,15 +86,18 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
             />
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ flexShrink: 0 }}>
+          <button type="submit" aria-label="Search alumni" className="btn btn-primary" style={{ flexShrink: 0 }}>
             <Search size={16} /> Search
           </button>
         </form>
 
         {/* Quick Dropdown Filters */}
-        <div className="responsive-filter-bar">
+        <div className="responsive-filter-bar" role="region" aria-label="Filter Options">
           <div style={{ flex: "1 1 180px", minWidth: "160px" }}>
             <select
+              id="filter-branch"
+              name="branch"
+              aria-label="Filter by Branch"
               className="select-control"
               value={branch}
               onChange={(e) => setBranch(e.target.value)}
@@ -106,6 +112,9 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
 
           <div style={{ flex: "1 1 150px", minWidth: "140px" }}>
             <select
+              id="filter-industry"
+              name="industry"
+              aria-label="Filter by Industry"
               className="select-control"
               value={industry}
               onChange={(e) => setIndustry(e.target.value)}
@@ -120,6 +129,9 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
 
           <div style={{ flex: "1 1 160px", minWidth: "140px" }}>
             <input
+              id="filter-company"
+              name="company"
+              aria-label="Filter by Company"
               className="input-control"
               value={company}
               onChange={(e) => setCompany(e.target.value)}
@@ -129,6 +141,9 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
 
           <div style={{ flex: "1 1 160px", minWidth: "140px" }}>
             <input
+              id="filter-skills"
+              name="skills"
+              aria-label="Filter by Skill"
               className="input-control"
               value={skills}
               onChange={(e) => setSkills(e.target.value)}
@@ -137,7 +152,9 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
           </div>
 
           {/* Verified Toggle */}
-          <label style={{
+          <label 
+            htmlFor="filter-verified"
+            style={{
             display: "flex",
             alignItems: "center",
             gap: "8px",
@@ -151,6 +168,9 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
             flexShrink: 0,
           }}>
             <input
+              id="filter-verified"
+              name="isVerified"
+              aria-label="Filter verified alumni only"
               type="checkbox"
               checked={isVerified}
               onChange={(e) => setIsVerified(e.target.checked)}
@@ -279,6 +299,8 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                 <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                   {alumnus.availableForMentorshipCalls && (
                     <button
+                      type="button"
+                      aria-label={`Request mentorship call with ${alumnus.name}`}
                       onClick={() => onOpenMentorshipModal(alumnus)}
                       className="btn btn-primary btn-sm"
                       style={{ flex: 1 }}
@@ -289,6 +311,8 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
 
                   {alumnus.willingToRefer && (
                     <button
+                      type="button"
+                      aria-label={`Request referral from ${alumnus.name}`}
                       onClick={() => onOpenReferralModal(alumnus)}
                       className="btn btn-secondary btn-sm"
                       style={{ flex: 1 }}
@@ -300,6 +324,8 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
 
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button
+                    type="button"
+                    aria-label={`View profile of ${alumnus.name}`}
                     onClick={() => navigate(`/profile/${alumnus._id}`)}
                     className="btn btn-secondary btn-sm"
                     style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
@@ -308,6 +334,8 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                   </button>
 
                   <button
+                    type="button"
+                    aria-label={`Chat with ${alumnus.name}`}
                     onClick={() => onStartChat(alumnus)}
                     className="btn btn-secondary btn-sm"
                     style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
