@@ -45,7 +45,7 @@ export const EventsView = ({ currentUser, onOpenCreateEventModal }) => {
           </p>
         </div>
 
-        {currentUser?.role === "admin" && (
+        {(currentUser?.role === "admin" || currentUser?.isAdmin) && (
           <button onClick={onOpenCreateEventModal} className="btn btn-primary">
             <Plus size={16} /> Organize Event
           </button>

@@ -4,18 +4,18 @@ import {
   getReferralRequests,
   updateReferralRequestStatus,
 } from "../controllers/referral-request.controller.js";
-import { optionalAuth } from "../middleware/auth.middleware.js";
+import { verifyAuth } from "../middleware/auth.middleware.js";
 
 const referralRequestRouter = Router();
 
 referralRequestRouter
   .route("/")
-  .post(optionalAuth, createReferralRequest)
-  .get(optionalAuth, getReferralRequests);
+  .post(verifyAuth, createReferralRequest)
+  .get(verifyAuth, getReferralRequests);
 
 referralRequestRouter.patch(
   "/:requestId/status",
-  optionalAuth,
+  verifyAuth,
   updateReferralRequestStatus
 );
 

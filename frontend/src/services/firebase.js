@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
@@ -24,16 +24,21 @@ if (firebaseConfig.apiKey) {
   }
 }
 
-export const signInWithGooglePopup = async () => {
-  if (auth && googleProvider) {
-    const result = await signInWithPopup(auth, googleProvider);
-    return {
-      email: result.user.email,
-      name: result.user.displayName,
-      firebaseUid: result.user.uid,
-    };
+export const isGoogleSignInAvailable = () => Boolean(auth && googleProvider);
+
+/**
+ * Opens the Google account picker and returns a Google ID token for the backend.
+ * Firebase is only used to obtain this token; the backend verifies it and issues
+ * its own session, so we sign out of Firebase straight away.
+ */
+export const getGoogleIdToken = async () => {
+  if (!isGoogleSignInAvailable()) {
+    throw new Error("Google sign-in is not configured. Add the VITE_FIREBASE_* variables to frontend/.env.");
   }
-  return null;
+  const result = await signInWithPopup(auth, googleProvider);
+  const idToken = await result.user.getIdToken();
+  signOut(auth).catch(() => {});
+  return idToken;
 };
 
 export { auth };

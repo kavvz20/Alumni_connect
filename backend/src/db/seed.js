@@ -61,6 +61,7 @@ export const seedDatabase = async () => {
         availableForMentorshipCalls: true,
         willingToRefer: true,
         isVerified: true,
+        verification: { status: "verified" },
         linkedinUrl: "https://linkedin.com/in/priya-patel-demo",
         githubUrl: "https://github.com/priya-demo",
         profilePicture: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80",
@@ -86,6 +87,7 @@ export const seedDatabase = async () => {
         availableForMentorshipCalls: true,
         willingToRefer: true,
         isVerified: true,
+        verification: { status: "verified" },
         linkedinUrl: "https://linkedin.com/in/rohan-gupta-demo",
         profilePicture: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
       },
@@ -110,19 +112,21 @@ export const seedDatabase = async () => {
         availableForMentorshipCalls: true,
         willingToRefer: false,
         isVerified: true,
+        verification: { status: "verified" },
         linkedinUrl: "https://linkedin.com/in/ananya-verma-demo",
         profilePicture: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&auto=format&fit=crop&q=80",
       },
       { upsert: true, new: true }
     );
 
+    // The admin account is the one configured in ADMIN_EMAIL (only that email gets admin rights).
+    const adminEmail = (process.env.ADMIN_EMAIL || "placement.cell@thapar.edu").trim().toLowerCase();
     const admin = await User.findOneAndUpdate(
-      { email: "placement.cell@thapar.edu" },
+      { email: adminEmail },
       {
         role: "admin",
         name: "Placement Cell Admin",
-        email: "placement.cell@thapar.edu",
-        firebaseUid: "demo_admin_cell",
+        email: adminEmail,
       },
       { upsert: true, new: true }
     );

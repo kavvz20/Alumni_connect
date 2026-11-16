@@ -942,7 +942,7 @@ export const CreateEventModal = ({ isOpen, onClose, currentUser, onSuccess }) =>
 
   if (!isOpen) return null;
 
-  if (currentUser?.role !== "admin") {
+  if (currentUser?.role !== "admin" && !currentUser?.isAdmin) {
     return (
       <div className="modal-backdrop">
         <div className="modal-content" style={{ padding: "28px", maxWidth: "450px" }}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
-import { api } from "./services/api";
+import { api, getSessionToken, setSessionToken, resetSocket } from "./services/api";
 import { Navbar } from "./components/Navbar";
 import { AuthView } from "./components/AuthView";
 import { AlumniDirectoryView } from "./components/AlumniDirectoryView";
@@ -46,7 +46,8 @@ const RequireAdmin = ({ user, children }) => {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  if (user.role !== "admin") {
+  // isAdmin is set by the server for ADMIN_EMAIL, also when that account is a student or alumni
+  if (!user.isAdmin && user.role !== "admin") {
     return <Navigate to="/alumni" replace />;
   }
   return children;
@@ -65,8 +66,9 @@ export function App() {
 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
+      // A cached user is only trusted while a session token exists; /auth/me re-validates it below.
       const saved = localStorage.getItem("alumni_connect_user");
-      return saved ? JSON.parse(saved) : null;
+      return saved && getSessionToken() ? JSON.parse(saved) : null;
     } catch (_) {
       return null;
     }
@@ -84,29 +86,6 @@ export function App() {
   const [storyModalOpen, setStoryModalOpen] = useState(false);
   const [createEventModalOpen, setCreateEventModalOpen] = useState(false);
 
-  // Fetch real users list directly from backend
-  const fetchUsers = async () => {
-    try {
-      const res = await api.getUsers();
-      const list = res.data || [];
-      setUsersList(list);
-
-      // If user is already logged in, refresh profile data from database
-      if (currentUser) {
-        const refreshed = list.find((u) => u._id === currentUser._id);
-        if (refreshed) {
-          handleSelectUser(refreshed);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to fetch users from backend:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   const handleSelectUser = (user) => {
     setCurrentUser(user);
     try {
@@ -114,18 +93,72 @@ export function App() {
     } catch (_) {}
   };
 
-  const handleLogout = () => {
+  const clearSession = () => {
     setCurrentUser(null);
+    setUsersList([]);
+    setSessionToken(null);
+    resetSocket();
     try {
       localStorage.removeItem("alumni_connect_user");
     } catch (_) {}
+  };
+
+  // Fetch real users list directly from backend (requires a signed-in session)
+  const fetchUsers = async () => {
+    if (!getSessionToken()) return;
+    try {
+      const res = await api.getUsers();
+      setUsersList(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch users from backend:", err);
+    }
+  };
+
+  // Re-validate the stored session and refresh the profile from the database
+  const refreshSession = async () => {
+    if (!getSessionToken()) {
+      if (currentUser) clearSession();
+      return;
+    }
+    try {
+      const res = await api.getMe();
+      if (res?.data?.user) handleSelectUser(res.data.user);
+    } catch (err) {
+      if (err.status === 401 || err.status === 403) clearSession();
+    }
+  };
+
+  useEffect(() => {
+    refreshSession();
+    fetchUsers();
+  }, []);
+
+  // Any API call rejected with 401 (expired / revoked session) signs the user out
+  useEffect(() => {
+    const onExpired = () => {
+      clearSession();
+      navigate("/login");
+    };
+    window.addEventListener("auth:expired", onExpired);
+    return () => window.removeEventListener("auth:expired", onExpired);
+  }, []);
+
+  const handleLogout = () => {
+    clearSession();
     navigate("/login");
   };
 
-  const handleAuthSuccess = (user) => {
+  // session = { user, token, isNewUser? } as returned by /auth/google, /auth/login, /auth/register
+  const handleAuthSuccess = (session) => {
+    const { user, token, isNewUser } = session || {};
+    if (!user || !token) return;
+    setSessionToken(token);
+    resetSocket();
     handleSelectUser(user);
     fetchUsers();
-    navigate(user.role === "admin" ? "/admin" : "/alumni");
+    if (user.role === "admin") navigate("/admin");
+    else if (isNewUser && user.role === "alumni") navigate("/profile");
+    else navigate("/alumni");
   };
 
   // Handlers to cross-navigate between views

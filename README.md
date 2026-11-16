@@ -171,14 +171,49 @@ Create a `.env` file in the `backend/` directory:
 PORT=8000
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/alumni_connect?retryWrites=true&w=majority
 CORS_ORIGIN=http://localhost:5173
+
+ADMIN_EMAIL=your.admin@gmail.com        # the ONLY account with admin rights
+JWT_SECRET=<long random string>         # signs session tokens
+ALLOWED_STUDENT_DOMAIN=thapar.edu       # students may self-register only with this domain
+FIREBASE_PROJECT_ID=<firebase project id>  # verifies Google sign-in tokens
+LINKEDIN_URL_FETCH=false                # server-side LinkedIn page fetching (off: LinkedIn terms)
 ```
+See `backend/.env.example` for all options.
 
 #### Frontend (`frontend/.env`):
-Create a `.env` file in the `frontend/` directory (optional for custom ports):
 ```env
-VITE_API_BASE_URL=http://localhost:8000/api/v1
+VITE_BACKEND_URL=http://localhost:8000
 VITE_SOCKET_URL=http://localhost:8000
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=<project>.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=<project id>
+VITE_FIREBASE_APP_ID=...
 ```
+
+#### Enabling Google sign-in
+1. Create a Firebase project → **Authentication → Sign-in method → Google → Enable**.
+2. **Authentication → Settings → Authorized domains**: add `localhost` and your deployed frontend domain.
+3. **Project settings → Your apps → Web app**: copy the config into the `VITE_FIREBASE_*` variables.
+4. Put the same project ID in the backend's `FIREBASE_PROJECT_ID`.
+
+#### How sign-in works
+- Everyone can use **Continue with Google** or **email + password**. Both log into the same account (matched by email), and the backend issues one session token (`Authorization: Bearer …`).
+- **Admin** access is granted only to `ADMIN_EMAIL`, checked on the server. Selecting "Admin" on the login page grants nothing by itself.
+- **Students** must be registered by the admin or use an `@thapar.edu` account. **Alumni** can self-register and start as *Pending verification*, as do alumni added by the admin.
+
+#### Alumni profiles (one record per alumnus)
+- **Admin-created** (manual form or CSV) and **self-registered** alumni use the same `User` record. An admin-created alumnus is linked automatically when they first sign in with the same email.
+- Alumni fill their profile by uploading their own **LinkedIn PDF** (LinkedIn → More → Save to PDF). The server parses it and stores its own copy of the result as verification evidence. Users can still edit the visible profile fields.
+- The CSV accepts optional `batch`, `branch` and `degree` columns. They are kept as the institution's record for verification.
+- A LinkedIn profile can belong to only one account. Admin onboarding refuses duplicates, and a self-registration that reuses one is flagged **Needs manual review**.
+- After upgrading an existing database, run once: `cd backend && npm run migrate`.
+
+#### Alumni verification & confidence score
+- Every alumni save recomputes a **confidence score** with **match / mismatch / missing checks**. The checks compare the LinkedIn PDF evidence, the admin's institutional record and the self-reported profile on: institute in education, degree, graduation year, course duration, department, name, PDF-vs-URL, institutional email, and duplicate accounts.
+- Until a model is trained this is a **rule-based evidence score** and is labelled as such. It is not a machine-learning prediction.
+- A hard mismatch moves a profile from *Pending* to *Needs manual review*. Only an admin can set *Verified* or *Rejected*; a high score never verifies anyone automatically.
+- Each admin decision is stored in `VerificationDecision` with the features as they were at that moment. Verified and rejected decisions become the labelled training data for the ML model.
+- **ML model:** once enough real decisions exist, `npm run ml:export` (backend) followed by `python train.py` (ml/) trains a calibrated Random Forest / Logistic Regression model. The backend then shows "ML vN" scores instead. Full method and limitations: [ml/README.md](ml/README.md).
 
 ---
 
@@ -245,10 +280,21 @@ npm run dev
 
 ## 📡 API Reference Overview
 
-### User & Authentication (`/api/v1/users`)
-- `POST /register` — Register a new student or alumni account
-- `POST /login` — Authenticate user and retrieve session token
-- `GET /` — List provisioned users (with role filters)
+### Authentication (`/api/v1/auth`)
+- `POST /google` — `{ idToken, requestedRole }` → verify Google sign-in, link or create the account, return `{ user, token }`
+- `POST /login` — `{ email, password }` → `{ user, token }`
+- `POST /register` — Self-register a student (`@thapar.edu`) or alumni with a password → `{ user, token }`
+- `GET /me` — Current user for the session token
+
+### Verification (`/api/v1/verification`)
+- `GET /` — Admin queue (`status=open|pending|needs_manual_review|verified|rejected|all`, `search`)
+- `GET /:userId` — Admin review details (evidence, institution record, checks, decision history)
+- `PATCH /:userId` — Admin decision `{ decision, note }` (a note is required to reject)
+- `POST /:userId/rescore`, `POST /rescore-all` — Recompute scores
+- `GET /me` — The alumnus's own status, score and checks
+
+### Users (`/api/v1/users`)
+- `GET /` — List provisioned users (with role filters, signed-in users only)
 - `GET /:id` — Fetch complete profile details by user ID
 - `PATCH /:id` — Update user profile (skills, bio, company, profile picture)
 - `DELETE /:id` — Delete user account (Admin only)
@@ -277,8 +323,9 @@ npm run dev
 
 1. **Client-Side Image Optimization:** Profile images uploaded by users are downscaled client-side through HTML5 Canvas into ultra-compact, crisp JPEG/WebP formats before payload transmission, ensuring ultra-fast load times and sub-30KB network footprints.
 2. **Cryptographic Protection:** Passwords securely hashed using standard BcryptJS salt rounds.
-3. **Admin Self-Protection:** Multi-step safeguards prevent accidental administrative account removal.
-4. **Resilient Real-Time Sync:** WebSockets operate with automatic reconnect polling fallbacks.
+3. **Server-side identity:** Every request is identified only by a signed session token (REST and Socket.io). User IDs sent in headers or request bodies are ignored, and admin rights are tied to `ADMIN_EMAIL`.
+4. **Admin Self-Protection:** Multi-step safeguards prevent accidental administrative account removal.
+5. **Resilient Real-Time Sync:** WebSockets operate with automatic reconnect polling fallbacks.
 
 ---
 

@@ -3,130 +3,45 @@ import bcrypt from "bcryptjs";
 import { User } from "../models/index.js";
 import { sendCredentialsEmail } from "../services/email.service.js";
 import { scrapeLinkedInData } from "../services/linkedin-scraper.service.js";
+import { isAuthorizedAdmin, toSafeUser } from "../services/auth.service.js";
+import { buildEvidenceRecord, profileFieldsFromEvidence, verifyEvidenceToken } from "../services/evidence.service.js";
+import {
+  applyEvidenceToken,
+  findLinkedinOwner,
+  flagIfDuplicateLinkedin,
+  normalizeLinkedinUrl,
+  sanitizeEducation,
+} from "../services/alumni-profile.service.js";
+import { matchDepartment } from "../config/institution.js";
+import { recordDecision } from "./verification.controller.js";
+
+// Profile fields an admin may fill in when onboarding an alumnus.
+const ENRICHMENT_FIELDS = [
+  "currentCompany",
+  "currentRole",
+  "industry",
+  "branch",
+  "batch",
+  "skills",
+  "areasOfExpertise",
+  "bio",
+  "experience",
+  "education",
+];
+
+/** Facts the admin supplies from institutional records (kept separately from editable profile fields). */
+const adminRecordFrom = (src = {}) => {
+  const batch = Number(src.batch);
+  const branchText = String(src.branch || "").trim();
+  const record = {
+    batch: Number.isInteger(batch) && batch > 1900 ? batch : undefined,
+    branch: branchText ? matchDepartment(branchText) || branchText : undefined,
+    degree: String(src.degree || "").trim() || undefined,
+  };
+  return record.batch || record.branch || record.degree ? record : undefined;
+};
 
 const isValidId = (id) => mongoose.isValidObjectId(id);
-
-const createUser = async (req, res) => {
-  try {
-    const { role, name, email, firebaseUid, password } = req.body;
-
-    if (!role || !name || !email) {
-      return res.status(400).json({
-        success: false,
-        message: "role, name, and email are required.",
-      });
-    }
-
-    if (role === "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Admin accounts cannot be created through signup.",
-      });
-    }
-
-    let hashedPassword = undefined;
-    if (password && password.trim()) {
-      hashedPassword = await bcrypt.hash(password.trim(), 10);
-    }
-
-    // Auto-generate firebaseUid for local/demo signups if not provided
-    const userPayload = {
-      ...req.body,
-      firebaseUid: firebaseUid || `uid_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      password: hashedPassword,
-    };
-
-    const user = await User.create(userPayload);
-
-    const safeUser = user.toObject();
-    delete safeUser.password;
-    delete safeUser.firebaseUid;
-    delete safeUser.__v;
-
-    return res.status(201).json({
-      success: true,
-      message: "User profile created successfully.",
-      data: safeUser,
-    });
-  } catch (error) {
-    if (error.code === 11000) {
-      const duplicateField = Object.keys(error.keyPattern || {})[0] || "email";
-
-      return res.status(409).json({
-        success: false,
-        message: `A user with this ${duplicateField} already exists.`,
-      });
-    }
-
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    console.error("Create user error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Unable to create the user profile.",
-    });
-  }
-};
-
-const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email?.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Email is required to sign in.",
-      });
-    }
-
-    const user = await User.findOne({ email: email.trim().toLowerCase() }).select("-firebaseUid -__v");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "No user found with this email address. Please check your email or register.",
-      });
-    }
-
-    // Verify password if user has a password set
-    if (user.password) {
-      if (!password) {
-        return res.status(400).json({
-          success: false,
-          message: "Password is required to sign in.",
-        });
-      }
-
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({
-          success: false,
-          message: "Incorrect password. Please try again.",
-        });
-      }
-    }
-
-    const safeUser = user.toObject();
-    delete safeUser.password;
-
-    return res.status(200).json({
-      success: true,
-      message: "Signed in successfully.",
-      data: safeUser,
-    });
-  } catch (error) {
-    console.error("Login user error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Unable to complete sign in.",
-    });
-  }
-};
 
 const getAllUsers = async (req, res) => {
   try {
@@ -135,12 +50,12 @@ const getAllUsers = async (req, res) => {
     if (role) filter.role = role;
 
     const users = await User.find(filter)
-      .select("-password -firebaseUid -__v")
+      .select("-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
-      data: users,
+      data: users.map((u) => ({ ...u.toObject(), isAdmin: isAuthorizedAdmin(u) })),
     });
   } catch (error) {
     console.error("Get all users error:", error);
@@ -162,7 +77,7 @@ const getUserProfile = async (req, res) => {
       });
     }
 
-    const user = await User.findById(userId).select("-password -firebaseUid -__v");
+    const user = await User.findById(userId).select("-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord");
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -186,7 +101,7 @@ const getUserProfile = async (req, res) => {
 const updateUserProfile = async (req, res) => {
   try {
     const { userId } = req.params;
-    const actorId = req.user?._id || req.body.actorId || userId;
+    const isSelf = req.user._id.toString() === String(userId);
 
     if (!isValidId(userId)) {
       return res.status(400).json({
@@ -196,7 +111,7 @@ const updateUserProfile = async (req, res) => {
     }
 
     // Only the user themselves or an admin can update the profile
-    if (actorId.toString() !== userId.toString() && req.user?.role !== "admin") {
+    if (!isSelf && !isAuthorizedAdmin(req.user)) {
       return res.status(403).json({
         success: false,
         message: "You can only update your own profile.",
@@ -237,10 +152,36 @@ const updateUserProfile = async (req, res) => {
       }
     }
 
-    // Password update handling with current password verification
-    if (req.body.newPassword && req.body.newPassword.trim()) {
-      if (req.body.currentPassword && user.password) {
-        const isMatch = await bcrypt.compare(req.body.currentPassword, user.password);
+    if (user.role === "alumni") {
+      if (req.body.education !== undefined) user.education = sanitizeEducation(req.body.education);
+
+      // LinkedIn PDF evidence: the server stores its own signed parse result, not form values.
+      if (req.body.evidenceToken) {
+        try {
+          applyEvidenceToken(user, req.body.evidenceToken, req.user._id);
+        } catch (err) {
+          return res.status(err.status || 400).json({ success: false, message: err.message });
+        }
+      }
+
+      // A LinkedIn profile already used by another account goes to manual review (never silently merged).
+      if (user.isModified("linkedinUrl")) await flagIfDuplicateLinkedin(user);
+    }
+
+    // Password set / change. Users changing their OWN existing password must confirm the current one.
+    // Google-only users (no password yet) can set one; admins can reset other users' passwords.
+    const newPassword = String(req.body.newPassword || req.body.password || "").trim();
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: "Password must be at least 6 characters long.",
+        });
+      }
+      if (isSelf && user.password) {
+        const isMatch = req.body.currentPassword
+          ? await bcrypt.compare(String(req.body.currentPassword), user.password)
+          : false;
         if (!isMatch) {
           return res.status(400).json({
             success: false,
@@ -248,24 +189,20 @@ const updateUserProfile = async (req, res) => {
           });
         }
       }
-      user.password = await bcrypt.hash(req.body.newPassword.trim(), 10);
-    } else if (req.body.password && req.body.password.trim()) {
-      user.password = await bcrypt.hash(req.body.password.trim(), 10);
+      user.password = await bcrypt.hash(newPassword, 10);
     }
 
     await user.save();
 
-    const safeUser = user.toObject();
-    delete safeUser.password;
-    delete safeUser.firebaseUid;
-    delete safeUser.__v;
-
     return res.status(200).json({
       success: true,
       message: "Profile updated successfully.",
-      data: safeUser,
+      data: toSafeUser(user),
     });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: Object.values(error.errors)[0]?.message || error.message });
+    }
     console.error("Update user profile error:", error);
     return res.status(500).json({
       success: false,
@@ -277,31 +214,13 @@ const updateUserProfile = async (req, res) => {
 const verifyAlumni = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { isVerified = true, adminId } = req.body;
-    const callerId = req.user?._id || adminId;
+    const { isVerified = true } = req.body;
 
     if (!isValidId(userId)) {
       return res.status(400).json({
         success: false,
         message: "userId must be a valid ID.",
       });
-    }
-
-    // Verify admin privileges
-    if (req.user?.role !== "admin") {
-      if (!callerId || !isValidId(callerId)) {
-        return res.status(403).json({
-          success: false,
-          message: "Admin privileges required.",
-        });
-      }
-      const adminUser = await User.findById(callerId);
-      if (!adminUser || adminUser.role !== "admin") {
-        return res.status(403).json({
-          success: false,
-          message: "Only administrators can verify alumni.",
-        });
-      }
     }
 
     const user = await User.findById(userId);
@@ -319,8 +238,14 @@ const verifyAlumni = async (req, res) => {
       });
     }
 
-    user.isVerified = Boolean(isVerified);
-    await user.save();
+    // Same logged decision path as the verification dashboard (revoking returns the profile to pending).
+    const updated = await recordDecision({
+      userId: user._id,
+      decision: isVerified ? "verified" : "pending",
+      note: isVerified ? undefined : "Verified badge revoked by admin.",
+      admin: req.user,
+    });
+    user.isVerified = updated.isVerified;
 
     return res.status(200).json({
       success: true,
@@ -342,16 +267,6 @@ const verifyAlumni = async (req, res) => {
 
 const onboardUser = async (req, res) => {
   try {
-    const callerId = req.headers["x-user-id"] || req.user?._id || req.body.adminId;
-    if (callerId && isValidId(callerId)) {
-      const admin = await User.findById(callerId);
-      if (admin && admin.role !== "admin") {
-        return res.status(403).json({
-          success: false,
-          message: "Only administrators can onboard users.",
-        });
-      }
-    }
 
     const { role, name, email, linkedinUrl, defaultPassword } = req.body;
 
@@ -378,19 +293,45 @@ const onboardUser = async (req, res) => {
       });
     }
 
+    // One alumni record per LinkedIn profile
+    if (role === "alumni" && linkedinUrl?.trim()) {
+      const owner = await findLinkedinOwner(linkedinUrl);
+      if (owner) {
+        return res.status(409).json({
+          success: false,
+          message: `This LinkedIn profile is already linked to ${owner.name} (${owner.email}).`,
+        });
+      }
+    }
+
     const passwordToUse = (defaultPassword && defaultPassword.trim()) || "Thapar@2026";
     const hashedPassword = await bcrypt.hash(passwordToUse, 10);
 
-    let alumniEnrichment = { ...(req.body.enrichmentData || {}) };
-    if (req.body.currentCompany) alumniEnrichment.currentCompany = req.body.currentCompany;
-    if (req.body.currentRole) alumniEnrichment.currentRole = req.body.currentRole;
-    if (req.body.industry) alumniEnrichment.industry = req.body.industry;
-    if (req.body.branch) alumniEnrichment.branch = req.body.branch;
-    if (req.body.batch) alumniEnrichment.batch = req.body.batch;
-    if (req.body.skills) alumniEnrichment.skills = req.body.skills;
-    if (req.body.areasOfExpertise) alumniEnrichment.areasOfExpertise = req.body.areasOfExpertise;
-    if (req.body.bio) alumniEnrichment.bio = req.body.bio;
-    if (req.body.experience) alumniEnrichment.experience = req.body.experience;
+    // LinkedIn PDF uploaded by the admin: use the server-signed parse result (found/inferred fields only).
+    let evidenceRecord = null;
+    if (role === "alumni" && req.body.evidenceToken) {
+      try {
+        evidenceRecord = buildEvidenceRecord(verifyEvidenceToken(req.body.evidenceToken, req.user._id), req.user._id);
+      } catch (err) {
+        return res.status(err.status || 400).json({ success: false, message: err.message });
+      }
+    }
+
+    let alumniEnrichment = {};
+    if (role === "alumni") {
+      if (evidenceRecord) {
+        const { name: _ignoredName, linkedinUrl: _ignoredUrl, ...fromEvidence } = profileFieldsFromEvidence(evidenceRecord);
+        alumniEnrichment = fromEvidence;
+      } else {
+        for (const key of ENRICHMENT_FIELDS) {
+          if (req.body.enrichmentData?.[key] !== undefined) alumniEnrichment[key] = req.body.enrichmentData[key];
+        }
+      }
+      for (const key of ENRICHMENT_FIELDS) {
+        if (req.body[key] !== undefined && req.body[key] !== "") alumniEnrichment[key] = req.body[key];
+      }
+      if (alumniEnrichment.education) alumniEnrichment.education = sanitizeEducation(alumniEnrichment.education);
+    }
 
     if (role === "alumni" && linkedinUrl?.trim() && Object.keys(alumniEnrichment).length === 0) {
       try {
@@ -413,13 +354,20 @@ const onboardUser = async (req, res) => {
     }
 
     const newUser = await User.create({
+      ...alumniEnrichment,
       role,
       name: name.trim(),
       email: normalizedEmail,
       password: hashedPassword,
       linkedinUrl: role === "alumni" && linkedinUrl ? linkedinUrl.trim() : undefined,
-      isVerified: role === "alumni" ? true : false,
-      ...alumniEnrichment,
+      profileSource: "admin_manual",
+      ...(role === "alumni" && {
+        verification: {
+          status: "pending", // alumni start pending admin verification
+          evidence: evidenceRecord || undefined,
+          adminRecord: adminRecordFrom(req.body),
+        },
+      }),
     });
 
     // Send email dispatch
@@ -445,6 +393,9 @@ const onboardUser = async (req, res) => {
       },
     });
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ success: false, message: Object.values(error.errors)[0]?.message || error.message });
+    }
     console.error("Onboard user error:", error);
     return res.status(500).json({
       success: false,
@@ -455,16 +406,6 @@ const onboardUser = async (req, res) => {
 
 const bulkOnboardUsers = async (req, res) => {
   try {
-    const callerId = req.headers["x-user-id"] || req.user?._id || req.body.adminId;
-    if (callerId && isValidId(callerId)) {
-      const admin = await User.findById(callerId);
-      if (admin && admin.role !== "admin") {
-        return res.status(403).json({
-          success: false,
-          message: "Only administrators can perform bulk onboarding.",
-        });
-      }
-    }
 
     const { users } = req.body;
     if (!Array.isArray(users) || users.length === 0) {
@@ -502,6 +443,21 @@ const bulkOnboardUsers = async (req, res) => {
       const cleanLinkedin = role === "alumni" && record.linkedinUrl ? record.linkedinUrl.trim() : undefined;
 
       if (cleanLinkedin) {
+        if (!normalizeLinkedinUrl(cleanLinkedin)) {
+          duplicates.push({ email, name, role, reason: "Invalid LinkedIn profile URL" });
+          continue;
+        }
+        const owner = await findLinkedinOwner(cleanLinkedin);
+        if (owner) {
+          duplicates.push({ email, name, role, reason: `LinkedIn profile already linked to ${owner.email}` });
+          continue;
+        }
+      }
+
+      // Optional institutional columns from the CSV (batch, branch, degree)
+      const adminRecord = role === "alumni" ? adminRecordFrom(record) : undefined;
+
+      if (cleanLinkedin) {
         try {
           const scrapeResult = await scrapeLinkedInData(cleanLinkedin);
           if (scrapeResult?.success && scrapeResult.data) {
@@ -521,15 +477,24 @@ const bulkOnboardUsers = async (req, res) => {
         }
       }
 
-      const newUser = await User.create({
-        role,
-        name,
-        email,
-        password: hashedPassword,
-        linkedinUrl: cleanLinkedin,
-        isVerified: role === "alumni" ? true : false,
-        ...alumniEnrichment,
-      });
+      let newUser;
+      try {
+        newUser = await User.create({
+          ...alumniEnrichment,
+          role,
+          name,
+          email,
+          password: hashedPassword,
+          linkedinUrl: cleanLinkedin,
+          profileSource: "admin_csv",
+          ...(adminRecord?.batch && { batch: adminRecord.batch }),
+          ...(adminRecord?.branch && { branch: adminRecord.branch }),
+          ...(role === "alumni" && { verification: { status: "pending", adminRecord } }),
+        });
+      } catch (rowError) {
+        duplicates.push({ email, name, role, reason: rowError.name === "ValidationError" ? "Invalid data in row" : "Could not create account" });
+        continue;
+      }
 
       await sendCredentialsEmail({
         name,
@@ -573,30 +538,12 @@ const bulkOnboardUsers = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const callerId = req.headers["x-user-id"] || req.user?._id || req.body?.adminId || req.query?.adminId;
 
     if (!isValidId(userId)) {
       return res.status(400).json({
         success: false,
         message: "userId must be a valid ID.",
       });
-    }
-
-    // Verify admin privileges
-    if (req.user?.role !== "admin") {
-      if (!callerId || !isValidId(callerId)) {
-        return res.status(403).json({
-          success: false,
-          message: "Admin privileges required.",
-        });
-      }
-      const adminUser = await User.findById(callerId);
-      if (!adminUser || adminUser.role !== "admin") {
-        return res.status(403).json({
-          success: false,
-          message: "Only administrators can delete user accounts.",
-        });
-      }
     }
 
     const targetUser = await User.findById(userId);
@@ -607,7 +554,7 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    if (targetUser.role === "admin") {
+    if (targetUser.role === "admin" || isAuthorizedAdmin(targetUser)) {
       return res.status(403).json({
         success: false,
         message: "Administrator accounts cannot be deleted.",
@@ -636,8 +583,6 @@ const deleteUser = async (req, res) => {
 };
 
 export {
-  createUser,
-  loginUser,
   getAllUsers,
   getUserProfile,
   updateUserProfile,

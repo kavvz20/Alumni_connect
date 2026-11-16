@@ -36,10 +36,12 @@ export const Navbar = ({
   ];
 
   const visibleTabs = navTabs.filter((tab) => {
+    // Admin-only account: just the admin pages
     if (currentUser?.role === "admin") {
       return tab.path === "/admin" || tab.path === "/events";
     }
-    return !tab.adminOnly;
+    // A student/alumni account that is also the admin (ADMIN_EMAIL) sees both
+    return !tab.adminOnly || Boolean(currentUser?.isAdmin);
   });
 
   return (

@@ -1,7 +1,5 @@
 import { Router } from "express";
 import {
-  createUser,
-  loginUser,
   getAllUsers,
   getUserProfile,
   updateUserProfile,
@@ -10,17 +8,21 @@ import {
   bulkOnboardUsers,
   deleteUser,
 } from "../controllers/user.controller.js";
-import { optionalAuth } from "../middleware/auth.middleware.js";
+import { passwordLogin, passwordRegister } from "../controllers/auth.controller.js";
+import { verifyAuth, requireRole } from "../middleware/auth.middleware.js";
 
 const userRouter = Router();
 
-userRouter.route("/").post(createUser).get(getAllUsers);
-userRouter.post("/login", loginUser);
-userRouter.post("/onboard", optionalAuth, onboardUser);
-userRouter.post("/bulk-onboard", optionalAuth, bulkOnboardUsers);
+// Legacy paths kept for compatibility; they use the same handlers as /api/v1/auth/*
+userRouter.post("/", passwordRegister);
+userRouter.post("/login", passwordLogin);
+
+userRouter.get("/", verifyAuth, getAllUsers);
+userRouter.post("/onboard", verifyAuth, requireRole("admin"), onboardUser);
+userRouter.post("/bulk-onboard", verifyAuth, requireRole("admin"), bulkOnboardUsers);
 userRouter.get("/:userId", getUserProfile);
-userRouter.patch("/:userId", optionalAuth, updateUserProfile);
-userRouter.delete("/:userId", optionalAuth, deleteUser);
-userRouter.patch("/:userId/verify", optionalAuth, verifyAlumni);
+userRouter.patch("/:userId", verifyAuth, updateUserProfile);
+userRouter.delete("/:userId", verifyAuth, requireRole("admin"), deleteUser);
+userRouter.patch("/:userId/verify", verifyAuth, requireRole("admin"), verifyAlumni);
 
 export default userRouter;

@@ -264,6 +264,25 @@ export const scrapeLinkedInData = async (url, fallbackText = "") => {
     };
   }
 
+  // Live fetching of linkedin.com pages is OFF by default: LinkedIn's User Agreement does not
+  // permit automated access. Profile data should come from the member's own "Save to PDF" export.
+  // Set LINKEDIN_URL_FETCH=true to re-enable the original behaviour below.
+  if (process.env.LINKEDIN_URL_FETCH !== "true") {
+    if (fallbackText && fallbackText.trim()) {
+      return {
+        success: true,
+        source: "text_fallback",
+        data: { ...parseLinkedInText(fallbackText), linkedinUrl: sanitizedUrl },
+      };
+    }
+    return {
+      success: false,
+      source: "url_fetch_disabled",
+      message:
+        "Automatic import from a LinkedIn URL is disabled. Please upload your LinkedIn profile PDF instead (on LinkedIn: More > Save to PDF).",
+    };
+  }
+
   // Attempt public metadata scraping
   try {
     const controller = new AbortController();

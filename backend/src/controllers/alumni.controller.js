@@ -1,6 +1,11 @@
+import crypto from "node:crypto";
 import { User } from "../models/index.js";
+import { signEvidenceToken } from "../services/evidence.service.js";
 import { scrapeLinkedInData } from "../services/linkedin-scraper.service.js";
 import { parseLinkedInPdfBuffer, parseLinkedInPdfText } from "../services/linkedin-pdf-parser.service.js";
+
+// Never expose credentials or verification evidence in public listings.
+const PUBLIC_USER_EXCLUDE = "-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord";
 
 const asExactCaseInsensitiveMatch = (value) =>
   new RegExp(`^${value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
@@ -115,7 +120,7 @@ const getAlumni = async (req, res) => {
 
     const [alumni, total] = await Promise.all([
       User.find(filter)
-        .select("-firebaseUid -__v")
+        .select(PUBLIC_USER_EXCLUDE)
         .sort(
           search?.trim() ? { score: { $meta: "textScore" } } : { createdAt: -1 }
         )
@@ -179,7 +184,7 @@ const matchAlumniMentor = async (req, res) => {
     const candidates = await User.find({
       role: "alumni",
       availableForMentorshipCalls: true,
-    }).select("-firebaseUid -__v");
+    }).select(PUBLIC_USER_EXCLUDE);
 
     if (!candidates.length) {
       return res.status(200).json({
@@ -382,11 +387,20 @@ const parseLinkedInPdf = async (req, res) => {
       });
     }
 
+    // Signed copy of the parse result: sent back on save so the server can store it as evidence.
+    const evidenceToken = signEvidenceToken({
+      source: "linkedin_pdf",
+      extracted: result.data,
+      fileHash: crypto.createHash("sha256").update(buffer).digest("hex"),
+      issuedTo: req.user?._id || null,
+    });
+
     return res.status(200).json({
       success: true,
       message: "LinkedIn PDF parsed successfully.",
       source: result.source,
       data: result.data,
+      evidenceToken,
     });
   } catch (error) {
     console.error("Parse LinkedIn PDF controller error:", error);

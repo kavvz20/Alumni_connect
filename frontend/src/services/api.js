@@ -11,6 +11,26 @@ export const BACKEND_URL = cleanBackendUrl;
 export const API_BASE = BACKEND_URL ? `${BACKEND_URL}/api/v1` : "/api/v1";
 export const SOCKET_URL = (import.meta.env.VITE_SOCKET_URL || "").trim().replace(/\/+$/, "") || BACKEND_URL || (typeof window !== "undefined" && window.location.hostname === "localhost" ? "http://localhost:8000" : window.location.origin);
 
+// ---------------------------------------------------------------------------
+// Session token (issued by the backend after Google or password sign-in)
+// ---------------------------------------------------------------------------
+const TOKEN_KEY = "alumni_connect_token";
+
+export const getSessionToken = () => {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch (_) {
+    return null;
+  }
+};
+
+export const setSessionToken = (token) => {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch (_) {}
+};
+
 let socketInstance = null;
 
 export const getSocket = () => {
@@ -18,9 +38,18 @@ export const getSocket = () => {
     socketInstance = io(SOCKET_URL, {
       transports: ["websocket", "polling"],
       autoConnect: true,
+      // Evaluated on every (re)connect so it always sends the current session token.
+      auth: (cb) => cb({ token: getSessionToken() }),
     });
   }
   return socketInstance;
+};
+
+export const resetSocket = () => {
+  if (socketInstance) {
+    socketInstance.disconnect();
+    socketInstance = null;
+  }
 };
 
 // Generic fetch handler with error handling
@@ -28,8 +57,10 @@ const request = async (endpoint, options = {}) => {
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   const rawUrl = `${API_BASE}${cleanEndpoint}`;
   const url = rawUrl.replace(/([^:]\/)\/+/g, "$1");
+  const token = getSessionToken();
   const headers = {
     "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
 
@@ -52,7 +83,13 @@ const request = async (endpoint, options = {}) => {
     }
 
     if (!response.ok) {
-      throw new Error(data.message || `Request failed with status ${response.status}`);
+      // A rejected session (expired / revoked) logs the user out everywhere in the app.
+      if (response.status === 401 && token && typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("auth:expired", { detail: data.message }));
+      }
+      const err = new Error(data.message || `Request failed with status ${response.status}`);
+      err.status = response.status;
+      throw err;
     }
     return data;
   } catch (error) {
@@ -63,9 +100,31 @@ const request = async (endpoint, options = {}) => {
 
 // Users API
 export const api = {
+  // Authentication — each returns { data: { user, token, isNewUser? } }
+  googleSignIn: (idToken, requestedRole) =>
+    request("/auth/google", { method: "POST", body: JSON.stringify({ idToken, requestedRole }) }),
+  login: (email, password) => request("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+  register: (userData) => request("/auth/register", { method: "POST", body: JSON.stringify(userData) }),
+  getMe: () => request("/auth/me"),
+
+  // Alumni verification
+  getVerificationQueue: (params = {}) => {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== "") query.append(key, val);
+    });
+    return request(`/verification?${query.toString()}`);
+  },
+  getVerificationDetail: (userId) => request(`/verification/${userId}`),
+  decideVerification: (userId, decision, note) =>
+    request(`/verification/${userId}`, { method: "PATCH", body: JSON.stringify({ decision, note }) }),
+  rescoreVerification: (userId) => request(`/verification/${userId}/rescore`, { method: "POST" }),
+  rescoreAllVerifications: () => request("/verification/rescore-all", { method: "POST" }),
+  getMyVerification: () => request("/verification/me"),
+  getVerificationModelInfo: () => request("/verification/model"),
+
   // Users
-  createUser: (userData) => request("/users", { method: "POST", body: JSON.stringify(userData) }),
-  login: (email, password) => request("/users/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+  createUser:(userData) => request("/auth/register", { method: "POST", body: JSON.stringify(userData) }),
   getUsers: (params = {}) => {
     const query = new URLSearchParams();
     Object.entries(params).forEach(([key, val]) => {

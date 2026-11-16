@@ -4,18 +4,19 @@ import {
   getReports,
   updateReportStatus,
 } from "../controllers/report.controller.js";
-import { optionalAuth } from "../middleware/auth.middleware.js";
+import { verifyAuth, requireRole } from "../middleware/auth.middleware.js";
 
 const reportRouter = Router();
 
 reportRouter
   .route("/")
-  .post(optionalAuth, createReport)
-  .get(optionalAuth, getReports);
+  .post(verifyAuth, createReport)
+  .get(verifyAuth, requireRole("admin"), getReports);
 
 reportRouter.patch(
   "/:reportId/status",
-  optionalAuth,
+  verifyAuth,
+  requireRole("admin"),
   updateReportStatus
 );
 

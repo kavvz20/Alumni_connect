@@ -25,6 +25,10 @@ import {
   Eye,
 } from "lucide-react";
 
+import { VerificationStatusCard, EducationEditor, ExperienceEditor } from "./AlumniProfileExtras";
+import { usableParsedFields } from "../services/parsedProfile";
+import { DEPARTMENTS } from "../constants/institution";
+
 export const ProfileView = ({ currentUser, onUserUpdated }) => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -33,8 +37,8 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
   // General Profile State
   const [name, setName] = useState(currentUser?.name || "");
   const [profilePicture, setProfilePicture] = useState(currentUser?.profilePicture || "");
-  const [branch, setBranch] = useState(currentUser?.branch || "Computer Engineering");
-  const [batch, setBatch] = useState(currentUser?.batch || 2026);
+  const [branch, setBranch] = useState(currentUser?.branch || "");
+  const [batch, setBatch] = useState(currentUser?.batch || "");
   const [skills, setSkills] = useState(
     Array.isArray(currentUser?.skills) ? currentUser.skills.join(", ") : ""
   );
@@ -60,6 +64,9 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
     Boolean(currentUser?.willingToRefer)
   );
   const [experience, setExperience] = useState(currentUser?.experience || []);
+  const [education, setEducation] = useState(currentUser?.education || []);
+  // Signed copy of the server's LinkedIn PDF parse, sent with the next save as verification evidence
+  const [evidenceToken, setEvidenceToken] = useState(null);
 
   // Password Change State
   const [currentPassword, setCurrentPassword] = useState("");
@@ -105,16 +112,20 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
         const res = await api.parseLinkedInPdf(base64Data, null, currentUser?._id);
         if (res?.data) {
           const d = res.data;
-          if (d.name && !name) setName(d.name);
-          if (d.currentCompany) setCurrentCompany(d.currentCompany);
-          if (d.currentRole) setCurrentRole(d.currentRole);
-          if (d.branch) setBranch(d.branch);
-          if (d.batch) setBatch(d.batch);
+          // Only use values the parser actually found or inferred (never its placeholder defaults)
+          const f = usableParsedFields(d);
+          if (f.name && !name) setName(f.name);
+          if (f.currentCompany) setCurrentCompany(f.currentCompany);
+          if (f.currentRole) setCurrentRole(f.currentRole);
+          if (f.branch) setBranch(f.branch);
+          if (f.batch) setBatch(f.batch);
+          if (f.linkedinUrl && !linkedinUrl) setLinkedinUrl(f.linkedinUrl);
+          if (f.education?.length) setEducation(f.education);
+          if (f.experience?.length) setExperience(f.experience);
           if (d.industry) setIndustry(d.industry);
-          if (d.linkedinUrl && !linkedinUrl) setLinkedinUrl(d.linkedinUrl);
-          if (d.skills && d.skills.length > 0) {
+          if (f.skills && f.skills.length > 0) {
             const currentList = skills.split(",").map((s) => s.trim()).filter(Boolean);
-            const combined = Array.from(new Set([...currentList, ...d.skills]));
+            const combined = Array.from(new Set([...currentList, ...f.skills]));
             setSkills(combined.join(", "));
           }
           if (d.areasOfExpertise && d.areasOfExpertise.length > 0) {
@@ -125,9 +136,12 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
           if (d.bio && (!bio || bio.length < 25)) {
             setBio(d.bio);
           }
+          setEvidenceToken(res.evidenceToken || null);
           setScrapedPreview(d);
+          const missing = ["batch", "branch", "education"].filter((k) => f[k] === undefined || (Array.isArray(f[k]) && !f[k].length));
           setScrapeMessage(
-            `LinkedIn PDF for ${d.name || "Alumnus"} parsed successfully! Company (${d.currentCompany}), Role (${d.currentRole}), Batch (${d.batch}), and Skills have been auto-populated.`
+            `LinkedIn PDF for ${d.name || "Alumnus"} read successfully. Review the pre-filled fields below, then click "Save Profile Details".` +
+              (missing.length ? ` Not found in the PDF: ${missing.join(", ")}. Please fill these in yourself.` : "")
           );
         }
       } catch (err) {
@@ -199,8 +213,10 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
     if (currentUser) {
       setName(currentUser.name || "");
       setProfilePicture(currentUser.profilePicture || "");
-      setBranch(currentUser.branch || "Computer Engineering");
-      setBatch(currentUser.batch || 2026);
+      setBranch(currentUser.branch || "");
+      setBatch(currentUser.batch || "");
+      setEducation(currentUser.education || []);
+      setExperience(currentUser.experience || []);
       setSkills(Array.isArray(currentUser.skills) ? currentUser.skills.join(", ") : "");
       setBio(currentUser.bio || "");
       setGithubUrl(currentUser.githubUrl || "");
@@ -291,10 +307,14 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
       updates.linkedinUrl = linkedinUrl.trim();
       updates.availableForMentorshipCalls = Boolean(availableForMentorshipCalls);
       updates.willingToRefer = Boolean(willingToRefer);
+      updates.education = education;
+      updates.experience = experience.filter((x) => x.company?.trim() || x.role?.trim());
+      if (evidenceToken) updates.evidenceToken = evidenceToken;
     }
 
     try {
       const res = await api.updateUserProfile(currentUser._id, updates, currentUser._id);
+      setEvidenceToken(null);
       setProfileMessage("Profile details updated successfully!");
       if (onUserUpdated && res.data) {
         onUserUpdated(res.data);
@@ -305,6 +325,9 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
       setProfileLoading(false);
     }
   };
+
+  // Accounts created via Google have no password until the user sets one
+  const hasPassword = currentUser?.hasPassword !== false;
 
   // Handle Password Change
   const handleChangePassword = async (e) => {
@@ -326,8 +349,13 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
     setPasswordError(null);
 
     try {
-      await api.changePassword(currentUser._id, currentPassword, newPassword);
-      setPasswordMessage("Password changed successfully! Please use your new password next time you sign in.");
+      const res = await api.changePassword(currentUser._id, currentPassword, newPassword);
+      if (res?.data && onUserUpdated) onUserUpdated(res.data);
+      setPasswordMessage(
+        hasPassword
+          ? "Password changed successfully! Please use your new password next time you sign in."
+          : "Password set! You can now sign in with Google or with your email and password."
+      );
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -387,6 +415,8 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
           Provisioned by <strong>Thapar Placement & Alumni Cell</strong>
         </div>
       </div>
+
+      <VerificationStatusCard user={currentUser} />
 
       <div className="responsive-split-grid">
         {/* ========================================================================= */}
@@ -535,10 +565,16 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                 </label>
                 <input
                   className="input-control"
+                  list="department-options"
                   value={branch}
                   onChange={(e) => setBranch(e.target.value)}
                   placeholder="e.g. Computer Engineering"
                 />
+                <datalist id="department-options">
+                  {DEPARTMENTS.map((d) => (
+                    <option key={d} value={d} />
+                  ))}
+                </datalist>
               </div>
 
               <div>
@@ -1067,6 +1103,9 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                   </label>
                 </div>
               </div>
+
+              <EducationEditor rows={education} onChange={setEducation} />
+              <ExperienceEditor rows={experience} onChange={setExperience} />
             </div>
           )}
 
@@ -1107,16 +1146,18 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
             <KeyRound size={22} color="#92400e" />
             <div>
               <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#18181b", margin: 0 }}>
-                Change Password
+                {hasPassword ? "Change Password" : "Set a Password"}
               </h3>
               <span style={{ fontSize: "0.78rem", color: "#78716c" }}>
-                Update your default credentials
+                {hasPassword ? "Update your default credentials" : "Optional: also sign in with email & password"}
               </span>
             </div>
           </div>
 
           <p style={{ fontSize: "0.82rem", color: "#524f4a", lineHeight: 1.5, marginBottom: "20px" }}>
-            If you are currently signed in with the default password assigned by the Administrator, please create a new private password below.
+            {hasPassword
+              ? "If you are currently signed in with the default password assigned by the Administrator, please create a new private password below."
+              : "You signed up with Google. Set a password if you also want to sign in with your email address and password."}
           </p>
 
           {passwordMessage && (
@@ -1134,19 +1175,21 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
           )}
 
           <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-            <div>
-              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
-                Current Password
-              </label>
-              <input
-                type="password"
-                required
-                className="input-control"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
-              />
-            </div>
+            {hasPassword && (
+              <div>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  className="input-control"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                />
+              </div>
+            )}
 
             <div>
               <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>

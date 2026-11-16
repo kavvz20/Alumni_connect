@@ -9,3 +9,4 @@ export { ForumPost } from "./forum-post.model.js";
 export { Comment } from "./comment.model.js";
 export { SuccessStory } from "./success-story.model.js";
 export { Report } from "./report.model.js";
+export { VerificationDecision } from "./verification-decision.model.js";

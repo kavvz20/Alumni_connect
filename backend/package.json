@@ -7,7 +7,10 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
-    "test": "node --test --test-reporter=spec tests/**/*.test.js"
+    "test": "node --test --test-reporter=spec tests/**/*.test.js",
+    "migrate": "node src/db/migrate-alumni-profiles.js",
+    "create-admin": "node src/db/create-admin.js",
+    "ml:export": "node src/db/export-training-data.js"
   },
   "author": "kavya",
   "license": "ISC",
@@ -22,6 +25,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "firebase-admin": "^14.3.0",
+    "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.4",
     "pdf-parse": "^2.4.5",
     "socket.io": "^4.8.3"

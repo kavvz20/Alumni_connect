@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { api } from "../services/api";
+import { DEPARTMENTS } from "../constants/institution";
+import { usableParsedFields } from "../services/parsedProfile";
 import {
   X,
   LogIn,
@@ -14,16 +16,19 @@ import {
   FileText,
 } from "lucide-react";
 
-export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }) => {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [role, setRole] = useState("student");
+export const AuthModal = ({ isOpen, onClose, onAuthSuccess, initialSignUp = false, initialRole = "student" }) => {
+  const [isSignUp, setIsSignUp] = useState(initialSignUp);
+  const [role, setRole] = useState(initialRole === "alumni" ? "alumni" : "student");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [branch, setBranch] = useState("Computer Engineering");
-  const [batch, setBatch] = useState(2026);
+  const [branch, setBranch] = useState("");
+  const [batch, setBatch] = useState("");
+  const [education, setEducation] = useState([]);
+  const [experience, setExperience] = useState([]);
+  const [evidenceToken, setEvidenceToken] = useState(null);
   const [skills, setSkills] = useState("");
   const [bio, setBio] = useState("");
 
@@ -67,17 +72,25 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }
         const res = await api.parseLinkedInPdf(base64Data);
         if (res?.data) {
           const d = res.data;
-          if (d.name) setName(d.name);
-          if (d.currentCompany) setCurrentCompany(d.currentCompany);
-          if (d.currentRole) setCurrentRole(d.currentRole);
+          const f = usableParsedFields(d); // ignore the parser's placeholder defaults
+          if (f.name) setName(f.name);
+          if (f.currentCompany) setCurrentCompany(f.currentCompany);
+          if (f.currentRole) setCurrentRole(f.currentRole);
           if (d.industry) setIndustry(d.industry);
-          if (d.branch) setBranch(d.branch);
-          if (d.batch) setBatch(d.batch);
-          if (d.skills && d.skills.length > 0) setSkills(d.skills.join(", "));
+          if (f.branch) setBranch(f.branch);
+          if (f.batch) setBatch(f.batch);
+          if (f.education) setEducation(f.education);
+          if (f.experience) setExperience(f.experience);
+          setEvidenceToken(res.evidenceToken || null);
+          if (f.skills && f.skills.length > 0) setSkills(f.skills.join(", "));
           if (d.areasOfExpertise && d.areasOfExpertise.length > 0) setAreasOfExpertise(d.areasOfExpertise.join(", "));
           if (d.bio) setBio(d.bio);
-          if (d.linkedinUrl) setLinkedinUrl(d.linkedinUrl);
-          setPdfSuccessMessage(`Extracted details for ${d.name || "Alumnus"} from LinkedIn PDF!`);
+          if (f.linkedinUrl) setLinkedinUrl(f.linkedinUrl);
+          setPdfSuccessMessage(
+            `Extracted details for ${d.name || "Alumnus"} from LinkedIn PDF.` +
+              (f.education?.length ? ` Education: ${f.education[0].institution}${f.education[0].endYear ? ` (${f.education[0].endYear})` : ""}.` : "") +
+              " Please review the fields before creating your account."
+          );
         }
       } catch (err) {
         setError("LinkedIn PDF parse error: " + (err.message || "Failed to parse LinkedIn PDF file."));
@@ -140,12 +153,6 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }
     }
   };
 
-  // Quick 1-click persona sign-in
-  const handleQuickSignIn = (user) => {
-    onAuthSuccess(user);
-    onClose();
-  };
-
   // Handle Sign Up
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -173,7 +180,7 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }
       email: email.trim().toLowerCase(),
       password: signupPassword.trim(),
       branch: branch.trim(),
-      batch: Number(batch) || 2026,
+      batch: Number(batch) || undefined,
       skills: skills.split(",").map((s) => s.trim()).filter(Boolean),
       bio: bio.trim(),
     };
@@ -189,12 +196,14 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }
       payload.availableForMentorshipCalls = availableForMentorshipCalls;
       payload.willingToRefer = willingToRefer;
       payload.linkedinUrl = linkedinUrl.trim();
-      payload.isVerified = false; // Pending admin verification
+      payload.education = education;
+      payload.experience = experience;
+      if (evidenceToken) payload.evidenceToken = evidenceToken;
+      // Verification status is always decided by the server (alumni start pending).
     }
 
     try {
-      const res = await api.createUser(payload);
-      alert("Account created successfully!");
+      const res = await api.register(payload);
       onAuthSuccess(res.data);
       onClose();
     } catch (err) {
@@ -402,9 +411,14 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }
                   className="input-control"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@thapar.edu"
+                  placeholder={role === "student" ? "rollno@thapar.edu" : "you@example.com"}
                   required
                 />
+                {role === "student" && (
+                  <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                    Students must register with their @thapar.edu email.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -438,11 +452,12 @@ export const AuthModal = ({ isOpen, onClose, onAuthSuccess, existingUsers = [] }
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "14px" }}>
               <div>
                 <label style={{ display: "block", fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>Branch</label>
-                <select className="select-control" value={branch} onChange={(e) => setBranch(e.target.value)}>
-                  <option value="Computer Engineering">Computer Engineering</option>
-                  <option value="Electronics & Communication">Electronics & Comm.</option>
-                  <option value="Electrical Engineering">Electrical Engineering</option>
-                  <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <select className="select-control" value={branch} onChange={(e) => setBranch(e.target.value)} required>
+                  <option value="">Select department</option>
+                  {DEPARTMENTS.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                  {branch && !DEPARTMENTS.includes(branch) && <option value={branch}>{branch}</option>}
                 </select>
               </div>
 
