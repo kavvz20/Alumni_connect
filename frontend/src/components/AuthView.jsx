@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { api } from "../services/api";
+import { getGoogleIdToken, isGoogleSignInAvailable } from "../services/firebase";
+import { AuthModal } from "./AuthModal";
 import {
   Sparkles,
   Briefcase,
@@ -11,7 +13,24 @@ import {
   Eye,
   EyeOff,
   Info,
+  GraduationCap,
+  UserPlus,
 } from "lucide-react";
+
+const ROLE_OPTIONS = [
+  { value: "student", label: "Student", Icon: User },
+  { value: "alumni", label: "Alumni", Icon: GraduationCap },
+  { value: "admin", label: "Admin", Icon: ShieldCheck },
+];
+
+const GoogleMark = () => (
+  <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/>
+    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
+    <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/>
+  </svg>
+);
 
 export const AuthView = ({ onAuthSuccess }) => {
   const [email, setEmail] = useState("");
@@ -19,6 +38,25 @@ export const AuthView = ({ onAuthSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [role, setRole] = useState("student");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [signUpOpen, setSignUpOpen] = useState(false);
+
+  // Google sign-in: the backend verifies the token and decides the real role
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setError(null);
+    try {
+      const idToken = await getGoogleIdToken();
+      const res = await api.googleSignIn(idToken, role);
+      onAuthSuccess(res.data);
+    } catch (err) {
+      if (err?.code === "auth/popup-closed-by-user" || err?.code === "auth/cancelled-popup-request") return;
+      setError(err.message || "Google sign-in failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   // Handle Institutional Email / Password Sign In
   const handleSignIn = async (e) => {
@@ -180,8 +218,70 @@ export const AuthView = ({ onAuthSuccess }) => {
               Sign In
             </h2>
             <p style={{ fontSize: "0.88rem", color: "#78716c" }}>
-              Enter your institutional credentials provided by the Administrator.
+              Choose your role, then continue with Google or sign in with your email and password.
             </p>
+          </div>
+
+          {/* Role selector (the server still decides the actual role) */}
+          <div role="radiogroup" aria-label="Sign in as" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "16px" }}>
+            {ROLE_OPTIONS.map(({ value, label, Icon }) => {
+              const selected = role === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => setRole(value)}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: "10px 6px",
+                    borderRadius: "var(--radius-sm)",
+                    border: selected ? "2px solid #18181b" : "1px solid var(--border-color)",
+                    background: selected ? "#fbf9f4" : "#ffffff",
+                    color: selected ? "#18181b" : "#78716c",
+                    fontWeight: selected ? 700 : 500,
+                    fontSize: "0.84rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  <Icon size={18} />
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading}
+            className="btn btn-secondary"
+            title={isGoogleSignInAvailable() ? undefined : "Google sign-in is not configured for this deployment."}
+            style={{
+              width: "100%",
+              padding: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px",
+              fontSize: "0.95rem",
+              background: "#ffffff",
+              border: "1px solid var(--border-color)",
+              color: "#18181b",
+            }}
+          >
+            <GoogleMark />
+            {googleLoading ? "Signing in with Google..." : `Continue with Google as ${ROLE_OPTIONS.find((r) => r.value === role).label}`}
+          </button>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "20px 0", color: "#a8a29e", fontSize: "0.8rem" }}>
+            <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }} />
+            or sign in with email and password
+            <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }} />
           </div>
 
           {error && (
@@ -289,12 +389,28 @@ export const AuthView = ({ onAuthSuccess }) => {
             <Info size={20} color="#92400e" style={{ flexShrink: 0, marginTop: "2px" }} />
             <div style={{ fontSize: "0.82rem", color: "#524f4a", lineHeight: 1.5 }}>
               <strong style={{ color: "#18181b", display: "block", marginBottom: "4px" }}>
-                Account Provisioning Notice:
+                New to Alumni Connect?
               </strong>
-              Student and alumni accounts are created and provisioned directly by the <strong>Placement & Alumni Relations Cell</strong>.
-              Check your registered email inbox for your default credentials. Once logged in, you can update your password and complete your profile in the <strong>Profile</strong> section.
+              Alumni can join with Google or create an account below. Students can join with their <strong>@thapar.edu</strong> account.
+              If the Placement & Alumni Relations Cell already registered you, just sign in with that email; your existing profile is linked automatically.
+              <button
+                type="button"
+                onClick={() => setSignUpOpen(true)}
+                className="btn btn-secondary btn-sm"
+                style={{ marginTop: "10px", display: "inline-flex", alignItems: "center", gap: "6px" }}
+              >
+                <UserPlus size={15} /> Create an account with email & password
+              </button>
             </div>
           </div>
+          <AuthModal
+            key={`signup-${role}`}
+            isOpen={signUpOpen}
+            onClose={() => setSignUpOpen(false)}
+            onAuthSuccess={onAuthSuccess}
+            initialSignUp
+            initialRole={role}
+          />
         </div>
       </div>
     </div>

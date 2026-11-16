@@ -18,9 +18,17 @@ Account Details:
 - Default Password: ${defaultPassword}
 - Portal URL: ${loginUrl}
 
+How to sign in (either option works for the same account):
+- Click "Continue with Google" and choose the Google account for ${email}, or
+- Sign in with your email and the default password above.
+
 Next Steps:
-1. Visit the portal at ${loginUrl} and sign in with your email and default password.
-2. Go to your Profile section to complete your professional details and update your password.
+1. Visit the portal at ${loginUrl} and sign in.
+2. Go to your Profile section to complete your professional details and change your default password.${
+    role === "alumni"
+      ? "\n3. Upload your LinkedIn profile PDF (LinkedIn > More > Save to PDF) so your alumni status can be verified."
+      : ""
+  }
 
 Best regards,
 Placement & Alumni Relations Cell

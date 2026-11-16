@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import alumniRouter from "./routes/alumni.routes.js";
+import authRouter from "./routes/auth.routes.js";
 import chatRouter from "./routes/chat.routes.js";
 import eventRouter from "./routes/event.routes.js";
 import forumRouter from "./routes/forum.routes.js";
@@ -10,6 +11,7 @@ import referralRequestRouter from "./routes/referral-request.routes.js";
 import reportRouter from "./routes/report.routes.js";
 import successStoryRouter from "./routes/success-story.routes.js";
 import userRouter from "./routes/user.routes.js";
+import verificationRouter from "./routes/verification.routes.js";
 
 const app = express();
 
@@ -32,7 +34,9 @@ app.use((req, res, next) => {
 });
 
 // API Routes
+app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/verification", verificationRouter);
 app.use("/api/v1/alumni", alumniRouter);
 app.use("/api/v1/mentorship-requests", mentorshipRequestRouter);
 app.use("/api/v1/referral-requests", referralRequestRouter);

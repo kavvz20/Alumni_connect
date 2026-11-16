@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "../services/api";
 import { Avatar } from "./Avatar";
+import { VerificationDashboard } from "./VerificationDashboard";
+import { VERIFICATION_STATUS, getVerificationStatus } from "../constants/institution";
+import { usableParsedFields } from "../services/parsedProfile";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -25,9 +28,9 @@ import {
 
 export const AdminCenterView = ({ currentUser }) => {
   const [activeTab, setActiveTab] = useState("onboarding"); // default to user provisioning
-  const [alumniList, setAlumniList] = useState([]);
+  const [openVerificationCount, setOpenVerificationCount] = useState(null);
   const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [reportStatusFilter, setReportStatusFilter] = useState("open");
 
   // =========================================================================
@@ -48,6 +51,8 @@ export const AdminCenterView = ({ currentUser }) => {
   // Manual LinkedIn Scrape state
   const [manualScrapeLoading, setManualScrapeLoading] = useState(false);
   const [manualScrapedData, setManualScrapedData] = useState(null);
+  // Signed LinkedIn PDF parse result; the server stores it as the alumnus's verification evidence
+  const [manualEvidenceToken, setManualEvidenceToken] = useState(null);
 
   // CSV Import State
   const [csvFile, setCsvFile] = useState(null);
@@ -64,17 +69,9 @@ export const AdminCenterView = ({ currentUser }) => {
     return u.role === directoryRoleFilter;
   });
 
-  const fetchAlumni = async () => {
-    setLoading(true);
-    try {
-      const res = await api.getAlumni({ limit: 50 });
-      setAlumniList(res.data || []);
-    } catch (err) {
-      console.error("Failed to load alumni for admin:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleVerificationCounts = useCallback((counts) => {
+    setOpenVerificationCount((counts.pending || 0) + (counts.needs_manual_review || 0));
+  }, []);
 
   const fetchReports = async () => {
     if (!currentUser?._id) return;
@@ -99,23 +96,12 @@ export const AdminCenterView = ({ currentUser }) => {
   };
 
   useEffect(() => {
-    if (activeTab === "verification") {
-      fetchAlumni();
-    } else if (activeTab === "moderation") {
+    if (activeTab === "moderation") {
       fetchReports();
     } else if (activeTab === "onboarding") {
       fetchAllUsers();
     }
   }, [activeTab, reportStatusFilter, currentUser]);
-
-  const handleToggleVerify = async (userId, currentVal) => {
-    try {
-      await api.verifyAlumni(userId, !currentVal, currentUser._id);
-      fetchAlumni();
-    } catch (err) {
-      alert(err.message || "Failed to update alumni verification status");
-    }
-  };
 
   const handleUpdateReport = async (reportId, status) => {
     try {
@@ -128,23 +114,24 @@ export const AdminCenterView = ({ currentUser }) => {
 
   const handleDeleteUser = async (userToDelete) => {
     if (!userToDelete?._id) return;
-    if (userToDelete.role === "admin") {
+    if (userToDelete.role === "admin" || userToDelete.isAdmin) {
       alert("Administrator accounts cannot be deleted.");
-      return;
+      return false;
     }
 
     const confirmed = window.confirm(
       `Are you sure you want to permanently delete '${userToDelete.name}' (${userToDelete.role})?\n\nThis will remove their account and directory profile immediately.`
     );
-    if (!confirmed) return;
+    if (!confirmed) return false;
 
     try {
       await api.deleteUser(userToDelete._id, currentUser?._id);
       alert(`Account for '${userToDelete.name}' has been deleted successfully.`);
       fetchAllUsers();
-      fetchAlumni();
+      return true;
     } catch (err) {
       alert(err.message || "Failed to delete user account.");
+      return false;
     }
   };
 
@@ -179,6 +166,7 @@ export const AdminCenterView = ({ currentUser }) => {
             setManualLinkedin(d.linkedinUrl);
           }
           setManualScrapedData(d);
+          setManualEvidenceToken(res.evidenceToken || null);
         }
       } catch (err) {
         setOnboardError("LinkedIn PDF parse error: " + (err.message || "Failed to parse LinkedIn PDF file."));
@@ -234,7 +222,12 @@ export const AdminCenterView = ({ currentUser }) => {
       email: manualEmail.trim().toLowerCase(),
       linkedinUrl: manualRole === "alumni" && manualLinkedin.trim() ? manualLinkedin.trim() : undefined,
       defaultPassword: manualDefaultPassword.trim() || "Thapar@2026",
-      enrichmentData: manualRole === "alumni" && manualScrapedData ? manualScrapedData : undefined,
+      // With a PDF, the server uses its own signed parse result; otherwise only the found fields are sent.
+      evidenceToken: manualRole === "alumni" && manualEvidenceToken ? manualEvidenceToken : undefined,
+      enrichmentData:
+        manualRole === "alumni" && manualScrapedData && !manualEvidenceToken
+          ? Object.fromEntries(Object.entries(usableParsedFields(manualScrapedData)).filter(([, v]) => v !== undefined))
+          : undefined,
     };
 
     try {
@@ -244,6 +237,7 @@ export const AdminCenterView = ({ currentUser }) => {
       setManualEmail("");
       setManualLinkedin("");
       setManualScrapedData(null);
+      setManualEvidenceToken(null);
       fetchAllUsers();
     } catch (err) {
       setOnboardError(err.message || "Failed to provision account.");
@@ -263,11 +257,12 @@ export const AdminCenterView = ({ currentUser }) => {
   // CSV Template Download
   // =========================================================================
   const handleDownloadCsvTemplate = () => {
-    const csvContent = "name,email,role,linkedinUrl\n" +
-      "Priya Sharma,priya.sharma@alumni.thapar.edu,alumni,https://linkedin.com/in/priyasharma\n" +
-      "Aarav Gupta,aarav.gupta@thapar.edu,student,\n" +
-      "Devansh Verma,devansh.verma@alumni.thapar.edu,alumni,https://linkedin.com/in/devanshverma\n" +
-      "Rhea Malhotra,rhea.malhotra@thapar.edu,student,\n";
+    // batch, branch and degree are optional institutional records that alumni LinkedIn data is checked against
+    const csvContent = "name,email,role,linkedinUrl,batch,branch,degree\n" +
+      "Priya Sharma,priya.sharma@gmail.com,alumni,https://linkedin.com/in/priyasharma,2019,Computer Engineering,BE\n" +
+      "Aarav Gupta,aarav.gupta@thapar.edu,student,,,,\n" +
+      "Devansh Verma,devansh.verma@gmail.com,alumni,https://linkedin.com/in/devanshverma,2016,Mechanical Engineering,BE\n" +
+      "Rhea Malhotra,rhea.malhotra@thapar.edu,student,,,,\n";
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -308,6 +303,9 @@ export const AdminCenterView = ({ currentUser }) => {
       const emailIdx = headers.indexOf("email");
       const roleIdx = headers.indexOf("role");
       const linkedinIdx = headers.indexOf("linkedinurl") !== -1 ? headers.indexOf("linkedinurl") : headers.indexOf("linkedin");
+      const batchIdx = headers.indexOf("batch") !== -1 ? headers.indexOf("batch") : headers.indexOf("graduationyear");
+      const branchIdx = headers.indexOf("branch") !== -1 ? headers.indexOf("branch") : headers.indexOf("department");
+      const degreeIdx = headers.indexOf("degree");
 
       if (nameIdx === -1 || emailIdx === -1) {
         setCsvError("CSV header must contain at least 'name' and 'email' columns.");
@@ -329,6 +327,9 @@ export const AdminCenterView = ({ currentUser }) => {
             email: email.toLowerCase(),
             role: role === "alumni" ? "alumni" : "student",
             linkedinUrl: linkedinUrl || undefined,
+            batch: batchIdx !== -1 && parts[batchIdx] ? parts[batchIdx] : undefined,
+            branch: branchIdx !== -1 && parts[branchIdx] ? parts[branchIdx] : undefined,
+            degree: degreeIdx !== -1 && parts[degreeIdx] ? parts[degreeIdx] : undefined,
           });
         }
       }
@@ -402,7 +403,7 @@ export const AdminCenterView = ({ currentUser }) => {
           className={`btn ${activeTab === "verification" ? "btn-primary" : "btn-secondary"}`}
           style={{ whiteSpace: "nowrap", flexShrink: 0 }}
         >
-          <CheckCircle2 size={16} /> Alumni Verification Queue ({alumniList.length})
+          <CheckCircle2 size={16} /> Alumni Verification Queue{openVerificationCount !== null ? ` (${openVerificationCount} open)` : ""}
         </button>
 
         <button
@@ -657,10 +658,19 @@ export const AdminCenterView = ({ currentUser }) => {
                               <strong style={{ color: "#047857" }}>LinkedIn Profile Extracted Successfully</strong>
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", color: "#334155" }}>
-                              {manualScrapedData.name && <span>👤 <strong>{manualScrapedData.name}</strong></span>}
-                              {manualScrapedData.currentCompany && <span>🏢 <strong>{manualScrapedData.currentCompany}</strong></span>}
-                              {manualScrapedData.currentRole && <span>💼 {manualScrapedData.currentRole}</span>}
-                              {manualScrapedData.batch && <span>🎓 Batch {manualScrapedData.batch}</span>}
+                              {(() => {
+                                const f = usableParsedFields(manualScrapedData);
+                                return (
+                                  <>
+                                    {f.name && <span>👤 <strong>{f.name}</strong></span>}
+                                    {f.currentCompany && <span>🏢 <strong>{f.currentCompany}</strong></span>}
+                                    {f.currentRole && <span>💼 {f.currentRole}</span>}
+                                    {f.batch && <span>🎓 Batch {f.batch}</span>}
+                                    {f.branch && <span>🏛️ {f.branch}</span>}
+                                    {manualScrapedData.degree && <span>📜 {manualScrapedData.degree}</span>}
+                                  </>
+                                );
+                              })()}
                             </div>
                             {manualScrapedData.skills && manualScrapedData.skills.length > 0 && (
                               <div style={{ fontSize: "0.74rem", color: "#64748b" }}>
@@ -804,6 +814,7 @@ export const AdminCenterView = ({ currentUser }) => {
                               <th style={{ padding: "8px 12px" }}>Email</th>
                               <th style={{ padding: "8px 12px" }}>Role</th>
                               <th style={{ padding: "8px 12px" }}>LinkedIn Profile</th>
+                              <th style={{ padding: "8px 12px" }}>Batch / Branch</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -822,15 +833,13 @@ export const AdminCenterView = ({ currentUser }) => {
                                       <span style={{ maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                         {r.linkedinUrl}
                                       </span>
-                                      {r.role === "alumni" && (
-                                        <span className="badge badge-emerald" style={{ fontSize: "0.68rem", padding: "1px 6px" }}>
-                                          <Sparkles size={10} /> Auto-Fill
-                                        </span>
-                                      )}
                                     </div>
                                   ) : (
                                     "—"
                                   )}
+                                </td>
+                                <td style={{ padding: "8px 12px", color: "#78716c" }}>
+                                  {[r.batch, r.branch, r.degree].filter(Boolean).join(" · ") || "—"}
                                 </td>
                               </tr>
                             ))}
@@ -1006,8 +1015,8 @@ export const AdminCenterView = ({ currentUser }) => {
                       </td>
                       <td style={{ padding: "12px 14px" }}>
                         {u.role === "alumni" ? (
-                          <span className={`badge ${u.isVerified ? "badge-emerald" : "badge-amber"}`}>
-                            {u.isVerified ? "Verified Alumnus" : "Pending Verification"}
+                          <span className={`badge ${(VERIFICATION_STATUS[getVerificationStatus(u)] || VERIFICATION_STATUS.pending).badge}`}>
+                            {(VERIFICATION_STATUS[getVerificationStatus(u)] || VERIFICATION_STATUS.pending).label}
                           </span>
                         ) : (
                           <span style={{ color: "#a8a29e", fontSize: "0.82rem" }}>
@@ -1016,7 +1025,7 @@ export const AdminCenterView = ({ currentUser }) => {
                         )}
                       </td>
                       <td style={{ padding: "12px 14px", textAlign: "right" }}>
-                        {u.role !== "admin" ? (
+                        {u.role !== "admin" && !u.isAdmin ? (
                           <button
                             onClick={() => handleDeleteUser(u)}
                             className="btn btn-secondary btn-sm"
@@ -1052,83 +1061,7 @@ export const AdminCenterView = ({ currentUser }) => {
       {/* TAB 2: ALUMNI VERIFICATION QUEUE                                          */}
       {/* ========================================================================= */}
       {activeTab === "verification" && (
-        <div style={{
-          background: "#ffffff",
-          border: "1px solid var(--border-color)",
-          borderRadius: "var(--radius-lg)",
-          padding: "28px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.04)",
-        }}>
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#18181b", marginBottom: "16px" }}>
-            Alumni Directory Verification ({alumniList.length})
-          </h2>
-
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
-              <thead>
-                <tr style={{ borderBottom: "1px solid var(--border-color)", color: "#78716c", fontSize: "0.78rem", textTransform: "uppercase" }}>
-                  <th style={{ padding: "12px 14px" }}>Alumnus</th>
-                  <th style={{ padding: "12px 14px" }}>Company & Role</th>
-                  <th style={{ padding: "12px 14px" }}>Batch & Branch</th>
-                  <th style={{ padding: "12px 14px" }}>Verified Status</th>
-                  <th style={{ padding: "12px 14px", textAlign: "right" }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {alumniList.map((alumnus) => (
-                  <tr key={alumnus._id} style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.05)" }}>
-                    <td style={{ padding: "14px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <Avatar user={alumnus} size={36} borderRadius="10px" />
-                        <div>
-                          <div style={{ fontWeight: 700, color: "#18181b" }}>{alumnus.name}</div>
-                          <div style={{ fontSize: "0.75rem", color: "#78716c" }}>{alumnus.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: "14px", fontSize: "0.88rem", color: "#92400e", fontWeight: 600 }}>
-                      {alumnus.currentRole} {alumnus.currentCompany ? `@ ${alumnus.currentCompany}` : ""}
-                    </td>
-                    <td style={{ padding: "14px", fontSize: "0.85rem", color: "#524f4a" }}>
-                      {alumnus.branch} ({alumnus.batch})
-                    </td>
-                    <td style={{ padding: "14px" }}>
-                      <span className={`badge ${alumnus.isVerified ? "badge-emerald" : "badge-amber"}`}>
-                        {alumnus.isVerified ? "Verified" : "Unverified"}
-                      </span>
-                    </td>
-                    <td style={{ padding: "14px", textAlign: "right" }}>
-                      <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                        <button
-                          onClick={() => handleToggleVerify(alumnus._id, alumnus.isVerified)}
-                          className={`btn btn-sm ${alumnus.isVerified ? "btn-secondary" : "btn-primary"}`}
-                          style={{ fontSize: "0.8rem" }}
-                        >
-                          {alumnus.isVerified ? "Revoke Badge" : "Grant Verified Badge"}
-                        </button>
-
-                        <button
-                          onClick={() => handleDeleteUser(alumnus)}
-                          className="btn btn-secondary btn-sm"
-                          style={{
-                            color: "#be123c",
-                            borderColor: "rgba(190, 18, 60, 0.25)",
-                            padding: "6px 9px",
-                            display: "inline-flex",
-                            alignItems: "center",
-                          }}
-                          title={`Delete ${alumnus.name}'s account`}
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <VerificationDashboard onDeleteUser={handleDeleteUser} onCountsChange={handleVerificationCounts} />
       )}
 
       {/* ========================================================================= */}

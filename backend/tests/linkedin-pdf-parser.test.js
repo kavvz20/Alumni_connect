@@ -81,6 +81,91 @@ Page 1 of 1
     assert.equal(result.industry, "Technology");
   });
 
+  it("reads the Education section of the sample", () => {
+    const result = parseLinkedInPdfText(samplePdfText);
+    assert.equal(result.education.length, 1);
+    assert.equal(result.education[0].institution, "Thapar Institute of Engineering & Technology");
+    assert.equal(result.education[0].degree, "Bachelor of Technology - BTech");
+    assert.equal(result.education[0].fieldOfStudy, "");
+    assert.equal(result.education[0].startYear, 2020);
+    assert.equal(result.education[0].endYear, 2024);
+    assert.equal(result.institution, "Thapar Institute of Engineering & Technology");
+  });
+
+  it("marks batch as found (from education) but branch only as inferred when field of study is missing", () => {
+    const result = parseLinkedInPdfText(samplePdfText);
+    assert.ok(result.fieldsFound.includes("batch"));
+    assert.ok(!result.fieldsFound.includes("branch"));
+    assert.ok(result.fieldsInferred.includes("branch"));
+  });
+
+  const multiEntryPdf = `Contact
+www.linkedin.com/in/aman-k (LinkedIn)
+Aman Kumar
+Hardware Engineer at Intel
+Bengaluru, Karnataka, India
+Experience
+Intel Corporation
+Hardware Engineer
+June 2021 - Present (5 years)
+Education
+Thapar Institute of Engineering &
+Technology
+Bachelor of Engineering - BE, Electronics and Communication
+Engineering · (2017 - 2021)
+Page 1 of 2
+Delhi Public School, R.K. Puram
+High School, Science · (2005 - 2017)
+`;
+
+  it("handles wrapped institution names, wrapped details and page breaks", () => {
+    const result = parseLinkedInPdfText(multiEntryPdf);
+    assert.equal(result.education.length, 2);
+    assert.equal(result.education[0].institution, "Thapar Institute of Engineering & Technology");
+    assert.equal(result.education[0].fieldOfStudy, "Electronics and Communication Engineering");
+    assert.equal(result.education[0].endYear, 2021);
+    assert.equal(result.education[1].institution, "Delhi Public School, R.K. Puram");
+    assert.equal(result.education[1].endYear, 2017);
+  });
+
+  it("takes branch and batch from the institute entry, not the school entry", () => {
+    const result = parseLinkedInPdfText(multiEntryPdf);
+    assert.equal(result.branch, "Electronics & Communication Engineering");
+    assert.equal(result.batch, 2021);
+    assert.ok(result.fieldsFound.includes("branch"));
+    assert.ok(result.fieldsFound.includes("degree"));
+  });
+
+  it("no longer tags every profile as Computer Engineering because of 'it' inside words", () => {
+    const result = parseLinkedInPdfText(`Experience
+Tata Steel
+Process Engineer
+July 2019 - Present (7 years)
+Education
+Thapar Institute of Engineering and Technology
+Bachelor of Engineering - BE, Chemical Engineering · (2015 - 2019)
+`);
+    assert.equal(result.branch, "Chemical Engineering");
+  });
+
+  it("does not treat Thapar Polytechnic as the institute", () => {
+    const result = parseLinkedInPdfText(`Education
+Thapar Polytechnic College
+Diploma, Mechanical · (2012 - 2015)
+`);
+    assert.equal(result.institution, "");
+    assert.ok(!result.fieldsFound.includes("institution"));
+    assert.ok(!result.fieldsFound.includes("batch"));
+  });
+
+  it("reports placeholder defaults as neither found nor inferred", () => {
+    const result = parseLinkedInPdfText("Some text without any sections at all");
+    assert.equal(result.currentCompany, "Leading Firm"); // pre-fill default (unchanged behaviour)
+    assert.ok(!result.fieldsFound.includes("currentCompany"));
+    assert.ok(!result.fieldsInferred.includes("currentCompany"));
+    assert.deepEqual(result.education, []);
+  });
+
   it("handles empty or invalid inputs gracefully without throwing", () => {
     const emptyResult = parseLinkedInPdfText("");
     assert.equal(typeof emptyResult, "object");

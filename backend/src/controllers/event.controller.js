@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { isAuthorizedAdmin } from "../services/auth.service.js";
 import { Event, User } from "../models/index.js";
 
 const isValidId = (id) => mongoose.isValidObjectId(id);
@@ -29,7 +30,7 @@ const createEvent = async (req, res) => {
       });
     }
 
-    const organizer = await User.findById(organizerId).select("name role");
+    const organizer = await User.findById(organizerId).select("name role email");
     if (!organizer) {
       return res.status(404).json({
         success: false,
@@ -37,7 +38,7 @@ const createEvent = async (req, res) => {
       });
     }
 
-    if (organizer.role !== "admin") {
+    if (!isAuthorizedAdmin(organizer)) {
       return res.status(403).json({
         success: false,
         message: "Only administrators can organize events.",

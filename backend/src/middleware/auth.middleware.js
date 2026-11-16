@@ -1,180 +1,88 @@
 import mongoose from "mongoose";
 import { User } from "../models/index.js";
-
-let firebaseAdmin = null;
-
-const initFirebase = async () => {
-  if (firebaseAdmin) return firebaseAdmin;
-
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY && !process.env.FIREBASE_PROJECT_ID) {
-    return null;
-  }
-
-  try {
-    const adminModule = await import("firebase-admin");
-    const admin = adminModule.default || adminModule;
-
-    if (admin.apps.length > 0) {
-      firebaseAdmin = admin;
-      return firebaseAdmin;
-    }
-
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-      firebaseAdmin = admin;
-      console.log("Firebase Admin SDK initialized with service account.");
-    } else if (process.env.FIREBASE_PROJECT_ID) {
-      admin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-      });
-      firebaseAdmin = admin;
-      console.log("Firebase Admin SDK initialized with project ID.");
-    }
-  } catch (error) {
-    console.warn("Firebase Admin SDK not initialized; using dev/fallback auth:", error.message);
-  }
-
-  return firebaseAdmin;
-};
-
-const isValidId = (id) => mongoose.isValidObjectId(id);
+import { isAuthorizedAdmin, verifySessionToken } from "../services/auth.service.js";
 
 /**
- * Authentication middleware:
- * 1. Checks Authorization: Bearer <firebaseIdToken>
- * 2. If Firebase Admin is available, verifies token and loads User by firebaseUid.
- * 3. Fallbacks for local dev/testing:
- *    - x-user-id header
- *    - x-firebase-uid header
- *    - actorId / userId from body / query
+ * Resolves the logged-in user from `Authorization: Bearer <session token>`.
+ * The session token is issued by /api/v1/auth/* after Google or password sign-in.
+ *
+ * Returns { user } on success, { error: {status, message} } on failure, or {} when no token was sent.
+ * Identity is NEVER taken from headers like x-user-id or from request bodies.
  */
+const resolveUser = async (req) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return {};
+
+  const token = authHeader.slice(7).trim();
+  let payload;
+  try {
+    payload = verifySessionToken(token);
+  } catch (_) {
+    return { error: { status: 401, message: "Your session has expired. Please sign in again." } };
+  }
+
+  if (!payload?.sub || !mongoose.isValidObjectId(payload.sub)) {
+    return { error: { status: 401, message: "Invalid session token." } };
+  }
+
+  const user = await User.findById(payload.sub);
+  if (!user) {
+    return { error: { status: 401, message: "This account no longer exists." } };
+  }
+
+  // A stored admin role is only honoured for the configured ADMIN_EMAIL.
+  if (user.role === "admin" && !isAuthorizedAdmin(user)) {
+    return { error: { status: 403, message: "This account is not authorized as an administrator." } };
+  }
+
+  return { user };
+};
+
+/** Requires a valid session. */
 const verifyAuth = async (req, res, next) => {
   try {
-    let user = null;
-    const authHeader = req.headers.authorization;
-
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split(" ")[1];
-      const admin = await initFirebase();
-
-      if (admin && admin.apps.length > 0) {
-        try {
-          const decoded = await admin.auth().verifyIdToken(token);
-          user = await User.findOne({ firebaseUid: decoded.uid });
-        } catch (tokenErr) {
-          return res.status(401).json({
-            success: false,
-            message: "Invalid or expired Firebase ID token.",
-          });
-        }
-      } else {
-        // Dev fallback for Bearer token: token can be a direct firebaseUid or MongoDB ID
-        if (isValidId(token)) {
-          user = await User.findById(token);
-        } else {
-          user = await User.findOne({ firebaseUid: token });
-        }
-      }
-    }
-
-    // Header fallbacks for development/testing
-    if (!user && req.headers["x-user-id"] && isValidId(req.headers["x-user-id"])) {
-      user = await User.findById(req.headers["x-user-id"]);
-    }
-
-    if (!user && req.headers["x-firebase-uid"]) {
-      user = await User.findOne({ firebaseUid: req.headers["x-firebase-uid"] });
-    }
-
-    // Fallback from request body / query (actorId, userId, postedBy, studentId)
-    const fallbackId =
-      req.body?.actorId ||
-      req.body?.userId ||
-      req.body?.postedBy ||
-      req.body?.studentId ||
-      req.query?.userId;
-
-    if (!user && fallbackId && isValidId(fallbackId)) {
-      user = await User.findById(fallbackId);
-    }
-
+    const { user, error } = await resolveUser(req);
+    if (error) return res.status(error.status).json({ success: false, message: error.message });
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required. Please provide a valid Bearer token or identification header.",
-      });
+      return res.status(401).json({ success: false, message: "Authentication required. Please sign in." });
     }
-
     req.user = user;
     next();
   } catch (error) {
     console.error("Auth middleware error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal authentication error.",
-    });
+    return res.status(500).json({ success: false, message: "Internal authentication error." });
   }
 };
 
-/**
- * Optional authentication middleware:
- * Attaches req.user if present, but does not block if unauthenticated.
- */
+/** Attaches req.user when a valid session is present, but never blocks. */
 const optionalAuth = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split(" ")[1];
-      const admin = await initFirebase();
-      if (admin && admin.apps.length > 0) {
-        try {
-          const decoded = await admin.auth().verifyIdToken(token);
-          req.user = await User.findOne({ firebaseUid: decoded.uid });
-        } catch (_) {}
-      } else if (isValidId(token)) {
-        req.user = await User.findById(token);
-      } else {
-        req.user = await User.findOne({ firebaseUid: token });
-      }
-    }
-
-    if (!req.user && req.headers["x-user-id"] && isValidId(req.headers["x-user-id"])) {
-      req.user = await User.findById(req.headers["x-user-id"]);
-    }
-
-    const fallbackId = req.body?.actorId || req.body?.userId || req.query?.userId;
-    if (!req.user && fallbackId && isValidId(fallbackId)) {
-      req.user = await User.findById(fallbackId);
-    }
-
-    next();
-  } catch (error) {
-    next();
+    const { user } = await resolveUser(req);
+    if (user) req.user = user;
+  } catch (_) {
+    // ignore: optional
   }
+  next();
 };
 
-/**
- * Role-based authorization middleware
- */
+/** Role-based authorization. Must run after verifyAuth. */
 const requireRole = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required.",
-      });
+      return res.status(401).json({ success: false, message: "Authentication required." });
     }
 
-    if (!roles.includes(req.user.role)) {
+    // "admin" is granted by ADMIN_EMAIL (on top of the account's own role); other roles come from the account.
+    const allowed =
+      (roles.includes("admin") && isAuthorizedAdmin(req.user)) ||
+      (req.user.role !== "admin" && roles.includes(req.user.role));
+
+    if (!allowed) {
       return res.status(403).json({
         success: false,
-        message: `Access denied. Allowed roles: ${roles.join(", ")}. Your role: ${req.user.role}.`,
+        message: `Access denied. Allowed roles: ${roles.join(", ")}.`,
       });
     }
-
     next();
   };
 };

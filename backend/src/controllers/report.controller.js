@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { isAuthorizedAdmin } from "../services/auth.service.js";
 import { Report, User } from "../models/index.js";
 
 const isValidId = (id) => mongoose.isValidObjectId(id);
@@ -83,7 +84,7 @@ const getReports = async (req, res) => {
     }
 
     // Verify admin access
-    if (req.user?.role !== "admin") {
+    if (!isAuthorizedAdmin(req.user)) {
       if (!adminId || !isValidId(adminId)) {
         return res.status(403).json({
           success: false,
@@ -91,7 +92,7 @@ const getReports = async (req, res) => {
         });
       }
       const admin = await User.findById(adminId);
-      if (!admin || admin.role !== "admin") {
+      if (!admin || !isAuthorizedAdmin(admin)) {
         return res.status(403).json({
           success: false,
           message: "Access restricted to administrators.",
@@ -156,7 +157,7 @@ const updateReportStatus = async (req, res) => {
     }
 
     // Verify admin access
-    if (req.user?.role !== "admin") {
+    if (!isAuthorizedAdmin(req.user)) {
       if (!adminId || !isValidId(adminId)) {
         return res.status(403).json({
           success: false,
@@ -164,7 +165,7 @@ const updateReportStatus = async (req, res) => {
         });
       }
       const admin = await User.findById(adminId);
-      if (!admin || admin.role !== "admin") {
+      if (!admin || !isAuthorizedAdmin(admin)) {
         return res.status(403).json({
           success: false,
           message: "Access restricted to administrators.",

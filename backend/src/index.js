@@ -9,6 +9,15 @@ dotenv.config({
   path: "./.env",
 });
 
+if (!process.env.ADMIN_EMAIL) {
+  console.warn("⚠️  ADMIN_EMAIL is not set in backend/.env: nobody can sign in as admin. Set it and restart the server.");
+} else {
+  console.log(`Admin account: ${process.env.ADMIN_EMAIL.trim().toLowerCase()}`);
+}
+if (!process.env.JWT_SECRET) {
+  console.warn("⚠️  JWT_SECRET is not set: sessions will be lost whenever the server restarts.");
+}
+
 connectDB()
   .then(async () => {
     await Promise.all(Object.values(models).map((model) => model.init()));

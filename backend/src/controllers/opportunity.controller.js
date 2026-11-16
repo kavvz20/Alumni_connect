@@ -13,7 +13,8 @@ const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const createOpportunity = async (req, res) => {
   try {
-    const { postedBy, type, title, description, applyLink, company } = req.body;
+    const postedBy = req.user._id.toString(); // identity from session
+    const { type, title, description, applyLink, company } = req.body;
 
     if (!postedBy || !type || !title?.trim() || !description?.trim()) {
       return res.status(400).json({

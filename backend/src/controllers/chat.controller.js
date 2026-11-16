@@ -9,7 +9,8 @@ const isConversationParticipant = (conversation, userId) =>
 
 const createConversation = async (req, res) => {
   try {
-    const { actorId, participantId } = req.body;
+    const actorId = req.user._id.toString(); // identity from session, never from the body
+    const { participantId } = req.body;
 
     if (
       !actorId ||
@@ -87,7 +88,7 @@ const createConversation = async (req, res) => {
 
 const getConversations = async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = req.user._id.toString();
 
     if (!userId || !isValidId(userId)) {
       return res.status(400).json({
@@ -122,7 +123,8 @@ const getConversations = async (req, res) => {
 const createMessage = async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const { senderId, text } = req.body;
+    const senderId = req.user._id.toString();
+    const { text } = req.body;
 
     if (!isValidId(conversationId) || !isValidId(senderId) || !text?.trim()) {
       return res.status(400).json({
@@ -166,7 +168,8 @@ const createMessage = async (req, res) => {
 const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const { userId, page = 1, limit = 50 } = req.query;
+    const userId = req.user._id.toString();
+    const { page = 1, limit = 50 } = req.query;
     const pageNumber = Number(page);
     const pageSize = Number(limit);
 

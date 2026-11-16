@@ -1,4 +1,6 @@
 import { describe, it } from "node:test";
+// Always test the rule-based score, even if a trained model file exists locally.
+process.env.ML_MODEL_PATH = "__no_model_in_tests__.json";
 import assert from "node:assert/strict";
 import { User } from "../src/models/user.model.js";
 
@@ -35,7 +37,7 @@ describe("User Model Schema Validation", () => {
       areasOfExpertise: ["System Design", "Cloud Architecture"],
       availableForMentorshipCalls: true,
       willingToRefer: true,
-      isVerified: true,
+      verification: { status: "verified" },
       experience: [
         {
           company: "Google",
@@ -89,14 +91,13 @@ describe("User Model Schema Validation", () => {
     assert.ok(error.errors.role.message.includes("is not a valid enum value"));
   });
 
-  it("auto-generates unique firebaseUid fallback when not specified", () => {
+  it("leaves firebaseUid empty until a Google account is linked", () => {
     const user = new User({
       role: "student",
       name: "Aditya Singh",
       email: "aditya@thapar.edu",
     });
 
-    assert.ok(user.firebaseUid);
-    assert.ok(user.firebaseUid.startsWith("uid_"));
+    assert.equal(user.firebaseUid, undefined);
   });
 });

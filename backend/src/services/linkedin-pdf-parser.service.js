@@ -1,5 +1,85 @@
 import { PDFParse } from "pdf-parse";
 import { inferIndustry, extractSkillsFromText, extractExpertiseFromText } from "./linkedin-scraper.service.js";
+import { isInstitutionName, matchDepartment } from "../config/institution.js";
+
+const SECTION_HEADER =
+  /^(Contact|Top Skills|Languages|Certifications|Honors-Awards|Summary|Publications|Patents|Experience|Education|Projects|Volunteer Experience|Courses|Recommendations|Organizations)$/i;
+const PAGE_MARKER = /^Page \d+ of \d+$/i;
+const INSTITUTION_HINT = /(universit|institut|college|school|academy|vidyalaya|\bIIT\b|\bNIT\b|\bIIIT\b|\bBITS\b)/i;
+const YEAR = /\b(?:19|20)\d{2}\b/g;
+
+/**
+ * Converts one education entry's detail text, e.g.
+ *   "Bachelor of Engineering - BE, Computer Science · (2018 - 2022)"
+ * into { degree, fieldOfStudy, startYear, endYear }.
+ */
+const parseEducationDetail = (detail = "") => {
+  let years = [];
+  const paren = detail.match(/\(([^()]*\d{4}[^()]*)\)\s*$/);
+  if (paren) years = (paren[1].match(YEAR) || []).map(Number);
+
+  const main = detail
+    .replace(/\s*·?\s*\([^()]*\)\s*$/, "")
+    .replace(/\s*·\s*$/, "")
+    .trim();
+  const commaIdx = main.indexOf(",");
+  const degree = (commaIdx === -1 ? main : main.slice(0, commaIdx)).trim();
+  let fieldOfStudy = commaIdx === -1 ? "" : main.slice(commaIdx + 1).trim();
+  if (/^(none|n\/a|-)$/i.test(fieldOfStudy)) fieldOfStudy = "";
+
+  return {
+    degree,
+    fieldOfStudy,
+    startYear: years.length ? years[0] : null,
+    endYear: years.length ? years[years.length - 1] : null,
+  };
+};
+
+/**
+ * Reads the "Education" section of a LinkedIn PDF export.
+ * Each entry is an institution line followed by a detail line ending in "(start - end)".
+ */
+export function parseEducationSection(lines = []) {
+  const start = lines.findIndex((l) => /^Education$/i.test(l));
+  if (start === -1) return [];
+
+  const entries = [];
+  let cur = null;
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (PAGE_MARKER.test(line)) continue;
+    if (SECTION_HEADER.test(line)) break;
+
+    if (!cur || cur.closed) {
+      cur = { institution: line, detail: "", closed: false };
+      entries.push(cur);
+      continue;
+    }
+
+    if (!cur.detail) {
+      // Institution name wrapped onto a second line (e.g. "Thapar Institute of Engineering &" / "Technology")
+      if (/(&|\band|\bof|,|-)$/i.test(cur.institution) && !/·|\(\s*\d{4}/.test(line)) {
+        cur.institution = `${cur.institution} ${line}`;
+        continue;
+      }
+      // The previous entry had no detail line at all: this line starts a new institution
+      if (INSTITUTION_HINT.test(line) && !/·|\(\s*\d{4}/.test(line)) {
+        cur.closed = true;
+        cur = { institution: line, detail: "", closed: false };
+        entries.push(cur);
+        continue;
+      }
+    }
+
+    cur.detail = cur.detail ? `${cur.detail} ${line}` : line;
+    if (/\)\s*$/.test(line) && /\d{4}/.test(line)) cur.closed = true;
+  }
+
+  return entries
+    .filter((e) => e.institution)
+    .slice(0, 6)
+    .map((e) => ({ institution: e.institution.trim(), ...parseEducationDetail(e.detail) }));
+}
 
 /**
  * Parses raw text extracted from an official LinkedIn "Save to PDF" export.
@@ -18,6 +98,11 @@ export function parseLinkedInPdfText(rawText = "") {
       bio: "",
       linkedinUrl: "",
       experience: [],
+      education: [],
+      institution: "",
+      degree: "",
+      fieldsFound: [],
+      fieldsInferred: [],
     };
   }
 
@@ -160,31 +245,47 @@ export function parseLinkedInPdfText(rawText = "") {
     }
   }
 
-  // 5. Batch / Graduation Year Extraction
-  // Look for patterns like: Thapar'2024, Thapar 2024, (2020 - 2024), or 2020-2024
-  const batchMatch = rawText.match(/(?:Thapar['’]?\s*(\d{4})|\((\d{4})\s*[\-–—]\s*(\d{4})\)|(?:20\d{2})\s*[\-–—]\s*(20\d{2}))/i);
-  if (batchMatch) {
-    if (batchMatch[1]) batch = Number(batchMatch[1]);
-    else if (batchMatch[3]) batch = Number(batchMatch[3]);
-    else if (batchMatch[4]) batch = Number(batchMatch[4]);
+  // 5. Education section (institution, degree, field of study, years)
+  const education = parseEducationSection(lines);
+  const institutionEntry = education.find((e) => isInstitutionName(e.institution)) || null;
+
+  // Provenance: which fields were read from the PDF vs only guessed. Anything else is a form default.
+  const fieldsFound = [];
+  const fieldsInferred = [];
+
+  // 6. Batch / graduation year: prefer the institute's education entry
+  if (institutionEntry?.endYear) {
+    batch = institutionEntry.endYear;
+    fieldsFound.push("batch");
+  } else {
+    // Fallback: patterns like Thapar'2024 in the headline, or a "(2020 - 2024)" range anywhere
+    const batchMatch = rawText.match(/(?:Thapar['’]?\s*(\d{4})|\((\d{4})\s*[\-–—]\s*(\d{4})\)|(?:20\d{2})\s*[\-–—]\s*(20\d{2}))/i);
+    if (batchMatch) {
+      if (batchMatch[1]) batch = Number(batchMatch[1]);
+      else if (batchMatch[3]) batch = Number(batchMatch[3]);
+      else if (batchMatch[4]) batch = Number(batchMatch[4]);
+      if (batch) fieldsInferred.push("batch");
+    }
   }
 
-  // 6. Branch / Department Extraction
-  if (/Computer|Software|CSE|IT|Data|Security|Cyber|Artificial Intelligence/i.test(rawText)) {
-    branch = "Computer Engineering";
-  } else if (/Electronics|Communication|ECE|Electrical/i.test(rawText)) {
-    branch = "Electronics & Communication Engineering";
-  } else if (/Mechanical|Automobile|Robotics/i.test(rawText)) {
-    branch = "Mechanical Engineering";
-  } else if (/Civil/i.test(rawText)) {
-    branch = "Civil Engineering";
-  } else if (/Chemical/i.test(rawText)) {
-    branch = "Chemical Engineering";
-  } else if (/Biotechnology|Biomedical/i.test(rawText)) {
-    branch = "Biotechnology";
+  // 7. Branch / department: prefer the institute entry's field of study (or degree text).
+  // (The old whole-text regex used /IT/i, which matched "Institute" and "with" in every profile.)
+  const educationDept = institutionEntry
+    ? matchDepartment(institutionEntry.fieldOfStudy) || matchDepartment(institutionEntry.degree)
+    : null;
+  if (educationDept) {
+    branch = educationDept;
+    fieldsFound.push("branch");
+  } else {
+    const guessed =
+      matchDepartment(education.map((e) => `${e.degree} ${e.fieldOfStudy}`).join(" ")) || matchDepartment(rawText);
+    if (guessed) {
+      branch = guessed;
+      fieldsInferred.push("branch");
+    }
   }
 
-  // 7. Industry Inference
+  // 8. Industry Inference
   const fullCorpus = `${headline} ${currentRole} ${currentCompany} ${rawText.slice(0, 500)}`;
   const industry = inferIndustry(fullCorpus);
 
@@ -203,6 +304,16 @@ export function parseLinkedInPdfText(rawText = "") {
     bio = headline.replace(/\s*\|\|\s*/g, " · ");
   }
 
+  if (name) fieldsFound.push("name");
+  if (currentCompany) fieldsFound.push("currentCompany");
+  if (currentRole) fieldsFound.push("currentRole");
+  if (combinedSkills.length) fieldsFound.push("skills");
+  if (linkedinUrl) fieldsFound.push("linkedinUrl");
+  if (experienceList.length) fieldsFound.push("experience");
+  if (education.length) fieldsFound.push("education");
+  if (institutionEntry) fieldsFound.push("institution");
+  if (institutionEntry?.degree) fieldsFound.push("degree");
+
   return {
     name,
     currentRole: currentRole || "Software Professional",
@@ -215,6 +326,12 @@ export function parseLinkedInPdfText(rawText = "") {
     bio,
     linkedinUrl,
     experience: experienceList.slice(0, 5),
+    education,
+    institution: institutionEntry?.institution || "",
+    degree: institutionEntry?.degree || "",
+    // Fields NOT listed in fieldsFound / fieldsInferred hold placeholder defaults (form pre-fill only).
+    fieldsFound,
+    fieldsInferred,
   };
 }
 

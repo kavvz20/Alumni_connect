@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
-import { Conversation, Message } from "../models/index.js";
+import { Conversation, Message, User } from "../models/index.js";
+import { verifySessionToken } from "../services/auth.service.js";
 
 const roomName = (conversationId) => `conversation:${conversationId}`;
 const isValidId = (id) => mongoose.isValidObjectId(id);
@@ -21,10 +22,27 @@ const getParticipantConversation = async (conversationId, userId) => {
 };
 
 const initializeChatSocket = (io) => {
+  // Authenticate every socket with the same session token used by the REST API.
+  io.use(async (socket, next) => {
+    try {
+      const token = socket.handshake.auth?.token;
+      if (!token) return next(new Error("Authentication required."));
+      const payload = verifySessionToken(token);
+      if (!isValidId(payload?.sub) || !(await User.exists({ _id: payload.sub }))) {
+        return next(new Error("Invalid session."));
+      }
+      socket.data.userId = payload.sub;
+      next();
+    } catch (_) {
+      next(new Error("Invalid or expired session."));
+    }
+  });
+
   io.on("connection", (socket) => {
     socket.on(
       "join-conversation",
-      async ({ conversationId, userId }, callback) => {
+      async ({ conversationId } = {}, callback) => {
+        const userId = socket.data.userId; // identity from the authenticated handshake
         try {
           const conversation = await getParticipantConversation(
             conversationId,
@@ -55,7 +73,8 @@ const initializeChatSocket = (io) => {
 
     socket.on(
       "send-message",
-      async ({ conversationId, senderId, text }, callback) => {
+      async ({ conversationId, text } = {}, callback) => {
+        const senderId = socket.data.userId; // identity from the authenticated handshake
         try {
           if (!text?.trim()) {
             return respond(callback, {
