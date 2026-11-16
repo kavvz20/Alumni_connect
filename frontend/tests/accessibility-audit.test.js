@@ -51,3 +51,4 @@ describe("Frontend Accessibility (A11y) & Semantic Structure Audit", () => {
     assert.ok(navbarCode.includes("aria-label") || navbarCode.includes("title") || navbarCode.includes("alt"));
   });
 });
+
