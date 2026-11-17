@@ -37,7 +37,7 @@ export const EventsView = ({ currentUser, onOpenCreateEventModal }) => {
   const isAdmin = currentUser?.role === "admin" || currentUser?.isAdmin;
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-accent="teal">
       {/* Header */}
       <div className="responsive-page-header">
         <div>
@@ -103,14 +103,14 @@ export const EventsView = ({ currentUser, onOpenCreateEventModal }) => {
             const isPast = dateObj < new Date();
 
             return (
-              <article key={ev._id} className="glass-panel glass-panel-hover feed-card">
+              <article key={ev._id} className={`glass-panel glass-panel-hover feed-card ${isOnline ? "accent-teal" : "accent-terracotta"}`}>
                 <div className="feed-card__top" style={{ justifyContent: "flex-start", gap: "16px" }}>
                   <div className="date-tile" aria-hidden="true">
                     <span className="date-tile__month">{dateObj.toLocaleDateString(undefined, { month: "short" })}</span>
                     <span className="date-tile__day">{dateObj.getDate()}</span>
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <span className={`badge ${isOnline ? "badge-emerald" : "badge-amber"}`} style={{ textTransform: "capitalize", marginBottom: "8px" }}>
+                    <span className={`badge ${isOnline ? "badge-teal" : "badge-terracotta"}`} style={{ textTransform: "capitalize", marginBottom: "8px" }}>
                       {isOnline ? <Video size={12} /> : <MapPin size={12} />}
                       {isOnline ? "Online" : "On campus"}
                     </span>

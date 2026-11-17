@@ -335,9 +335,9 @@ export const AdminCenterView = ({ currentUser }) => {
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-accent="bronze">
       {/* Header */}
-      <div className="responsive-page-header" style={{ marginBottom: "20px", borderBottom: "none", paddingBottom: 0 }}>
+      <div className="responsive-page-header" style={{ marginBottom: "20px" }}>
         <div>
           <div className="page-eyebrow"><ShieldCheck size={14} /> Administration</div>
           <h1>Admin Center</h1>

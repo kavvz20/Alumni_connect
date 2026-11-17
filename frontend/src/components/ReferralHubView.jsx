@@ -51,7 +51,7 @@ export const ReferralHubView = ({
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-accent="sky">
       {/* Title */}
       <div className="responsive-page-header">
         <div>

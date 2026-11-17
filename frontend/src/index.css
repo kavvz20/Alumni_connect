@@ -1583,3 +1583,211 @@ label {
   outline: 2px solid var(--accent-amber);
   outline-offset: -2px;
 }
+
+
+/* ========================================================= */
+/* Warm accent layer (2026-11-18): livelier, same cream/      */
+/* black/bronze theme. Each section gets its own accent.     */
+/* ========================================================= */
+:root {
+  --accent-terracotta: #c2410c;
+  --accent-gold: #b7791f;
+  --accent-sage: #3f7d58;
+  --accent-teal: #0f766e;
+  --accent-plum: #8e3b6e;
+  --accent-sky: #0369a1;
+
+  --tint-peach: #fdebdc;
+  --tint-sand: #fbf0d9;
+  --tint-sage: #e5efe6;
+  --tint-teal: #dcefeb;
+  --tint-plum: #f5e4ee;
+  --tint-sky: #deedf6;
+  --tint-bronze: #f6e7d6;
+
+  /* default accent (overridden per page) */
+  --page-accent: var(--accent-amber);
+  --page-tint: var(--tint-bronze);
+}
+
+body {
+  background-image:
+    radial-gradient(circle at 8% 0%, rgba(253, 235, 220, 0.9) 0%, transparent 38%),
+    radial-gradient(circle at 92% 12%, rgba(251, 240, 217, 0.9) 0%, transparent 36%),
+    radial-gradient(circle at 60% 100%, rgba(229, 239, 230, 0.6) 0%, transparent 45%);
+}
+
+/* Per-section accents */
+[data-accent="bronze"] { --page-accent: var(--accent-amber); --page-tint: var(--tint-bronze); }
+[data-accent="terracotta"] { --page-accent: var(--accent-terracotta); --page-tint: var(--tint-peach); }
+[data-accent="gold"] { --page-accent: var(--accent-gold); --page-tint: var(--tint-sand); }
+[data-accent="sage"] { --page-accent: var(--accent-sage); --page-tint: var(--tint-sage); }
+[data-accent="teal"] { --page-accent: var(--accent-teal); --page-tint: var(--tint-teal); }
+[data-accent="plum"] { --page-accent: var(--accent-plum); --page-tint: var(--tint-plum); }
+[data-accent="sky"] { --page-accent: var(--accent-sky); --page-tint: var(--tint-sky); }
+
+/* ---------- Page header becomes a soft coloured hero ---------- */
+.responsive-page-header {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding: clamp(22px, 3.5vw, 36px);
+  border: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(120deg, var(--page-tint) 0%, #fffdf9 62%, #ffffff 100%);
+  box-shadow: var(--shadow-subtle);
+}
+.responsive-page-header::before,
+.responsive-page-header::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.responsive-page-header::before {
+  width: 280px;
+  height: 280px;
+  right: -70px;
+  top: -120px;
+  background: radial-gradient(circle, var(--page-tint) 0%, transparent 70%);
+  opacity: 0.95;
+}
+.responsive-page-header::after {
+  width: 160px;
+  height: 160px;
+  right: 120px;
+  bottom: -90px;
+  border: 22px solid var(--page-tint);
+  opacity: 0.7;
+}
+.responsive-page-header .page-eyebrow {
+  color: var(--page-accent);
+}
+.page-eyebrow svg {
+  box-sizing: content-box;
+  padding: 5px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--page-accent);
+}
+.responsive-page-header h1 {
+  max-width: 760px;
+}
+
+/* ---------- Chips pick up the section accent on hover ---------- */
+.chip:hover {
+  background: var(--page-tint);
+  border-color: var(--page-accent);
+  color: var(--text-main);
+}
+
+/* ---------- Cards: coloured accent edge ---------- */
+.feed-card,
+.alumni-card {
+  position: relative;
+  overflow: hidden;
+}
+.feed-card::before,
+.alumni-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: var(--card-accent, var(--page-accent));
+}
+.alumni-card::before {
+  background: linear-gradient(90deg, var(--accent-amber), var(--accent-gold), var(--accent-terracotta));
+}
+.thread-row {
+  border-left: 4px solid var(--page-tint) !important;
+}
+.thread-row:hover {
+  border-left-color: var(--page-accent) !important;
+}
+.story-card {
+  border-top: 4px solid var(--accent-gold) !important;
+}
+.story-card__body {
+  border-left-color: var(--tint-sand);
+}
+
+/* Card accent helpers */
+.accent-teal { --card-accent: var(--accent-teal); }
+.accent-terracotta { --card-accent: var(--accent-terracotta); }
+.accent-gold { --card-accent: var(--accent-gold); }
+.accent-sage { --card-accent: var(--accent-sage); }
+.accent-plum { --card-accent: var(--accent-plum); }
+.accent-sky { --card-accent: var(--accent-sky); }
+.accent-bronze { --card-accent: var(--accent-amber); }
+
+/* ---------- Extra badges ---------- */
+.badge-teal { background: var(--tint-teal) !important; color: var(--accent-teal) !important; border: 1px solid rgba(15, 118, 110, 0.25) !important; }
+.badge-terracotta { background: var(--tint-peach) !important; color: var(--accent-terracotta) !important; border: 1px solid rgba(194, 65, 12, 0.25) !important; }
+.badge-gold { background: var(--tint-sand) !important; color: #8a5a14 !important; border: 1px solid rgba(183, 121, 31, 0.3) !important; }
+.badge-sage { background: var(--tint-sage) !important; color: var(--accent-sage) !important; border: 1px solid rgba(63, 125, 88, 0.25) !important; }
+.badge-plum { background: var(--tint-plum) !important; color: var(--accent-plum) !important; border: 1px solid rgba(142, 59, 110, 0.25) !important; }
+.badge-sky { background: var(--tint-sky) !important; color: var(--accent-sky) !important; border: 1px solid rgba(3, 105, 161, 0.25) !important; }
+
+/* ---------- Tags and date tiles in colour ---------- */
+.tag {
+  background: var(--page-tint);
+  border-color: transparent;
+  color: var(--text-muted);
+}
+.date-tile {
+  border-color: transparent;
+  background: var(--tint-teal);
+}
+.accent-terracotta .date-tile {
+  background: var(--tint-peach);
+}
+.date-tile__month {
+  background: var(--card-accent, var(--page-accent));
+}
+.answer-count {
+  background: var(--page-tint);
+  border-color: transparent;
+}
+
+/* ---------- Empty states: coloured icon bubble ---------- */
+.empty-state {
+  background: linear-gradient(180deg, #ffffff 0%, var(--page-tint) 140%);
+}
+.empty-state > svg {
+  box-sizing: content-box;
+  padding: 16px;
+  border-radius: 50%;
+  background: var(--page-tint);
+  color: var(--page-accent);
+}
+
+/* ---------- Navbar: coloured icons, bronze underline ---------- */
+.nav-tab .nav-tab__icon {
+  display: inline-flex;
+  color: var(--tab-accent, #57534e);
+}
+.nav-tab[aria-current="page"] .nav-tab__icon {
+  color: var(--tab-accent-on, #fbf9f4);
+}
+.nav-tab:not([aria-current="page"]):hover {
+  background: rgba(255, 255, 255, 0.75) !important;
+}
+.brand-mark {
+  background: linear-gradient(135deg, #ffffff 0%, var(--tint-sand) 100%) !important;
+}
+
+/* ---------- Primary call-to-action in the hero ---------- */
+.responsive-page-header .btn-primary {
+  box-shadow: 0 6px 18px rgba(24, 24, 27, 0.22);
+}
+
+/* ---------- Option cards / segmented: accent when on ---------- */
+.option-card.is-on {
+  background: var(--tint-sand);
+}
+.tab.is-active {
+  border-bottom-color: var(--accent-terracotta);
+}

@@ -75,7 +75,7 @@ export const ForumView = ({ currentUser, onOpenAskModal }) => {
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-accent="plum">
       {activePost ? (
         /* Thread View */
         <div>

@@ -343,7 +343,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
   };
 
   return (
-    <div className="page-container" style={{ maxWidth: "1160px" }}>
+    <div className="page-container" data-accent="bronze" style={{ maxWidth: "1160px" }}>
       {/* Header Banner */}
       <div className="profile-section" style={{
         marginBottom: "24px",

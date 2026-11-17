@@ -277,7 +277,7 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
   };
 
   return (
-    <div className="page-container" style={{ paddingTop: "20px", paddingBottom: "20px" }}>
+    <div className="page-container" data-accent="plum" style={{ paddingTop: "20px", paddingBottom: "20px" }}>
       {/* Container Panel: Clean White on Cream Canvas */}
       <div className="chat-container-grid">
         {/* ========================================================================= */}

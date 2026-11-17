@@ -100,7 +100,7 @@ const ReviewPanel = ({ userId, onClose, onDecided }) => {
   const record = v.adminRecord || {};
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="review-title">
+    <div data-accent="bronze" className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="review-title">
       <div className="modal-content" style={{ maxWidth: "860px", width: "100%", padding: "28px", maxHeight: "90vh", overflowY: "auto", background: "#ffffff", color: "#18181b" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", marginBottom: "16px" }}>
           <div>

@@ -70,7 +70,7 @@ export const AIMentorMatchView = ({ currentUser, onOpenMentorshipModal, onOpenRe
   }, []);
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 20px" }}>
+    <div data-accent="gold" style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 20px" }}>
       {/* Hero Header */}
       <div style={{ textAlign: "center", marginBottom: "36px" }}>
         <div style={{

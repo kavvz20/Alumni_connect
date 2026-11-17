@@ -42,7 +42,7 @@ export const SuccessStoriesView = ({ currentUser, onOpenSubmitStoryModal }) => {
   }, [category]);
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-accent="gold">
       {/* Header */}
       <div className="responsive-page-header">
         <div>
@@ -90,7 +90,7 @@ export const SuccessStoriesView = ({ currentUser, onOpenSubmitStoryModal }) => {
           {stories.map((story) => (
             <article key={story._id} className="glass-panel story-card">
               <div className="feed-card__top" style={{ alignItems: "center" }}>
-                <span className="badge badge-amber" style={{ textTransform: "capitalize" }}>
+                <span className="badge badge-gold" style={{ textTransform: "capitalize" }}>
                   {story.category?.replace(/-/g, " ")}
                 </span>
                 <span className="meta-row">

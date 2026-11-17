@@ -58,7 +58,7 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-accent="bronze">
       {/* Title */}
       <div className="responsive-page-header">
         <div>
@@ -274,8 +274,8 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                       Not verified
                     </span>
                   )}
-                  {alumnus.availableForMentorshipCalls && <span className="badge badge-indigo">Open to mentorship</span>}
-                  {alumnus.willingToRefer && <span className="badge badge-amber">Open to referrals</span>}
+                  {alumnus.availableForMentorshipCalls && <span className="badge badge-teal">Open to mentorship</span>}
+                  {alumnus.willingToRefer && <span className="badge badge-terracotta">Open to referrals</span>}
                 </div>
 
                 {/* Actions */}

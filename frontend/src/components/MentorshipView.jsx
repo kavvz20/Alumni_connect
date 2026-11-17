@@ -45,7 +45,7 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-accent="sage">
       {/* Title */}
       <div className="responsive-page-header">
         <div>
@@ -112,7 +112,7 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
               accepted: "badge-emerald",
               rejected: "badge-rose",
               cancelled: "badge-rose",
-              completed: "badge-indigo",
+              completed: "badge-sky",
             };
 
             return (

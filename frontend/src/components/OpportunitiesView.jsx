@@ -57,15 +57,16 @@ export const OpportunitiesView = ({
     fetchOpportunities();
   };
 
-  const typeBadge = {
-    internship: "badge-indigo",
-    job: "badge-emerald",
-    referral: "badge-amber",
-    hackathon: "badge-rose",
+  const typeStyle = {
+    internship: { badge: "badge-sky", accent: "accent-sky" },
+    job: { badge: "badge-sage", accent: "accent-sage" },
+    referral: { badge: "badge-terracotta", accent: "accent-terracotta" },
+    hackathon: { badge: "badge-plum", accent: "accent-plum" },
+    workshop: { badge: "badge-gold", accent: "accent-gold" },
   };
 
   return (
-    <div className="page-container">
+    <div className="page-container" data-accent="terracotta">
       {/* Header */}
       <div className="responsive-page-header">
         <div>
@@ -134,9 +135,9 @@ export const OpportunitiesView = ({
             {opportunities.map((opp) => {
               const canAskReferral = opp.type === "referral" || currentUser?.role === "student";
               return (
-                <article key={opp._id} className="glass-panel glass-panel-hover feed-card">
+                <article key={opp._id} className={`glass-panel glass-panel-hover feed-card ${typeStyle[opp.type]?.accent || "accent-bronze"}`}>
                   <div className="feed-card__top">
-                    <span className={`badge ${typeBadge[opp.type] || "badge-cyan"}`} style={{ textTransform: "capitalize" }}>
+                    <span className={`badge ${typeStyle[opp.type]?.badge || "badge-gold"}`} style={{ textTransform: "capitalize" }}>
                       {opp.type}
                     </span>
                     {opp.createdAt && (

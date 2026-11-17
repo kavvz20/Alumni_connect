@@ -15,6 +15,19 @@ import {
   User,
 } from "lucide-react";
 
+const TAB_ACCENT = {
+  "/alumni": "#92400e",
+  "/mentorship": "#3f7d58",
+  "/referrals": "#0369a1",
+  "/chat": "#8e3b6e",
+  "/opportunities": "#c2410c",
+  "/forum": "#8e3b6e",
+  "/events": "#0f766e",
+  "/stories": "#b7791f",
+  "/profile": "#92400e",
+  "/admin": "#18181b",
+};
+
 export const Navbar = ({
   currentUser,
   onLogout,
@@ -86,7 +99,7 @@ export const Navbar = ({
           }}
           style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", flexShrink: 0 }}
         >
-          <div style={{
+          <div className="brand-mark" style={{
             width: "38px",
             height: "38px",
             borderRadius: "10px",
@@ -266,10 +279,12 @@ export const Navbar = ({
                       cursor: "pointer",
                       transition: "all 0.15s ease",
                       whiteSpace: "nowrap",
-                      boxShadow: isActive ? "0 2px 6px rgba(0, 0, 0, 0.12)" : "none",
+                      boxShadow: isActive ? "0 2px 6px rgba(0, 0, 0, 0.12), inset 0 -2px 0 #b7791f" : "none",
                     }}
                   >
-                    <Icon size={15} color={isActive ? "#fbf9f4" : "#57534e"} />
+                    <span className="nav-tab__icon" style={{ "--tab-accent": TAB_ACCENT[tab.path] || "#57534e" }}>
+                      <Icon size={15} />
+                    </span>
                     <span style={{ color: isActive ? "#fbf9f4" : "#44403c" }}>{tab.label}</span>
                   </button>
                 );
