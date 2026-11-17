@@ -398,11 +398,13 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
               <span className={`badge badge-${currentUser?.role === "student" ? "cyan" : currentUser?.role === "admin" ? "emerald" : "amber"}`}>
                 {currentUser?.role}
               </span>
-              {currentUser?.role === "alumni" && currentUser?.isVerified && (
+              {currentUser?.role === "alumni" && (currentUser?.isVerified ? (
                 <span className="badge badge-emerald">
                   <ShieldCheck size={12} /> Verified Alumnus
                 </span>
-              )}
+              ) : (
+                <span className="badge badge-rose">Not verified</span>
+              ))}
             </div>
 
             <p style={{ fontSize: "0.88rem", color: "#78716c", margin: 0 }}>
@@ -674,6 +676,38 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
             {/* Alumni-Specific Fields */}
             {currentUser?.role === "alumni" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {/* How the alumnus can help (shown on their directory card) */}
+                <fieldset className="option-group">
+                  <legend>How can you help students?</legend>
+                  <p>Students see these on your directory card and can send you requests.</p>
+                  <div className="option-cards">
+                    <label className={`option-card${availableForMentorshipCalls ? " is-on" : ""}`}>
+                      <input
+                        type="checkbox"
+                        checked={availableForMentorshipCalls}
+                        onChange={(e) => setAvailableForMentorshipCalls(e.target.checked)}
+                      />
+                      <span className="option-card__switch" aria-hidden="true" />
+                      <span>
+                        <strong>Open to mentorship</strong>
+                        <small>Students can request 1-on-1 mentorship calls with you.</small>
+                      </span>
+                    </label>
+                    <label className={`option-card${willingToRefer ? " is-on" : ""}`}>
+                      <input
+                        type="checkbox"
+                        checked={willingToRefer}
+                        onChange={(e) => setWillingToRefer(e.target.checked)}
+                      />
+                      <span className="option-card__switch" aria-hidden="true" />
+                      <span>
+                        <strong>Open to giving referrals</strong>
+                        <small>Students can ask you for job or internship referrals at your company.</small>
+                      </span>
+                    </label>
+                  </div>
+                </fieldset>
+
                 {/* LinkedIn Auto-Fill Card (PDF Upload Primary) */}
                 <div style={{
                   background: "linear-gradient(135deg, #0a66c2 0%, #004182 100%)",
@@ -1103,25 +1137,6 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                   />
                 </div>
 
-                <div style={{ display: "flex", gap: "24px", marginTop: "4px" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", cursor: "pointer", color: "#18181b" }}>
-                    <input
-                      type="checkbox"
-                      checked={availableForMentorshipCalls}
-                      onChange={(e) => setAvailableForMentorshipCalls(e.target.checked)}
-                    />
-                    Available for 1-on-1 Mentorship
-                  </label>
-
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", cursor: "pointer", color: "#18181b" }}>
-                    <input
-                      type="checkbox"
-                      checked={willingToRefer}
-                      onChange={(e) => setWillingToRefer(e.target.checked)}
-                    />
-                    Open to Giving Job Referrals
-                  </label>
-                </div>
               </div>
 
               <EducationEditor rows={education} onChange={setEducation} />

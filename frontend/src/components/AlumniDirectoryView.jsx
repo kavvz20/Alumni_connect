@@ -239,9 +239,6 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <h3 className="alumni-card__name">
                       <span>{alumnus.name}</span>
-                      {alumnus.isVerified && (
-                        <CheckCircle2 size={16} color="#047857" aria-label="Verified alumnus" style={{ flexShrink: 0 }} />
-                      )}
                     </h3>
                     {(alumnus.currentRole || alumnus.currentCompany) && (
                       <div className="alumni-card__role">
@@ -266,12 +263,19 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                   </div>
                 )}
 
-                {(alumnus.availableForMentorshipCalls || alumnus.willingToRefer) && (
-                  <div className="alumni-card__offers">
-                    {alumnus.availableForMentorshipCalls && <span className="badge badge-indigo">Open to mentor</span>}
-                    {alumnus.willingToRefer && <span className="badge badge-amber">Gives referrals</span>}
-                  </div>
-                )}
+                <div className="alumni-card__offers">
+                  {alumnus.isVerified ? (
+                    <span className="badge badge-emerald">
+                      <CheckCircle2 size={12} /> Verified
+                    </span>
+                  ) : (
+                    <span className="badge badge-rose" title="The Alumni Relations Cell has not verified this profile yet">
+                      Not verified
+                    </span>
+                  )}
+                  {alumnus.availableForMentorshipCalls && <span className="badge badge-indigo">Open to mentorship</span>}
+                  {alumnus.willingToRefer && <span className="badge badge-amber">Open to referrals</span>}
+                </div>
 
                 {/* Actions */}
                 <div className="alumni-card__actions">

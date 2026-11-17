@@ -451,11 +451,15 @@ export const PublicProfileView = ({
               <h1 style={{ fontSize: "1.85rem", fontWeight: 800, color: "#18181b", margin: 0 }}>
                 {user.name}
               </h1>
-              {user.isVerified && (
+              {user.role === "alumni" && (user.isVerified ? (
                 <span className="badge badge-emerald" style={{ fontSize: "0.76rem" }}>
                   <ShieldCheck size={13} /> Verified TIET Alumnus
                 </span>
-              )}
+              ) : (
+                <span className="badge badge-rose" style={{ fontSize: "0.76rem" }} title="The Alumni Relations Cell has not verified this profile yet">
+                  Not verified
+                </span>
+              ))}
               <span className={`badge badge-${user.role === "student" ? "cyan" : user.role === "admin" ? "emerald" : "indigo"}`}>
                 {user.role === "alumni" ? "🎓 Alumnus" : user.role === "student" ? "📚 Student" : "🛡️ Admin"}
               </span>
@@ -910,8 +914,8 @@ export const PublicProfileView = ({
               )}
               <div style={{ display: "flex", justifyContent: "space-between", color: "#78716c" }}>
                 <span>Alumni Verification</span>
-                <strong style={{ color: user.isVerified ? "#059669" : "#78716c" }}>
-                  {user.isVerified ? "✅ Verified" : "Standard"}
+                <strong style={{ color: user.isVerified ? "#059669" : "#be123c" }}>
+                  {user.isVerified ? "✅ Verified" : "Not verified"}
                 </strong>
               </div>
             </div>

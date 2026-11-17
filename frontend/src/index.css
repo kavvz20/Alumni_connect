@@ -918,3 +918,98 @@ label {
   background: rgba(251, 249, 244, 0.18);
   color: #fbf9f4;
 }
+
+/* ---------- Option cards with a switch (profile settings) ---------- */
+.option-group {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  background: var(--bg-surface);
+}
+.option-group legend {
+  padding: 0 6px;
+  margin-left: -6px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text-main);
+}
+.option-group > p {
+  font-size: 0.85rem;
+  color: var(--text-subtle);
+  margin: 2px 0 14px;
+}
+.option-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 12px;
+}
+.option-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid rgba(24, 24, 27, 0.16);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.option-card:hover {
+  border-color: rgba(24, 24, 27, 0.32);
+}
+.option-card.is-on {
+  border-color: #18181b;
+  box-shadow: 0 0 0 1px #18181b;
+}
+.option-card input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.option-card input:focus-visible + .option-card__switch {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: 2px;
+}
+.option-card strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--text-main);
+}
+.option-card small {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-subtle);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+.option-card__switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: var(--radius-full);
+  background: rgba(24, 24, 27, 0.16);
+  transition: background 0.15s ease;
+}
+.option-card__switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+.option-card.is-on .option-card__switch {
+  background: #18181b;
+}
+.option-card.is-on .option-card__switch::after {
+  transform: translateX(16px);
+}
