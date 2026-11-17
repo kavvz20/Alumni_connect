@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
+import { Avatar } from "./Avatar";
 import {
   MessageSquare,
   Plus,
@@ -122,22 +123,7 @@ export const ForumView = ({ currentUser, onOpenAskModal }) => {
               comments.map((comment) => (
                 <div key={comment._id} className="glass-panel" style={{ padding: "20px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
-                    <div style={{
-                      width: "36px",
-                      height: "36px",
-                      borderRadius: "50%",
-                      background: comment.authorId?.role === "alumni"
-                        ? "linear-gradient(135deg, #f59e0b, #ec4899)"
-                        : "linear-gradient(135deg, #6366f1, #8b5cf6)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 700,
-                      color: "#fff",
-                      fontSize: "0.9rem",
-                    }}>
-                      {comment.authorId?.name?.[0] || "U"}
-                    </div>
+                    <Avatar user={comment.authorId} size={36} />
 
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -211,10 +197,9 @@ export const ForumView = ({ currentUser, onOpenAskModal }) => {
         <div>
           <div className="responsive-page-header">
             <div>
-              <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Community Discussion Forum</h1>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-                Ask questions about interview prep, tech stacks, and career paths answered by alumni with real experience.
-              </p>
+              <div className="page-eyebrow"><MessageSquare size={14} /> Community Forum</div>
+              <h1>Community Discussion Forum</h1>
+              <p>Ask about interview prep, tech stacks and career paths, and get answers from alumni with real experience.</p>
             </div>
 
             <button onClick={onOpenAskModal} className="btn btn-primary">
@@ -223,108 +208,90 @@ export const ForumView = ({ currentUser, onOpenAskModal }) => {
           </div>
 
           {/* Search & Tag filter */}
-          <div className="glass-panel" style={{ padding: "16px 20px", marginBottom: "28px" }}>
-            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-              <div style={{ flex: 1, position: "relative" }}>
-                <Search size={18} style={{ position: "absolute", left: "14px", top: "12px", color: "var(--text-subtle)" }} />
-                <input
-                  className="input-control"
-                  style={{ paddingLeft: "42px" }}
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && fetchPosts()}
-                  placeholder="Search questions (e.g. 'Amazon interview', 'System design', 'Product Management')..."
-                />
-              </div>
-
-              {selectedTag && (
-                <button
-                  onClick={() => setSelectedTag("")}
-                  className="btn btn-secondary btn-sm"
-                  style={{ color: "var(--accent-rose)" }}
-                >
-                  Clear Tag #{selectedTag}
-                </button>
-              )}
+          <div className="toolbar">
+            <div className="search-field search-field--wide">
+              <Search size={16} />
+              <input
+                className="input-control"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && fetchPosts()}
+                placeholder="Search questions, e.g. Amazon interview or system design, then press Enter"
+                aria-label="Search questions"
+              />
             </div>
+
+            {selectedTag && (
+              <button onClick={() => setSelectedTag("")} className="chip active" title="Clear tag filter">
+                #{selectedTag} <span aria-hidden="true">×</span>
+              </button>
+            )}
           </div>
 
           {/* Posts List */}
           {loading ? (
-            <div style={{ textAlign: "center", padding: "60px 0", color: "var(--text-muted)" }}>
-              Loading forum questions...
+            <div className="list-stack" aria-busy="true" aria-label="Loading questions">
+              {[0, 1, 2].map((i) => <div key={i} className="glass-panel skeleton-row" />)}
             </div>
           ) : posts.length === 0 ? (
-            <div className="glass-panel" style={{ padding: "50px", textAlign: "center" }}>
-              <MessageSquare size={48} style={{ color: "var(--text-subtle)", marginBottom: "16px" }} />
-              <h3 style={{ fontSize: "1.2rem", marginBottom: "8px" }}>No Questions Yet</h3>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-                Be the first to ask a career or interview question to the alumni network!
-              </p>
+            <div className="empty-state">
+              <MessageSquare size={40} />
+              <h3>No questions yet</h3>
+              <p>Be the first to ask the alumni network a career or interview question.</p>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              {posts.map((post) => (
-                <div
-                  key={post._id}
-                  onClick={() => loadPostThread(post)}
-                  className="glass-panel glass-panel-hover"
-                  style={{
-                    padding: "22px 26px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    cursor: "pointer",
-                  }}
-                >
-                  <div style={{ flex: 1, marginRight: "16px" }}>
-                    <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
-                      {(post.tags || []).map((tag, idx) => (
-                        <span
-                          key={idx}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedTag(tag);
-                          }}
-                          className="badge badge-indigo"
-                          style={{ cursor: "pointer" }}
-                        >
-                          #{tag}
-                        </span>
-                      ))}
+            <div className="list-stack">
+              {posts.map((post) => {
+                const answers = post.commentCount || 0;
+                return (
+                  <div
+                    key={post._id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => loadPostThread(post)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        loadPostThread(post);
+                      }
+                    }}
+                    className="glass-panel glass-panel-hover thread-row"
+                  >
+                    <div className={`answer-count${answers > 0 ? " has-answers" : ""}`} aria-label={`${answers} answers`}>
+                      <strong>{answers}</strong>
+                      {answers === 1 ? "answer" : "answers"}
                     </div>
 
-                    <h3 style={{ fontSize: "1.15rem", fontWeight: 700, marginBottom: "8px", color: "var(--text-main)" }}>
-                      {post.question}
-                    </h3>
+                    <div className="thread-row__body">
+                      {(post.tags || []).length > 0 && (
+                        <div className="tag-list">
+                          {post.tags.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTag(tag);
+                              }}
+                              className="tag tag--link"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
-                    <div style={{ fontSize: "0.8rem", color: "var(--text-subtle)" }}>
-                      Asked by {post.authorId?.name || "Student"} · {new Date(post.createdAt).toLocaleDateString()}
+                      <h3 className="thread-row__title">{post.question}</h3>
+
+                      <div className="meta-row">
+                        <span>Asked by <strong style={{ color: "var(--text-main)", fontWeight: 600 }}>{post.authorId?.name || "Student"}</strong></span>
+                        <span>{new Date(post.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
+                      </div>
                     </div>
+
+                    <ChevronRight className="thread-row__chevron" size={20} color="var(--text-subtle)" />
                   </div>
-
-                  {/* Comment Count Badge */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      background: "rgba(255, 255, 255, 0.06)",
-                      border: "1px solid var(--border-color)",
-                      borderRadius: "var(--radius-full)",
-                      padding: "6px 14px",
-                      fontSize: "0.85rem",
-                      color: "var(--accent-amber)",
-                      fontWeight: 600,
-                    }}>
-                      <MessageSquare size={15} />
-                      {post.commentCount || 0} answers
-                    </div>
-
-                    <ChevronRight size={20} color="var(--text-subtle)" />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

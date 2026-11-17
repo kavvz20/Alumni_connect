@@ -49,8 +49,9 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
       {/* Title */}
       <div className="responsive-page-header">
         <div>
-          <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Mentorship & Google Meet Hub</h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
+          <div className="page-eyebrow"><Video size={14} /> Mentorship</div>
+          <h1>Mentorship & Google Meet Hub</h1>
+          <p>
             {currentUser?.role === "student"
               ? "Manage your 1-on-1 mentorship calls, track approvals, and join scheduled Google Meets."
               : "Review incoming mentorship requests from students, schedule calls, and share meeting links."}
@@ -65,42 +66,42 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "24px" }}>
+      <div className="toolbar"><div className="toolbar__chips" role="group" aria-label="Status">
         {["", "pending", "accepted", "completed", "rejected"].map((st) => (
           <button
             key={st}
             onClick={() => setFilterStatus(st)}
-            className={`chip${filterStatus === st ? " active" : ""}`} style={{ textTransform: "capitalize" }}
+            className={`chip${filterStatus === st ? " active" : ""}`} aria-pressed={filterStatus === st} style={{ textTransform: "capitalize" }}
           >
-            {st || "All Requests"}
+            {st || "All"}
           </button>
         ))}
-      </div>
+      </div></div>
 
       {/* Error */}
       {error && (
-        <div style={{ padding: "16px", background: "rgba(190, 18, 60, 0.06)", border: "1px solid rgba(190, 18, 60, 0.22)", borderRadius: "8px", color: "#be123c", marginBottom: "20px" }}>
+        <div className="alert alert-error" role="alert">
           {error}
         </div>
       )}
 
       {/* Request Cards */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "60px 0", color: "var(--text-muted)" }}>
-          Loading mentorship requests...
+        <div className="list-stack" aria-busy="true" aria-label="Loading mentorship requests">
+          {[0, 1, 2].map((i) => <div key={i} className="glass-panel skeleton-row" style={{ height: "150px" }} />)}
         </div>
       ) : requests.length === 0 ? (
-        <div className="glass-panel" style={{ padding: "50px", textAlign: "center" }}>
-          <Calendar size={48} style={{ color: "var(--text-subtle)", marginBottom: "16px" }} />
-          <h3 style={{ fontSize: "1.2rem", marginBottom: "8px" }}>No Mentorship Requests Found</h3>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+        <div className="empty-state">
+          <Calendar size={40} />
+          <h3>No Mentorship Requests Found</h3>
+          <p>
             {currentUser?.role === "student"
               ? "Browse alumni profiles or use AI Mentor Match to send your first call request."
               : "You do not have any mentorship requests under this status filter."}
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div className="list-stack" style={{ gap: "16px" }}>
           {requests.map((req) => {
             const isStudent = req.studentId?._id === currentUser?._id;
             const isAlumni = req.alumniId?._id === currentUser?._id;
@@ -145,29 +146,25 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
                 </div>
 
                 {/* Agenda */}
-                <div style={{ background: "rgba(0, 0, 0, 0.2)", padding: "14px 18px", borderRadius: "var(--radius-sm)", marginBottom: "16px" }}>
-                  <div style={{ fontSize: "0.76rem", color: "var(--text-subtle)", fontWeight: 700, textTransform: "uppercase", marginBottom: "4px" }}>
-                    Call Agenda & Focus Areas
-                  </div>
-                  <div style={{ fontSize: "0.92rem", color: "var(--text-main)" }}>
-                    "{req.agenda}"
+                <div className="inset" style={{ marginBottom: "16px" }}>
+                  <div className="inset__label">Call agenda</div>
+                  <div style={{ fontSize: "0.92rem", color: "var(--text-main)", lineHeight: 1.6 }}>
+                    {req.agenda}
                   </div>
                 </div>
 
                 {/* Meeting Link / Scheduled Info */}
                 {req.meetingScheduledAt && (
-                  <div style={{
+                  <div className="inset inset--success" style={{
                     display: "flex",
+                    flexWrap: "wrap",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    padding: "14px 18px",
-                    background: "rgba(16, 185, 129, 0.12)",
-                    border: "1px solid rgba(16, 185, 129, 0.25)",
-                    borderRadius: "var(--radius-sm)",
+                    gap: "12px",
                     marginBottom: "16px",
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <Video size={20} color="#10b981" />
+                      <Video size={20} color="#047857" />
                       <div>
                         <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--accent-emerald)" }}>
                           Scheduled for: {new Date(req.meetingScheduledAt).toLocaleString()}
@@ -193,7 +190,7 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
                 )}
 
                 {/* Actions */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "10px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "flex-end", gap: "10px" }}>
                   {/* Alumni actions for pending */}
                   {isAlumni && req.status === "pending" && (
                     <>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { api } from "../services/api";
+import { Avatar } from "./Avatar";
 import {
   Award,
   Plus,
@@ -45,10 +46,9 @@ export const SuccessStoriesView = ({ currentUser, onOpenSubmitStoryModal }) => {
       {/* Header */}
       <div className="responsive-page-header">
         <div>
-          <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Alumni Success Stories</h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-            Real experiences from graduates who cracked top roles, transitioned fields, and leveraged campus mentorship.
-          </p>
+          <div className="page-eyebrow"><Award size={14} /> Success Stories</div>
+          <h1>Alumni Success Stories</h1>
+          <p>Real experiences from graduates who cracked top roles, changed fields, and grew through campus mentorship.</p>
         </div>
 
         {currentUser?.role !== "student" && (
@@ -58,80 +58,59 @@ export const SuccessStoriesView = ({ currentUser, onOpenSubmitStoryModal }) => {
         )}
       </div>
 
-      {/* Category Pills */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "28px" }}>
-        {categories.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setCategory(c.id)}
-            className={`chip${category === c.id ? " active" : ""}`}
-          >
-            {c.label}
-          </button>
-        ))}
+      {/* Category chips */}
+      <div className="toolbar">
+        <div className="toolbar__chips" role="group" aria-label="Story category">
+          {categories.map((c) => (
+            <button
+              key={c.id || "all"}
+              onClick={() => setCategory(c.id)}
+              className={`chip${category === c.id ? " active" : ""}`}
+              aria-pressed={category === c.id}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Stories Grid */}
+      {/* Stories */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "60px 0", color: "var(--text-muted)" }}>
-          Loading success stories...
+        <div className="list-stack" aria-busy="true" aria-label="Loading stories">
+          {[0, 1].map((i) => <div key={i} className="glass-panel skeleton-card" style={{ height: "220px" }} />)}
         </div>
       ) : stories.length === 0 ? (
-        <div className="glass-panel" style={{ padding: "50px", textAlign: "center" }}>
-          <Award size={48} style={{ color: "var(--text-subtle)", marginBottom: "16px" }} />
-          <h3 style={{ fontSize: "1.2rem", marginBottom: "8px" }}>No Stories in this Category</h3>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-            Be the first alumnus to publish your career journey!
-          </p>
+        <div className="empty-state">
+          <Award size={40} />
+          <h3>No stories here yet</h3>
+          <p>Be the first alumnus to share your career journey.</p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div className="list-stack" style={{ gap: "20px", maxWidth: "860px" }}>
           {stories.map((story) => (
-            <div key={story._id} className="glass-panel glass-panel-hover" style={{ padding: "28px" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+            <article key={story._id} className="glass-panel story-card">
+              <div className="feed-card__top" style={{ alignItems: "center" }}>
                 <span className="badge badge-amber" style={{ textTransform: "capitalize" }}>
-                  {story.category?.replace("-", " ")}
+                  {story.category?.replace(/-/g, " ")}
                 </span>
-
-                <span style={{ fontSize: "0.78rem", color: "var(--text-subtle)" }}>
-                  {new Date(story.createdAt).toLocaleDateString()}
+                <span className="meta-row">
+                  <span>{new Date(story.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
                 </span>
               </div>
 
-              <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "12px", color: "var(--text-main)" }}>
-                {story.title}
-              </h2>
+              <h2 className="story-card__title">{story.title}</h2>
+              <p className="story-card__body">{story.story}</p>
 
-              <p style={{ fontSize: "0.94rem", color: "var(--text-muted)", lineHeight: 1.65, marginBottom: "20px", whiteSpace: "pre-line" }}>
-                {story.story}
-              </p>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", borderTop: "1px solid var(--border-color)", paddingTop: "14px" }}>
-                <div style={{
-                  width: "36px",
-                  height: "36px",
-                  borderRadius: "50%",
-                  background: "linear-gradient(135deg, #f59e0b, #ec4899)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: 700,
-                  fontSize: "0.9rem",
-                  color: "#fff",
-                }}>
-                  {story.authorId?.name?.[0] || "A"}
-                </div>
-
-                <div>
-                  <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text-main)" }}>
-                    {story.authorId?.name}
-                  </div>
-                  <div style={{ fontSize: "0.76rem", color: "var(--text-subtle)" }}>
-                    {story.authorId?.currentRole ? `${story.authorId.currentRole} ${story.authorId.currentCompany ? `@ ${story.authorId.currentCompany}` : ""}` : `Batch of ${story.authorId?.batch || "Alumni"}`}
-                  </div>
+              <div className="byline" style={{ paddingTop: "16px", borderTop: "1px solid var(--border-color)" }}>
+                <Avatar user={story.authorId} role="alumni" size={40} />
+                <div style={{ minWidth: 0 }}>
+                  <strong>{story.authorId?.name || "Alumnus"}</strong>
+                  {story.authorId?.currentRole
+                    ? `${story.authorId.currentRole}${story.authorId.currentCompany ? ` at ${story.authorId.currentCompany}` : ""}`
+                    : story.authorId?.batch ? `Class of ${story.authorId.batch}` : "Alumnus"}
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}

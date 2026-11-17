@@ -142,7 +142,7 @@ export const AIMentorMatchView = ({ currentUser, onOpenMentorshipModal, onOpenRe
                 handleMatch(p);
               }}
               style={{
-                background: "rgba(255, 255, 255, 0.05)",
+                background: "var(--bg-surface)",
                 border: "1px solid var(--border-color)",
                 borderRadius: "var(--radius-full)",
                 color: "var(--text-muted)",
@@ -305,7 +305,7 @@ export const AIMentorMatchView = ({ currentUser, onOpenMentorshipModal, onOpenRe
                         {alumnus.name}
                       </h3>
                       {alumnus.isVerified && (
-                        <CheckCircle2 size={16} color="#10b981" title="Admin Verified Alumni" />
+                        <CheckCircle2 size={16} color="#047857" title="Admin Verified Alumni" />
                       )}
                     </div>
                     <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--accent-amber)" }}>
@@ -337,7 +337,7 @@ export const AIMentorMatchView = ({ currentUser, onOpenMentorshipModal, onOpenRe
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "20px" }}>
                   {(alumnus.areasOfExpertise || alumnus.skills || []).slice(0, 4).map((exp, i) => (
                     <span key={i} style={{
-                      background: "rgba(255, 255, 255, 0.05)",
+                      background: "var(--bg-surface)",
                       border: "1px solid var(--border-color)",
                       borderRadius: "6px",
                       padding: "3px 8px",

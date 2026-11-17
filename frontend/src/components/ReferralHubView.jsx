@@ -55,8 +55,9 @@ export const ReferralHubView = ({
       {/* Title */}
       <div className="responsive-page-header">
         <div>
-          <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Referral Hub</h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
+          <div className="page-eyebrow"><Briefcase size={14} /> Referrals</div>
+          <h1>Referral Hub</h1>
+          <p>
             {currentUser?.role === "student"
               ? "Request direct job & internship referrals from verified alumni at top companies."
               : "Review and act on student referral applications for open roles at your company."}
@@ -77,42 +78,42 @@ export const ReferralHubView = ({
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "24px" }}>
+      <div className="toolbar"><div className="toolbar__chips" role="group" aria-label="Status">
         {["", "pending", "approved", "rejected", "cancelled"].map((st) => (
           <button
             key={st}
             onClick={() => setFilterStatus(st)}
-            className={`chip${filterStatus === st ? " active" : ""}`} style={{ textTransform: "capitalize" }}
+            className={`chip${filterStatus === st ? " active" : ""}`} aria-pressed={filterStatus === st} style={{ textTransform: "capitalize" }}
           >
-            {st || "All Applications"}
+            {st || "All"}
           </button>
         ))}
-      </div>
+      </div></div>
 
       {/* Error */}
       {error && (
-        <div style={{ padding: "16px", background: "rgba(190, 18, 60, 0.06)", border: "1px solid rgba(190, 18, 60, 0.22)", borderRadius: "8px", color: "#be123c", marginBottom: "20px" }}>
+        <div className="alert alert-error" role="alert">
           {error}
         </div>
       )}
 
       {/* Referral Cards */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "60px 0", color: "var(--text-muted)" }}>
-          Loading referral tracker...
+        <div className="list-stack" aria-busy="true" aria-label="Loading referrals">
+          {[0, 1, 2].map((i) => <div key={i} className="glass-panel skeleton-row" style={{ height: "150px" }} />)}
         </div>
       ) : referrals.length === 0 ? (
-        <div className="glass-panel" style={{ padding: "50px", textAlign: "center" }}>
-          <Briefcase size={48} style={{ color: "var(--text-subtle)", marginBottom: "16px" }} />
-          <h3 style={{ fontSize: "1.2rem", marginBottom: "8px" }}>No Referral Applications Found</h3>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+        <div className="empty-state">
+          <Briefcase size={40} />
+          <h3>No Referral Applications Found</h3>
+          <p>
             {currentUser?.role === "student"
               ? "Browse the Opportunities tab or Alumni Directory to ask for verified internal referrals."
               : "No students have requested referrals under this status."}
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div className="list-stack" style={{ gap: "16px" }}>
           {referrals.map((item) => {
             const isStudent = item.studentId?._id === currentUser?._id;
             const counterpart = isStudent ? item.alumniId : item.studentId;
@@ -159,8 +160,9 @@ export const ReferralHubView = ({
                   flexWrap: "wrap",
                   alignItems: "center",
                   gap: "16px",
-                  padding: "12px 18px",
-                  background: "rgba(0, 0, 0, 0.25)",
+                  padding: "12px 16px",
+                  background: "var(--bg-surface)",
+                  border: "1px solid var(--border-color)",
                   borderRadius: "var(--radius-sm)",
                   marginBottom: "16px",
                 }}>
@@ -188,7 +190,7 @@ export const ReferralHubView = ({
                 </div>
 
                 {/* Action Buttons */}
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: "10px" }}>
                   {!isStudent && item.status === "pending" && (
                     <>
                       <button

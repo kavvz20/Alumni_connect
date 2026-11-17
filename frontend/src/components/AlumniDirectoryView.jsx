@@ -62,9 +62,10 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
       {/* Title */}
       <div className="responsive-page-header">
         <div>
-          <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Alumni Directory</h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-            Connect with {total} verified Thapar graduates across global engineering, product, and leadership roles.
+          <div className="page-eyebrow"><User size={14} /> Alumni Network</div>
+          <h1>Alumni Directory</h1>
+          <p>
+            Connect with {total} Thapar graduates across engineering, product and leadership roles.
           </p>
         </div>
       </div>

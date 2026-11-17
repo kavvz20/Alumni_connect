@@ -34,124 +34,123 @@ export const EventsView = ({ currentUser, onOpenCreateEventModal }) => {
     fetchEvents();
   }, [timeframe, mode]);
 
+  const isAdmin = currentUser?.role === "admin" || currentUser?.isAdmin;
+
   return (
     <div className="page-container">
       {/* Header */}
       <div className="responsive-page-header">
         <div>
-          <h1 style={{ fontSize: "2.2rem", fontWeight: 800 }}>Campus Talks, Meets & Webinars</h1>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>
-            Connect with alumni during live webinars, technical workshops, and campus networking sessions.
-          </p>
+          <div className="page-eyebrow"><Calendar size={14} /> Events</div>
+          <h1>Campus Talks, Meets & Webinars</h1>
+          <p>Connect with alumni during live webinars, technical workshops, and campus networking sessions.</p>
         </div>
 
-        {(currentUser?.role === "admin" || currentUser?.isAdmin) && (
+        {isAdmin && (
           <button onClick={onOpenCreateEventModal} className="btn btn-primary">
             <Plus size={16} /> Organize Event
           </button>
         )}
       </div>
 
-      {/* Filter Tabs */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "28px", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-          {["upcoming", "past", ""].map((tf) => (
+      {/* Filters */}
+      <div className="toolbar">
+        <div className="toolbar__chips" role="group" aria-label="Timeframe">
+          {[
+            { id: "upcoming", label: "Upcoming" },
+            { id: "past", label: "Past" },
+            { id: "", label: "All" },
+          ].map((tf) => (
             <button
-              key={tf}
-              onClick={() => setTimeframe(tf)}
-              className={`chip${timeframe === tf ? " active" : ""}`} style={{ textTransform: "capitalize" }}
+              key={tf.id || "all"}
+              onClick={() => setTimeframe(tf.id)}
+              className={`chip${timeframe === tf.id ? " active" : ""}`}
+              aria-pressed={timeframe === tf.id}
             >
-              {tf ? `${tf} Events` : "All Time"}
+              {tf.label}
             </button>
           ))}
         </div>
 
-        <div style={{ display: "flex", gap: "8px" }}>
-          <select
-            className="select-control"
-            value={mode}
-            onChange={(e) => setMode(e.target.value)}
-            style={{ width: "160px", padding: "6px 12px", fontSize: "0.85rem" }}
-          >
-            <option value="">All Modes</option>
-            <option value="online">Online Webinar</option>
-            <option value="offline">In-Person Campus</option>
-          </select>
-        </div>
+        <select
+          className="select-control"
+          value={mode}
+          onChange={(e) => setMode(e.target.value)}
+          aria-label="Event mode"
+        >
+          <option value="">All modes</option>
+          <option value="online">Online webinar</option>
+          <option value="offline">In-person on campus</option>
+        </select>
       </div>
 
       {/* Events Grid */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "60px 0", color: "var(--text-muted)" }}>
-          Loading events...
+        <div className="responsive-cards-grid" aria-busy="true" aria-label="Loading events">
+          {[0, 1, 2].map((i) => <div key={i} className="glass-panel skeleton-card" />)}
         </div>
       ) : events.length === 0 ? (
-        <div className="glass-panel" style={{ padding: "50px", textAlign: "center" }}>
-          <Calendar size={48} style={{ color: "var(--text-subtle)", marginBottom: "16px" }} />
-          <h3 style={{ fontSize: "1.2rem", marginBottom: "8px" }}>No Events Scheduled</h3>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-            Check back later for upcoming alumni webinars and networking meets.
-          </p>
+        <div className="empty-state">
+          <Calendar size={40} />
+          <h3>No events {timeframe === "past" ? "in the past" : timeframe === "upcoming" ? "coming up" : "yet"}</h3>
+          <p>Check back later for alumni webinars and networking meets.</p>
         </div>
       ) : (
         <div className="responsive-cards-grid">
           {events.map((ev) => {
             const isOnline = ev.mode === "online";
             const dateObj = new Date(ev.eventDate);
+            const isPast = dateObj < new Date();
 
             return (
-              <div key={ev._id} className="glass-panel glass-panel-hover" style={{ padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-                    <span className={`badge ${isOnline ? "badge-emerald" : "badge-amber"}`}>
+              <article key={ev._id} className="glass-panel glass-panel-hover feed-card">
+                <div className="feed-card__top" style={{ justifyContent: "flex-start", gap: "16px" }}>
+                  <div className="date-tile" aria-hidden="true">
+                    <span className="date-tile__month">{dateObj.toLocaleDateString(undefined, { month: "short" })}</span>
+                    <span className="date-tile__day">{dateObj.getDate()}</span>
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <span className={`badge ${isOnline ? "badge-emerald" : "badge-amber"}`} style={{ textTransform: "capitalize", marginBottom: "8px" }}>
                       {isOnline ? <Video size={12} /> : <MapPin size={12} />}
-                      {ev.mode}
+                      {isOnline ? "Online" : "On campus"}
                     </span>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem", color: "var(--accent-amber)", fontWeight: 600 }}>
-                      <Calendar size={14} />
-                      {dateObj.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
-                    </div>
+                    <h3 className="feed-card__title">{ev.title}</h3>
                   </div>
-
-                  <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "8px", lineHeight: 1.3 }}>
-                    {ev.title}
-                  </h3>
-
-                  {ev.description && (
-                    <p style={{
-                      fontSize: "0.88rem",
-                      color: "var(--text-muted)",
-                      lineHeight: 1.5,
-                      marginBottom: "18px",
-                    }}>
-                      {ev.description}
-                    </p>
-                  )}
                 </div>
 
-                <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "16px" }}>
-                  <div style={{ fontSize: "0.76rem", color: "var(--text-subtle)", marginBottom: "12px" }}>
-                    Organized by: <strong style={{ color: "var(--text-main)" }}>{ev.organizerId?.name || "College Administration"}</strong>
+                <div className="meta-row">
+                  <span>
+                    <Calendar size={13} />
+                    {dateObj.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+                  </span>
+                  <span>
+                    <Clock size={13} />
+                    {dateObj.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}
+                  </span>
+                </div>
+
+                {ev.description && <p className="feed-card__desc">{ev.description}</p>}
+
+                <div className="feed-card__footer">
+                  <div className="byline">
+                    <span>Organized by <strong style={{ display: "inline" }}>{ev.organizerId?.name || "College Administration"}</strong></span>
                   </div>
 
-                  {isOnline && ev.link ? (
-                    <a
-                      href={ev.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-primary btn-sm"
-                      style={{ width: "100%" }}
-                    >
-                      <Video size={15} /> Join Live Session <ExternalLink size={13} />
+                  {isOnline && ev.link && !isPast ? (
+                    <a href={ev.link} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm" style={{ width: "100%" }}>
+                      <Video size={15} /> Join live session <ExternalLink size={13} />
                     </a>
-                  ) : (
-                    <div style={{ textAlign: "center", fontSize: "0.8rem", color: "var(--text-muted)", padding: "6px 0" }}>
-                      Venue: Thapar Campus Auditorium
+                  ) : isOnline && ev.link ? (
+                    <a href={ev.link} target="_blank" rel="noreferrer" className="btn btn-secondary btn-sm" style={{ width: "100%" }}>
+                      Open event link <ExternalLink size={13} />
+                    </a>
+                  ) : !isOnline ? (
+                    <div className="inset" style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.82rem", padding: "10px 12px" }}>
+                      <MapPin size={14} color="var(--accent-amber)" /> Thapar Campus Auditorium
                     </div>
-                  )}
+                  ) : null}
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>

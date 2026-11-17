@@ -1013,3 +1013,302 @@ label {
 .option-card.is-on .option-card__switch::after {
   transform: translateX(16px);
 }
+
+
+/* ========================================================= */
+/* Content screens: eyebrow, toolbar, feed cards, insets     */
+/* (palette tokens only)                                     */
+/* ========================================================= */
+
+/* Small label above a page title */
+.page-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-family: var(--font-heading);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-amber);
+}
+
+/* Filter + search bar under a page header */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin-bottom: var(--space-6);
+}
+.toolbar__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.toolbar .select-control {
+  width: auto;
+  min-width: 170px;
+  min-height: 38px;
+  padding: 7px 12px;
+  font-size: 0.86rem;
+}
+
+/* Search input with an icon inside */
+.search-field {
+  position: relative;
+  flex: 1 1 240px;
+  max-width: 380px;
+}
+.search-field--wide {
+  max-width: none;
+}
+.search-field svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+.search-field .input-control {
+  padding-left: 40px;
+  min-height: 40px;
+  border-radius: var(--radius-full);
+}
+
+/* Feed card (events, opportunities) */
+.feed-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: var(--space-5);
+  height: 100%;
+}
+.feed-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.feed-card__title {
+  font-size: 1.12rem !important;
+  font-weight: 800;
+  line-height: 1.3 !important;
+  margin: 0;
+}
+.feed-card__company {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-top: 4px;
+}
+.feed-card__desc {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.feed-card__footer {
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.feed-card__actions {
+  display: flex;
+  gap: 8px;
+}
+.feed-card__actions > * {
+  flex: 1;
+}
+
+/* "Posted by" line with a small avatar */
+.byline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 0.8rem;
+  color: var(--text-subtle);
+}
+.byline strong {
+  display: block;
+  font-size: 0.86rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Calendar tile for events */
+.date-tile {
+  flex-shrink: 0;
+  width: 60px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  text-align: center;
+  overflow: hidden;
+  font-family: var(--font-heading);
+}
+.date-tile__month {
+  display: block;
+  padding: 3px 0;
+  background: #18181b;
+  color: #fbf9f4;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.date-tile__day {
+  display: block;
+  padding: 4px 0 6px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text-main);
+}
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 0.8rem;
+  color: var(--text-subtle);
+}
+.meta-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Soft inset box inside a card (agenda, links, schedule) */
+.inset {
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+}
+.inset__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-bottom: 4px;
+}
+.inset--success {
+  background: rgba(4, 120, 87, 0.07);
+  border-color: rgba(4, 120, 87, 0.22);
+}
+
+/* List rows (forum questions, requests) */
+.list-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.thread-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 22px;
+  cursor: pointer;
+}
+.thread-row__body {
+  flex: 1;
+  min-width: 0;
+}
+.thread-row__title {
+  font-size: 1.06rem !important;
+  font-weight: 700;
+  line-height: 1.4 !important;
+  margin: 6px 0;
+}
+.answer-count {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
+  font-family: var(--font-heading);
+  color: var(--text-subtle);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.answer-count strong {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: 0;
+}
+.answer-count.has-answers {
+  border-color: rgba(4, 120, 87, 0.25);
+  background: rgba(4, 120, 87, 0.07);
+}
+.answer-count.has-answers strong {
+  color: var(--accent-emerald);
+}
+@media (max-width: 640px) {
+  .thread-row {
+    padding: 16px;
+    gap: 12px;
+  }
+  .thread-row__chevron {
+    display: none;
+  }
+}
+
+/* Clickable tag (#tag) */
+.tag--link {
+  cursor: pointer;
+  font-weight: 600;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.tag--link:hover {
+  border-color: var(--border-glow);
+  color: var(--text-main);
+}
+
+/* Story card */
+.story-card {
+  padding: clamp(20px, 3vw, 32px);
+}
+.story-card__title {
+  font-size: clamp(1.2rem, 0.6vw + 1rem, 1.45rem) !important;
+  font-weight: 800;
+  margin: 12px 0 10px;
+}
+.story-card__body {
+  font-size: 0.95rem;
+  line-height: 1.75;
+  white-space: pre-line;
+  padding-left: 16px;
+  border-left: 3px solid var(--accent-amber-glow);
+  margin-bottom: 20px;
+}
+
+/* Skeleton list rows */
+.skeleton-row {
+  height: 96px;
+  background: linear-gradient(90deg, var(--bg-card) 0%, var(--bg-surface) 50%, var(--bg-card) 100%) !important;
+  background-size: 800px 100% !important;
+  animation: shimmer 1.4s linear infinite;
+}
