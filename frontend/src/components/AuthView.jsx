@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { api } from "../services/api";
 import { describeGoogleError, getGoogleIdToken, isGoogleSignInAvailable } from "../services/firebase";
-import { AuthModal } from "./AuthModal";
 import {
   Sparkles,
   Briefcase,
@@ -14,7 +13,6 @@ import {
   EyeOff,
   Info,
   GraduationCap,
-  UserPlus,
 } from "lucide-react";
 
 const ROLE_OPTIONS = [
@@ -40,7 +38,6 @@ export const AuthView = ({ onAuthSuccess }) => {
   const [error, setError] = useState(null);
   const [role, setRole] = useState("student");
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [signUpOpen, setSignUpOpen] = useState(false);
 
   // Google sign-in: the backend verifies the token and decides the real role
   const handleGoogleSignIn = async () => {
@@ -399,26 +396,12 @@ export const AuthView = ({ onAuthSuccess }) => {
               <strong style={{ color: "#18181b", display: "block", marginBottom: "4px" }}>
                 New to Alumni Connect?
               </strong>
-              Alumni can join with Google or create an account below. Students can join with their <strong>@thapar.edu</strong> account.
-              If the Placement & Alumni Relations Cell already registered you, just sign in with that email; your existing profile is linked automatically.
-              <button
-                type="button"
-                onClick={() => setSignUpOpen(true)}
-                className="btn btn-secondary btn-sm"
-                style={{ marginTop: "10px", display: "inline-flex", alignItems: "center", gap: "6px" }}
-              >
-                <UserPlus size={15} /> Create an account with email & password
-              </button>
+              New accounts are created with <strong>Continue with Google</strong> above, so we know the email is really yours.
+              Students must use their <strong>@thapar.edu</strong> Google account. If the Placement & Alumni Relations Cell already
+              registered you, continue with Google using that email; your existing profile is linked automatically. You can set a
+              password later from your profile.
             </div>
           </div>
-          <AuthModal
-            key={`signup-${role}`}
-            isOpen={signUpOpen}
-            onClose={() => setSignUpOpen(false)}
-            onAuthSuccess={onAuthSuccess}
-            initialSignUp
-            initialRole={role}
-          />
         </div>
       </div>
     </div>

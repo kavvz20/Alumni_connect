@@ -8,13 +8,12 @@ import {
   bulkOnboardUsers,
   deleteUser,
 } from "../controllers/user.controller.js";
-import { passwordLogin, passwordRegister } from "../controllers/auth.controller.js";
+import { passwordLogin } from "../controllers/auth.controller.js";
 import { verifyAuth, optionalAuth, requireRole } from "../middleware/auth.middleware.js";
 
 const userRouter = Router();
 
 // Legacy paths kept for compatibility; they use the same handlers as /api/v1/auth/*
-userRouter.post("/", passwordRegister);
 userRouter.post("/login", passwordLogin);
 
 userRouter.get("/", verifyAuth, getAllUsers);

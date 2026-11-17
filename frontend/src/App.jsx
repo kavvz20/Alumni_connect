@@ -154,7 +154,7 @@ export function App() {
     navigate("/login");
   };
 
-  // session = { user, token, isNewUser? } as returned by /auth/google, /auth/login, /auth/register
+  // session = { user, token, isNewUser? } as returned by /auth/google and /auth/login
   const handleAuthSuccess = (session) => {
     const { user, token, isNewUser } = session || {};
     if (!user || !token) return;

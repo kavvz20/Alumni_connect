@@ -104,7 +104,6 @@ export const api = {
   googleSignIn: (idToken, requestedRole) =>
     request("/auth/google", { method: "POST", body: JSON.stringify({ idToken, requestedRole }) }),
   login: (email, password) => request("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
-  register: (userData) => request("/auth/register", { method: "POST", body: JSON.stringify(userData) }),
   getMe: () => request("/auth/me"),
 
   // Alumni verification
@@ -124,7 +123,6 @@ export const api = {
   getVerificationModelInfo: () => request("/verification/model"),
 
   // Users
-  createUser:(userData) => request("/auth/register", { method: "POST", body: JSON.stringify(userData) }),
   getUsers: (params = {}) => {
     const query = new URLSearchParams();
     Object.entries(params).forEach(([key, val]) => {

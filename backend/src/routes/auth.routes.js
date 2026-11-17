@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { googleSignIn, passwordLogin, passwordRegister, getCurrentUser } from "../controllers/auth.controller.js";
+import { googleSignIn, passwordLogin, getCurrentUser } from "../controllers/auth.controller.js";
 import { verifyAuth } from "../middleware/auth.middleware.js";
 
 const authRouter = Router();
 
 authRouter.post("/google", googleSignIn);
 authRouter.post("/login", passwordLogin);
-authRouter.post("/register", passwordRegister);
+// New accounts are created only through Google sign-in (proves the email belongs to the user).
 authRouter.get("/me", verifyAuth, getCurrentUser);
 
 export default authRouter;

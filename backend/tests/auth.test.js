@@ -106,34 +106,11 @@ describe("auth API (no database required)", () => {
     assert.equal(res.status, 401);
   });
 
-  it("password sign-up cannot create admins", async () => {
-    const res = await post("/api/v1/auth/register", {
-      role: "admin",
-      name: "Hacker",
-      email: "hacker@gmail.com",
-      password: "secret123",
-    });
-    assert.equal(res.status, 403);
-  });
-
-  it("password sign-up rejects the admin email even with another role", async () => {
-    const res = await post("/api/v1/auth/register", {
-      role: "alumni",
-      name: "Fake Owner",
-      email: "owner.admin@gmail.com",
-      password: "secret123",
-    });
-    assert.equal(res.status, 403);
-  });
-
-  it("students must self-register with the institutional domain", async () => {
-    const res = await post("/api/v1/auth/register", {
-      role: "student",
-      name: "Outsider",
-      email: "outsider@gmail.com",
-      password: "secret123",
-    });
-    assert.equal(res.status, 403);
+  it("there is no email + password sign-up (accounts come from Google or the admin)", async () => {
+    const body = { role: "alumni", name: "Someone", email: "victim@thapar.edu", password: "secret123" };
+    assert.equal((await post("/api/v1/auth/register", body)).status, 404);
+    // POST /users without a session must not create an account either
+    assert.notEqual((await post("/api/v1/users", body)).status, 201);
   });
 
   it("Google sign-in requires an ID token", async () => {

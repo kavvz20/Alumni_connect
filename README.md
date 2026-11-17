@@ -119,7 +119,6 @@ Alumni/
 │   │   ├── components/               # Modular UI views & widgets
 │   │   │   ├── AdminCenterView.jsx   # Admin moderation & user management
 │   │   │   ├── AlumniDirectoryView.jsx# Filterable alumni directory
-│   │   │   ├── AuthModal.jsx         # Login & registration modal
 │   │   │   ├── AuthView.jsx          # Dedicated login/signup view
 │   │   │   ├── Avatar.jsx            # Dynamic profile photo & initials component
 │   │   │   ├── ChatView.jsx          # Real-time WebSocket messaging UI
@@ -174,7 +173,7 @@ CORS_ORIGIN=http://localhost:5173
 
 ADMIN_EMAIL=your.admin@gmail.com        # the ONLY account with admin rights
 JWT_SECRET=<long random string>         # signs session tokens
-ALLOWED_STUDENT_DOMAIN=thapar.edu       # students may self-register only with this domain
+ALLOWED_STUDENT_DOMAIN=thapar.edu       # students may sign up (with Google) only with this domain
 FIREBASE_PROJECT_ID=<firebase project id>  # verifies Google sign-in tokens
 LINKEDIN_URL_FETCH=false                # server-side LinkedIn page fetching (off: LinkedIn terms)
 ```
@@ -205,7 +204,8 @@ VITE_FIREBASE_APP_ID=...
 #### How sign-in works
 - Everyone can use **Continue with Google** or **email + password**. Both log into the same account (matched by email), and the backend issues one session token (`Authorization: Bearer …`).
 - **Admin** access is granted only to `ADMIN_EMAIL`, checked on the server. Selecting "Admin" on the login page grants nothing by itself.
-- **Students** must be registered by the admin or use an `@thapar.edu` account. **Alumni** can self-register and start as *Pending verification*, as do alumni added by the admin.
+- **New accounts are created only with Google** (or by the admin), so the email is always proven to belong to the user. There is no email + password sign-up; existing users can set a password on their profile and then use it to log in.
+- **Students** must be registered by the admin or use an `@thapar.edu` Google account. **Alumni** can sign up with Google and start as *Pending verification*, as do alumni added by the admin.
 
 #### Alumni profiles (one record per alumnus)
 - **Admin-created** (manual form or CSV) and **self-registered** alumni use the same `User` record. An admin-created alumnus is linked automatically when they first sign in with the same email.
@@ -289,7 +289,6 @@ npm run dev
 ### Authentication (`/api/v1/auth`)
 - `POST /google` — `{ idToken, requestedRole }` → verify Google sign-in, link or create the account, return `{ user, token }`
 - `POST /login` — `{ email, password }` → `{ user, token }`
-- `POST /register` — Self-register a student (`@thapar.edu`) or alumni with a password → `{ user, token }`
 - `GET /me` — Current user for the session token
 
 ### Verification (`/api/v1/verification`)
