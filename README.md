@@ -195,6 +195,12 @@ VITE_FIREBASE_APP_ID=...
 2. **Authentication → Settings → Authorized domains**: add `localhost` and your deployed frontend domain.
 3. **Project settings → Your apps → Web app**: copy the config into the `VITE_FIREBASE_*` variables.
 4. Put the same project ID in the backend's `FIREBASE_PROJECT_ID`.
+5. **Deployed site (Vercel):** browsers that block third-party cookies close the Google popup without
+   signing in when the site and `authDomain` are different domains. `frontend/vercel.json` proxies
+   `/__/auth/*` and `/__/firebase/*` to Firebase, so set `VITE_FIREBASE_AUTH_DOMAIN` on Vercel to the
+   site's own domain (e.g. `your-app.vercel.app`), add `https://your-app.vercel.app/__/auth/handler`
+   to the OAuth client's **Authorized redirect URIs** in Google Cloud console → APIs & Services →
+   Credentials, and redeploy. Keep `alumniconnect-bed11.firebaseapp.com` for local development.
 
 #### How sign-in works
 - Everyone can use **Continue with Google** or **email + password**. Both log into the same account (matched by email), and the backend issues one session token (`Authorization: Bearer …`).

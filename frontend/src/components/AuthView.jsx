@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { api } from "../services/api";
-import { getGoogleIdToken, isGoogleSignInAvailable } from "../services/firebase";
+import { describeGoogleError, getGoogleIdToken, isGoogleSignInAvailable } from "../services/firebase";
 import { AuthModal } from "./AuthModal";
 import {
   Sparkles,
@@ -44,15 +44,19 @@ export const AuthView = ({ onAuthSuccess }) => {
 
   // Google sign-in: the backend verifies the token and decides the real role
   const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
+    setGoogleLoading("google");
     setError(null);
     try {
       const idToken = await getGoogleIdToken();
+      setGoogleLoading("server");
       const res = await api.googleSignIn(idToken, role);
+      if (!res?.data?.user || !res?.data?.token) {
+        throw new Error("The server did not return a session. Please try again.");
+      }
       onAuthSuccess(res.data);
     } catch (err) {
-      if (err?.code === "auth/popup-closed-by-user" || err?.code === "auth/cancelled-popup-request") return;
-      setError(err.message || "Google sign-in failed. Please try again.");
+      console.error("Google sign-in failed:", err);
+      setError(describeGoogleError(err));
     } finally {
       setGoogleLoading(false);
     }
@@ -275,7 +279,11 @@ export const AuthView = ({ onAuthSuccess }) => {
             }}
           >
             <GoogleMark />
-            {googleLoading ? "Signing in with Google..." : `Continue with Google as ${ROLE_OPTIONS.find((r) => r.value === role).label}`}
+            {googleLoading === "google"
+              ? "Waiting for Google..."
+              : googleLoading === "server"
+                ? "Signing you in (the server can take up to a minute to wake up)..."
+                : `Continue with Google as ${ROLE_OPTIONS.find((r) => r.value === role).label}`}
           </button>
 
           <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "20px 0", color: "#a8a29e", fontSize: "0.8rem" }}>

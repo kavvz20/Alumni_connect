@@ -42,3 +42,28 @@ export const getGoogleIdToken = async () => {
 };
 
 export { auth };
+
+/** Turns Firebase / network errors from the Google sign-in flow into a message the user can act on. */
+export const describeGoogleError = (err) => {
+  const host = typeof window !== "undefined" ? window.location.hostname : "this site";
+  switch (err?.code) {
+    case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
+      return "The Google window closed before sign-in finished. If you had already picked an account, your browser is probably blocking third-party cookies for this site: allow them, or try another browser.";
+    case "auth/popup-blocked":
+      return "Your browser blocked the Google sign-in window. Allow pop-ups for this site and try again.";
+    case "auth/unauthorized-domain":
+      return `${host} is not an authorized domain. Add it in Firebase console → Authentication → Settings → Authorized domains.`;
+    case "auth/operation-not-allowed":
+      return "Google sign-in is turned off. Enable it in Firebase console → Authentication → Sign-in method.";
+    case "auth/network-request-failed":
+      return "Could not reach Google. Check your internet connection and try again.";
+    case "auth/internal-error":
+      return "Google sign-in failed inside the popup. If this is the deployed site, check the Firebase authDomain settings.";
+    default:
+      if (err instanceof TypeError) {
+        return "Could not reach the backend server. Check that VITE_BACKEND_URL points to the running backend.";
+      }
+      return err?.message || "Google sign-in failed. Please try again.";
+  }
+};
