@@ -212,6 +212,11 @@ still come from the LinkedIn PDF.
 4. Set on the backend: `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDIN_REDIRECT_URI` (the URL from step 3)
    and `FRONTEND_URL` (e.g. `https://alumni-connect-thapar.vercel.app`). The button appears once these are set.
 
+**Connecting LinkedIn becomes compulsory for alumni as soon as these keys are set.** An alumnus who has not connected
+LinkedIn counts as "profile incomplete": they can only open My Profile (which shows a **Connect LinkedIn** button) and
+are not listed in the directory. This also applies to existing alumni, with no migration. The admin is never blocked.
+Without the keys, nothing changes.
+
 #### How sign-in works
 - Everyone can use **Continue with Google** or **email + password**. Both log into the same account (matched by email), and the backend issues one session token (`Authorization: Bearer …`).
 - **Admin** access is granted only to `ADMIN_EMAIL`, checked on the server. Selecting "Admin" on the login page grants nothing by itself.
@@ -226,7 +231,7 @@ still come from the LinkedIn PDF.
 - After upgrading an existing database, run once: `cd backend && npm run migrate`.
 
 #### Alumni verification & confidence score
-- Every alumni save recomputes a **confidence score** with **match / mismatch / missing checks**. The checks compare the LinkedIn PDF evidence, the admin's institutional record and the self-reported profile on: institute in education, degree, graduation year, course duration, department, name, PDF-vs-URL, institutional email, and duplicate accounts.
+- Every alumni save recomputes a **confidence score** with **match / mismatch / missing checks**. The checks compare the LinkedIn PDF evidence, the admin's institutional record and the self-reported profile on: institute in education, degree, graduation year, course duration, department, name, PDF-vs-URL, institutional email, and duplicate accounts. When LinkedIn is connected, the name on the LinkedIn account (from official LinkedIn sign-in) is compared with the profile name (weight 3); a mismatch sends the profile to *Needs manual review*.
 - Until a model is trained this is a **rule-based evidence score** and is labelled as such. It is not a machine-learning prediction.
 - A hard mismatch moves a profile from *Pending* to *Needs manual review*. Only an admin can set *Verified* or *Rejected*; a high score never verifies anyone automatically.
 - Each admin decision is stored in `VerificationDecision` with the features as they were at that moment. Verified and rejected decisions become the labelled training data for the ML model.

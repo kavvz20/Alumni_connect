@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { User } from "../models/index.js";
 import { isAuthorizedAdmin, verifySessionToken } from "../services/auth.service.js";
+import { isAlumniProfileComplete, isLinkedinConnectRequired } from "../services/profile-requirements.service.js";
 
 /**
  * Resolves the logged-in user from `Authorization: Bearer <session token>`.
@@ -89,10 +90,11 @@ const requireRole = (...roles) => {
 
 /** True when this account is an alumnus who has not finished their profile yet (admins are never blocked). */
 const hasIncompleteAlumniProfile = (user) =>
-  Boolean(user) && user.role === "alumni" && !user.profileCompleted && !isAuthorizedAdmin(user);
+  Boolean(user) && user.role === "alumni" && !isAlumniProfileComplete(user) && !isAuthorizedAdmin(user);
 
 /**
- * Alumni must complete their profile (name, LinkedIn URL, batch, department) before using the
+ * Alumni must complete their profile (name, LinkedIn URL, batch, department and, once LinkedIn
+ * sign-in is configured, a connected LinkedIn account) before using the
  * community features. Must run after verifyAuth.
  */
 const requireCompleteProfile = (req, res, next) => {
@@ -100,7 +102,9 @@ const requireCompleteProfile = (req, res, next) => {
     return res.status(403).json({
       success: false,
       code: "PROFILE_INCOMPLETE",
-      message: "Complete your profile (name, LinkedIn URL, batch and department) to use this feature.",
+      message: isLinkedinConnectRequired()
+        ? "Complete your profile (name, LinkedIn URL, batch, department and Connect LinkedIn) to use this feature."
+        : "Complete your profile (name, LinkedIn URL, batch and department) to use this feature.",
     });
   }
   next();

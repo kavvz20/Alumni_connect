@@ -38,6 +38,9 @@ export const VerificationStatusCard = ({ user }) => {
     { done: Boolean(user.batch), label: "Graduation year" },
     { done: Boolean(user.branch), label: "Department" },
     { done: (user.education || []).length > 0, label: "Education details" },
+    ...(user.linkedinConnectRequired || user.linkedinAccount?.connected
+      ? [{ done: Boolean(user.linkedinAccount?.connected), label: "LinkedIn account connected (Connect LinkedIn on this page)" }]
+      : []),
   ];
 
   const message = {

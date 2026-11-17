@@ -1,6 +1,7 @@
 import { INSTITUTION, isInstitutionName, matchDegree, matchDepartment } from "../config/institution.js";
 import { isInstitutionalEmail } from "./auth.service.js";
 import { getActiveModel } from "./ml-model.service.js";
+import { isLinkedinConnectRequired } from "./profile-requirements.service.js";
 
 /**
  * Alumni verification: features + checks + rule-based evidence score.
@@ -16,7 +17,7 @@ import { getActiveModel } from "./ml-model.service.js";
  */
 
 export const FEATURE_VERSION = 1;
-export const RULE_SCORE_VERSION = "rules-v1";
+export const RULE_SCORE_VERSION = "rules-v2";
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -104,6 +105,8 @@ export const extractFeatures = (user, now = new Date()) => {
   const expectedDuration = evDegree?.years ?? null;
 
   const evName = found.has("name") ? ex.name : null;
+  // Name confirmed by LinkedIn itself through the official "Sign In with LinkedIn" (strongest name evidence)
+  const connectedName = user.linkedinAccount?.sub ? user.linkedinAccount.name || null : null;
   const handleName = handleToName(handleFromUrl(user.linkedinUrl));
 
   const flags = user.verification?.flags || [];
@@ -136,6 +139,8 @@ export const extractFeatures = (user, now = new Date()) => {
       admin_batch_matches_profile: adminBatch && profileBatch ? bool(adminBatch === profileBatch) : null,
       name_similarity_evidence: evName ? nameSimilarity(user.name, evName) : null,
       name_similarity_handle: handleName ? nameSimilarity(user.name, handleName) : null,
+      linkedin_connected: bool(Boolean(user.linkedinAccount?.sub)),
+      name_similarity_linkedin_account: connectedName ? nameSimilarity(user.name, connectedName) : null,
       linkedin_url_matches_evidence:
         evidence && found.has("linkedinUrl") && user.linkedinUrl ? bool(sameLinkedin(ex.linkedinUrl, user.linkedinUrl)) : null,
       institutional_email: bool(isInstitutionalEmail(user.email)),
@@ -146,7 +151,7 @@ export const extractFeatures = (user, now = new Date()) => {
       completeness: Math.round(completeness * 100) / 100,
     },
     // Human-readable values for the checks (not used as model inputs)
-    context: { instEntry, evDegree, evDept, evGradYear, evStartYear, profileBatch, profileDept, adminBatch, adminDept, adminDegree, evName, handleName, expectedDuration, currentYear },
+    context: { instEntry, evDegree, evDept, evGradYear, evStartYear, profileBatch, profileDept, adminBatch, adminDept, adminDegree, evName, connectedName, handleName, expectedDuration, currentYear },
   };
 };
 
@@ -258,6 +263,21 @@ export const buildChecks = (user, features) => {
     const ok = v.name_similarity_evidence >= 0.6;
     checks.push(check("name", "Name matches LinkedIn", 2, ok ? "match" : "mismatch",
       `Account "${user.name}" vs LinkedIn "${c.evName}" (similarity ${Math.round(v.name_similarity_evidence * 100)}%).`));
+  }
+
+  // Name on the LinkedIn account connected through official LinkedIn sign-in
+  if (v.name_similarity_linkedin_account !== null) {
+    const ok = v.name_similarity_linkedin_account >= 0.6;
+    checks.push(check("linkedin_account_name", "Name matches connected LinkedIn account", 3, ok ? "match" : "mismatch",
+      `Account "${user.name}" vs LinkedIn sign-in "${c.connectedName}" (similarity ${Math.round(v.name_similarity_linkedin_account * 100)}%).`,
+      { hard: !ok,
+        publicDetail: ok
+          ? "Your name matches your LinkedIn account."
+          : `Your profile name does not match the name on your LinkedIn account ("${c.connectedName}").` }));
+  } else if (v.linkedin_connected === 1) {
+    checks.push(check("linkedin_account_name", "Name matches connected LinkedIn account", 3, "missing", "LinkedIn did not return a name."));
+  } else if (isLinkedinConnectRequired()) {
+    checks.push(check("linkedin_account_name", "Name matches connected LinkedIn account", 3, "missing", "LinkedIn account not connected yet."));
   }
 
   // LinkedIn URL in profile vs URL printed in the PDF

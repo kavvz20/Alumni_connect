@@ -9,6 +9,7 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import { getJwtSecret } from "./auth.service.js";
+import { isLinkedinConnectConfigured } from "./profile-requirements.service.js";
 
 const AUTHORIZE_URL = "https://www.linkedin.com/oauth/v2/authorization";
 const TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken";
@@ -25,8 +26,7 @@ export const setFetchForTests = (fn) => {
 
 const httpError = (status, message, code) => Object.assign(new Error(message), { status, code });
 
-export const isLinkedinConnectConfigured = () =>
-  Boolean(process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET && process.env.LINKEDIN_REDIRECT_URI);
+export { isLinkedinConnectConfigured };
 
 export const getFrontendUrl = () => (process.env.FRONTEND_URL || "http://localhost:5173").trim().replace(/\/+$/, "");
 

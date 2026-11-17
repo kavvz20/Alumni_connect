@@ -13,6 +13,7 @@ import {
 } from "../services/alumni-profile.service.js";
 import { matchDepartment } from "../config/institution.js";
 import { recordDecision } from "./verification.controller.js";
+import { completeAlumniFilter, isAlumniProfileComplete } from "../services/profile-requirements.service.js";
 
 // Profile fields an admin may fill in when onboarding an alumnus.
 const ENRICHMENT_FIELDS = [
@@ -49,7 +50,7 @@ const getAllUsers = async (req, res) => {
     if (role) filter.role = role;
     // Alumni with unfinished profiles are only visible to the admin
     if (!isAuthorizedAdmin(req.user)) {
-      filter.$or = [{ role: { $ne: "alumni" } }, { profileCompleted: true }];
+      filter.$or = [{ role: { $ne: "alumni" } }, completeAlumniFilter()];
     }
 
     const users = await User.find(filter)
@@ -80,14 +81,14 @@ const getUserProfile = async (req, res) => {
       });
     }
 
-    const user = await User.findById(userId).select("-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord -linkedinAccount.sub -linkedinAccount.email");
+    const user = await User.findById(userId).select("-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord");
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found." });
     }
 
     // An alumnus with an unfinished profile is hidden from everyone except themselves and the admin
     const isSelf = req.user && req.user._id.equals(user._id);
-    const hidden = user.role === "alumni" && !user.profileCompleted && !isSelf && !isAuthorizedAdmin(req.user);
+    const hidden = user.role === "alumni" && !isAlumniProfileComplete(user) && !isSelf && !isAuthorizedAdmin(req.user);
     if (hidden) {
       return res.status(404).json({
         success: false,
@@ -95,9 +96,15 @@ const getUserProfile = async (req, res) => {
       });
     }
 
+    // The LinkedIn account id/email are private; only "connected" and the LinkedIn name are shown
+    const data = user.toObject();
+    data.linkedinAccount = data.linkedinAccount?.sub
+      ? { name: data.linkedinAccount.name, connectedAt: data.linkedinAccount.connectedAt, connected: true }
+      : undefined;
+
     return res.status(200).json({
       success: true,
-      data: user,
+      data,
     });
   } catch (error) {
     console.error("Get user profile error:", error);

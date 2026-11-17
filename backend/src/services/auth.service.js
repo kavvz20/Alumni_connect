@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
+import { isAlumniProfileComplete, isLinkedinConnectRequired } from "./profile-requirements.service.js";
 
 /**
  * Central place for authentication + authorization rules.
@@ -57,6 +58,11 @@ export const toSafeUser = (user) => {
   obj.isAdmin = isAdminEmail(obj.email); // admin rights on top of the account's own role
   delete obj.password;
   delete obj.firebaseUid;
+  if (obj.role === "alumni") {
+    // Effective completeness (includes the Connect LinkedIn requirement when it is switched on)
+    obj.profileCompleted = isAlumniProfileComplete(obj);
+    obj.linkedinConnectRequired = isLinkedinConnectRequired();
+  }
   if (obj.linkedinAccount?.sub) {
     obj.linkedinAccount = { name: obj.linkedinAccount.name, connectedAt: obj.linkedinAccount.connectedAt, connected: true };
   } else {

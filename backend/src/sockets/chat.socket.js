@@ -29,7 +29,7 @@ const initializeChatSocket = (io) => {
       const token = socket.handshake.auth?.token;
       if (!token) return next(new Error("Authentication required."));
       const payload = verifySessionToken(token);
-      const user = isValidId(payload?.sub) ? await User.findById(payload.sub).select("email role profileCompleted") : null;
+      const user = isValidId(payload?.sub) ? await User.findById(payload.sub).select("email role profileCompleted linkedinAccount.sub") : null;
       if (!user) {
         return next(new Error("Invalid session."));
       }

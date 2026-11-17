@@ -408,9 +408,38 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
             lineHeight: 1.5,
           }}
         >
-          <strong>Complete your profile to continue.</strong> Add your full name, LinkedIn profile URL,
-          graduation batch and department, then save. Until then you can't use the rest of the portal and
-          you won't appear in the alumni directory.
+          {currentUser.name && currentUser.linkedinUrl && currentUser.batch && currentUser.branch && currentUser.linkedinConnectRequired && !currentUser.linkedinAccount?.connected ? (
+            <>
+              <strong>One last step: connect your LinkedIn account.</strong> Sign in with LinkedIn so we can
+              confirm your name. Your LinkedIn photo becomes your profile picture. Until then you can't use the
+              rest of the portal and you won't appear in the alumni directory.
+            </>
+          ) : (
+            <>
+              <strong>Complete your profile to continue.</strong> Add your full name, LinkedIn profile URL,
+              graduation batch and department, then save
+              {currentUser.linkedinConnectRequired && !currentUser.linkedinAccount?.connected ? ", and connect your LinkedIn account" : ""}.
+              Until then you can't use the rest of the portal and you won't appear in the alumni directory.
+            </>
+          )}
+          {linkedinConfigured && currentUser.linkedinConnectRequired && !currentUser.linkedinAccount?.connected && (
+            <div style={{ marginTop: "12px" }}>
+              <button
+                type="button"
+                onClick={handleConnectLinkedin}
+                disabled={linkedinBusy}
+                className="btn btn-primary btn-sm"
+                style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}
+                title="Save any unsaved changes first: the page reloads when you come back from LinkedIn."
+              >
+                <span style={{ fontWeight: 900, lineHeight: 1 }}>in</span>
+                {linkedinBusy ? "Opening LinkedIn..." : "Connect LinkedIn"}
+              </button>
+            </div>
+          )}
+          {linkedinResult && currentUser.linkedinConnectRequired && !currentUser.linkedinAccount?.connected && (
+            <div style={{ marginTop: "10px", fontWeight: 600 }}>{linkedinResult.text}</div>
+          )}
         </div>
       )}
 

@@ -3,6 +3,7 @@ import { User } from "../models/index.js";
 import { signEvidenceToken } from "../services/evidence.service.js";
 import { scrapeLinkedInData } from "../services/linkedin-scraper.service.js";
 import { parseLinkedInPdfBuffer, parseLinkedInPdfText } from "../services/linkedin-pdf-parser.service.js";
+import { completeAlumniFilter } from "../services/profile-requirements.service.js";
 
 // Never expose credentials or verification evidence in public listings.
 const PUBLIC_USER_EXCLUDE = "-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord -linkedinAccount.sub -linkedinAccount.email";
@@ -74,7 +75,7 @@ const getAlumni = async (req, res) => {
       });
     }
 
-    const filter = { role: "alumni", profileCompleted: true }; // unfinished profiles are not listed
+    const filter = { role: "alumni", ...completeAlumniFilter() }; // unfinished profiles are not listed
 
     if (search?.trim()) {
       filter.$text = { $search: search.trim() };
@@ -183,7 +184,7 @@ const matchAlumniMentor = async (req, res) => {
     // Fetch all alumni available for mentorship calls
     const candidates = await User.find({
       role: "alumni",
-      profileCompleted: true,
+      ...completeAlumniFilter(),
       availableForMentorshipCalls: true,
     }).select(PUBLIC_USER_EXCLUDE);
 
