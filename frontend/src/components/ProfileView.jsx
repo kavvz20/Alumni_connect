@@ -21,7 +21,6 @@ import {
   RefreshCw,
   FileText,
   Check,
-  Globe,
   Eye,
 } from "lucide-react";
 
@@ -83,12 +82,8 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
 
   // LinkedIn Scraper & PDF State (Alumni only)
   const [pdfLoading, setPdfLoading] = useState(false);
-  const [scrapeLoading, setScrapeLoading] = useState(false);
   const [scrapeMessage, setScrapeMessage] = useState(null);
   const [scrapeError, setScrapeError] = useState(null);
-  const [showRawTextInput, setShowRawTextInput] = useState(false);
-  const [showUrlOption, setShowUrlOption] = useState(false);
-  const [rawHeadlineText, setRawHeadlineText] = useState("");
   const [scrapedPreview, setScrapedPreview] = useState(null);
 
   // Handle Official LinkedIn PDF Upload (Save to PDF)
@@ -153,61 +148,6 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
     reader.readAsDataURL(file);
   };
 
-  const handleScrapeLinkedIn = async (customText = null) => {
-    const urlToScrape = linkedinUrl.trim();
-    const textToScrape = customText !== null ? customText.trim() : rawHeadlineText.trim();
-
-    if (!urlToScrape && !textToScrape) {
-      setScrapeError("Please enter a LinkedIn profile URL or paste your profile summary/headline.");
-      return;
-    }
-
-    setScrapeLoading(true);
-    setScrapeError(null);
-    setScrapeMessage(null);
-
-    try {
-      const res = await api.scrapeLinkedInProfile(urlToScrape, textToScrape, currentUser?._id);
-      if (res?.data) {
-        const d = res.data;
-        if (d.name && !name) setName(d.name);
-        if (d.currentCompany) setCurrentCompany(d.currentCompany);
-        if (d.currentRole) setCurrentRole(d.currentRole);
-        if (d.industry) setIndustry(d.industry);
-        if (d.skills && d.skills.length > 0) {
-          const currentSkillsList = skills.split(",").map((s) => s.trim()).filter(Boolean);
-          const combined = Array.from(new Set([...currentSkillsList, ...d.skills]));
-          setSkills(combined.join(", "));
-        }
-        if (d.areasOfExpertise && d.areasOfExpertise.length > 0) {
-          const currentExpList = areasOfExpertise.split(",").map((s) => s.trim()).filter(Boolean);
-          const combined = Array.from(new Set([...currentExpList, ...d.areasOfExpertise]));
-          setAreasOfExpertise(combined.join(", "));
-        }
-        if (d.bio && (!bio || bio.length < 25)) {
-          setBio(d.bio);
-        }
-        if (d.profilePicture && (!profilePicture || profilePicture.startsWith("http"))) {
-          setProfilePicture(d.profilePicture);
-        }
-        if (d.linkedinUrl && !linkedinUrl) {
-          setLinkedinUrl(d.linkedinUrl);
-        }
-
-        setScrapedPreview(d);
-        setScrapeMessage(
-          res.source === "text_parse" || res.source === "text_fallback"
-            ? "Profile fields auto-filled from headline/bio text!"
-            : "LinkedIn profile extracted and auto-filled! Review the fields below and click 'Save Changes'."
-        );
-      }
-    } catch (err) {
-      setScrapeError(err.message || "Unable to reach LinkedIn profile directly. You can paste your profile headline/about below to auto-fill.");
-      setShowRawTextInput(true);
-    } finally {
-      setScrapeLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (currentUser) {
@@ -750,31 +690,11 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                           <Sparkles size={18} color="#fde047" /> Auto-Fill Profile from LinkedIn
                         </h4>
                         <p style={{ margin: "2px 0 0", fontSize: "0.82rem", color: "rgba(255, 255, 255, 0.88)" }}>
-                          Upload your official LinkedIn Profile PDF to automatically extract role, company, batch, branch, skills, and bio.
+                          Upload your LinkedIn profile PDF to fill in your role, company, education, skills and bio. You can review and edit everything before saving.
                         </p>
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setShowUrlOption(!showUrlOption)}
-                      style={{
-                        background: "rgba(255, 255, 255, 0.15)",
-                        border: "1px solid rgba(255, 255, 255, 0.3)",
-                        borderRadius: "6px",
-                        color: "#ffffff",
-                        padding: "6px 12px",
-                        fontSize: "0.78rem",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        transition: "all 0.15s ease",
-                      }}
-                    >
-                      <Globe size={13} /> {showUrlOption ? "Hide URL Option" : "Or use Public Link / Text"}
-                    </button>
                   </div>
 
                   {/* Primary Feature: PDF Upload Zone */}
@@ -805,7 +725,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
                       }}>
-                        <Sparkles size={12} /> Recommended & 100% Accurate
+                        <Sparkles size={12} /> How to get your PDF
                       </div>
                       <p style={{ margin: "4px 0 0", fontSize: "0.84rem", color: "rgba(255, 255, 255, 0.95)", maxWidth: "560px", lineHeight: 1.5 }}>
                         On your LinkedIn profile page, click <strong>"More" (...)</strong> below your picture &rarr; select <strong>"Save to PDF"</strong> &rarr; upload the downloaded PDF file here.
@@ -846,133 +766,9 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                       )}
                     </button>
                     <span style={{ fontSize: "0.72rem", color: "rgba(255, 255, 255, 0.75)" }}>
-                      Accepts standard LinkedIn "Save to PDF" export (.pdf)
+                      Only the LinkedIn "Save to PDF" export (.pdf) is accepted. It is also used as evidence for your verification.
                     </span>
                   </div>
-
-                  {/* Secondary / Fallback: Public URL & Text Paste Drawer */}
-                  {showUrlOption && (
-                    <div style={{
-                      background: "rgba(0, 0, 0, 0.18)",
-                      border: "1px solid rgba(255, 255, 255, 0.25)",
-                      borderRadius: "8px",
-                      padding: "14px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "12px",
-                      animation: "fadeIn 0.2s ease-in-out",
-                    }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#ffffff" }}>
-                          Alternative: Scrape Public Link or Paste Summary
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setShowRawTextInput(!showRawTextInput)}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            color: "rgba(255, 255, 255, 0.8)",
-                            fontSize: "0.75rem",
-                            cursor: "pointer",
-                            textDecoration: "underline",
-                          }}
-                        >
-                          {showRawTextInput ? "Hide Text Paste" : "Paste Headline / Bio Text"}
-                        </button>
-                      </div>
-
-                      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                        <input
-                          type="url"
-                          value={linkedinUrl}
-                          onChange={(e) => setLinkedinUrl(e.target.value)}
-                          placeholder="https://www.linkedin.com/in/your-username"
-                          style={{
-                            flex: 1,
-                            minWidth: "240px",
-                            padding: "9px 13px",
-                            borderRadius: "6px",
-                            border: "1px solid rgba(255, 255, 255, 0.3)",
-                            background: "#ffffff",
-                            color: "#18181b",
-                            fontSize: "0.86rem",
-                            outline: "none",
-                          }}
-                        />
-
-                        <button
-                          type="button"
-                          disabled={scrapeLoading || !linkedinUrl.trim()}
-                          onClick={() => handleScrapeLinkedIn()}
-                          style={{
-                            padding: "9px 16px",
-                            borderRadius: "6px",
-                            border: "none",
-                            background: "#ffffff",
-                            color: "#0a66c2",
-                            fontWeight: 700,
-                            fontSize: "0.84rem",
-                            cursor: scrapeLoading || !linkedinUrl.trim() ? "not-allowed" : "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                          }}
-                        >
-                          {scrapeLoading ? (
-                            <>
-                              <RefreshCw size={14} className="spin-animation" /> Fetching...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles size={14} /> Fetch URL
-                            </>
-                          )}
-                        </button>
-                      </div>
-
-                      {showRawTextInput && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "4px" }}>
-                          <textarea
-                            rows={3}
-                            value={rawHeadlineText}
-                            onChange={(e) => setRawHeadlineText(e.target.value)}
-                            placeholder="Paste your LinkedIn headline or About summary..."
-                            style={{
-                              width: "100%",
-                              padding: "9px 12px",
-                              borderRadius: "6px",
-                              border: "none",
-                              fontSize: "0.82rem",
-                              color: "#18181b",
-                              background: "#ffffff",
-                              resize: "vertical",
-                              outline: "none",
-                              boxSizing: "border-box",
-                            }}
-                          />
-                          <button
-                            type="button"
-                            disabled={scrapeLoading || !rawHeadlineText.trim()}
-                            onClick={() => handleScrapeLinkedIn(rawHeadlineText)}
-                            style={{
-                              alignSelf: "flex-end",
-                              padding: "7px 14px",
-                              borderRadius: "6px",
-                              background: "#ffffff",
-                              color: "#0a66c2",
-                              border: "none",
-                              fontWeight: 700,
-                              fontSize: "0.8rem",
-                              cursor: scrapeLoading || !rawHeadlineText.trim() ? "not-allowed" : "pointer",
-                            }}
-                          >
-                            Parse Text
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
 
                   {/* Scrape Feedback Alerts */}
                   {scrapeMessage && (

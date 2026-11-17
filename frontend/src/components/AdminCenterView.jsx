@@ -49,7 +49,6 @@ export const AdminCenterView = ({ currentUser }) => {
   const [copied, setCopied] = useState(false);
 
   // Manual LinkedIn Scrape state
-  const [manualScrapeLoading, setManualScrapeLoading] = useState(false);
   const [manualScrapedData, setManualScrapedData] = useState(null);
   // Signed LinkedIn PDF parse result; the server stores it as the alumnus's verification evidence
   const [manualEvidenceToken, setManualEvidenceToken] = useState(null);
@@ -177,30 +176,6 @@ export const AdminCenterView = ({ currentUser }) => {
     reader.readAsDataURL(file);
   };
 
-  // Manual LinkedIn Auto-fill handler
-  const handleManualLinkedInAutoFill = async () => {
-    if (!manualLinkedin?.trim()) {
-      setOnboardError("Please enter a LinkedIn profile URL first.");
-      return;
-    }
-
-    setManualScrapeLoading(true);
-    setOnboardError(null);
-    try {
-      const res = await api.scrapeLinkedInProfile(manualLinkedin.trim(), null, currentUser?._id);
-      if (res?.data) {
-        const d = res.data;
-        if (d.name && !manualName.trim()) {
-          setManualName(d.name);
-        }
-        setManualScrapedData(d);
-      }
-    } catch (err) {
-      setOnboardError("LinkedIn auto-fill notice: " + (err.message || "Could not retrieve live LinkedIn data."));
-    } finally {
-      setManualScrapeLoading(false);
-    }
-  };
 
   // =========================================================================
   // Manual User Onboarding Handler
@@ -598,7 +573,7 @@ export const AdminCenterView = ({ currentUser }) => {
                             {manualPdfLoading ? (
                               <><RefreshCw size={13} className="spin-animation" /> Parsing PDF...</>
                             ) : (
-                              <><Upload size={13} /> Upload LinkedIn PDF (Recommended)</>
+                              <><Upload size={13} /> Upload LinkedIn PDF</>
                             )}
                           </button>
                           <span style={{ fontSize: "0.74rem", color: "#78716c" }}>
@@ -606,38 +581,15 @@ export const AdminCenterView = ({ currentUser }) => {
                           </span>
                         </div>
 
-                        {/* Secondary: URL input */}
+                        {/* LinkedIn URL (stored on the record; not fetched) */}
                         <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
                           <input
                             className="input-control"
                             value={manualLinkedin}
                             onChange={(e) => setManualLinkedin(e.target.value)}
-                            placeholder="Or enter LinkedIn profile URL (https://linkedin.com/in/...)"
+                            placeholder="LinkedIn profile URL (https://linkedin.com/in/...)"
                             style={{ flex: 1, fontSize: "0.82rem" }}
                           />
-                          <button
-                            type="button"
-                            disabled={manualScrapeLoading || !manualLinkedin.trim()}
-                            onClick={handleManualLinkedInAutoFill}
-                            className="btn btn-secondary btn-sm"
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "6px",
-                              padding: "0 14px",
-                              whiteSpace: "nowrap",
-                              fontSize: "0.8rem",
-                              fontWeight: 700,
-                              color: "#0a66c2",
-                              background: "#ffffff",
-                            }}
-                          >
-                            {manualScrapeLoading ? (
-                              <><RefreshCw size={12} className="spin-animation" /> Fetching...</>
-                            ) : (
-                              <><Sparkles size={12} /> Fetch URL</>
-                            )}
-                          </button>
                         </div>
 
                         {manualScrapedData && (
