@@ -229,7 +229,7 @@ export const PublicProfileView = ({
       }}>
         {/* Cover Banner with Thapar Network branding */}
         <div style={{
-          height: "190px",
+          height: "clamp(120px, 18vw, 190px)",
           background: "linear-gradient(135deg, #091e42 0%, #0a4d8c 45%, #0284c7 85%, #0369a1 100%)",
           position: "relative",
           padding: "16px 24px",
@@ -360,10 +360,7 @@ export const PublicProfileView = ({
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                    padding: "9px 18px",
-                    borderRadius: "24px",
-                    fontSize: "0.88rem",
-                    fontWeight: 700,
+                    borderRadius: "var(--radius-full)",
                   }}
                 >
                   <MessageSquare size={16} /> Message
@@ -383,10 +380,7 @@ export const PublicProfileView = ({
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                    padding: "9px 18px",
-                    borderRadius: "24px",
-                    fontSize: "0.88rem",
-                    fontWeight: 700,
+                    borderRadius: "var(--radius-full)",
                     color: "#0a66c2",
                     borderColor: "#0a66c2",
                   }}
@@ -408,10 +402,7 @@ export const PublicProfileView = ({
                     display: "flex",
                     alignItems: "center",
                     gap: "8px",
-                    padding: "9px 18px",
-                    borderRadius: "24px",
-                    fontSize: "0.88rem",
-                    fontWeight: 700,
+                    borderRadius: "var(--radius-full)",
                     color: "#b45309",
                     borderColor: "#f59e0b",
                   }}
@@ -448,7 +439,7 @@ export const PublicProfileView = ({
           {/* Name & Headline & Verification */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-              <h1 style={{ fontSize: "1.85rem", fontWeight: 800, color: "#18181b", margin: 0 }}>
+              <h1 style={{ fontSize: "clamp(1.5rem, 1.2vw + 1.1rem, 2rem)", margin: 0 }}>
                 {user.name}
               </h1>
               {user.role === "alumni" && (user.isVerified ? (
@@ -616,14 +607,8 @@ export const PublicProfileView = ({
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {/* 1. About Card */}
           {user.bio && (
-            <div style={{
-              background: "#ffffff",
-              border: "1px solid var(--border-color)",
-              borderRadius: "var(--radius-lg)",
-              padding: "24px 28px",
-              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
-            }}>
-              <h3 style={{ fontSize: "1.18rem", fontWeight: 700, color: "#18181b", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="profile-section">
+              <h3 className="profile-section__title">
                 <FileText size={18} color="#0a66c2" /> About
               </h3>
               <p style={{
@@ -639,14 +624,8 @@ export const PublicProfileView = ({
           )}
 
           {/* 2. Experience Section (LinkedIn Work History Timeline) */}
-          <div style={{
-            background: "#ffffff",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-lg)",
-            padding: "24px 28px",
-            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
-          }}>
-            <h3 style={{ fontSize: "1.18rem", fontWeight: 700, color: "#18181b", marginBottom: "18px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <div className="profile-section">
+            <h3 className="profile-section__title">
               <Briefcase size={18} color="#0a66c2" /> Experience
             </h3>
 
@@ -655,13 +634,7 @@ export const PublicProfileView = ({
                 {experienceItems.map((item, idx) => (
                   <div
                     key={idx}
-                    style={{
-                      display: "flex",
-                      gap: "16px",
-                      position: "relative",
-                      paddingBottom: idx !== experienceItems.length - 1 ? "18px" : "0",
-                      borderBottom: idx !== experienceItems.length - 1 ? "1px solid #f5f5f4" : "none",
-                    }}
+                    className={`timeline-item${idx !== experienceItems.length - 1 ? " has-next" : ""}`}
                   >
                     {/* Company Initial / Logo Circle */}
                     <div style={{
@@ -708,14 +681,8 @@ export const PublicProfileView = ({
           </div>
 
           {/* 3. Education Section */}
-          <div style={{
-            background: "#ffffff",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-lg)",
-            padding: "24px 28px",
-            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
-          }}>
-            <h3 style={{ fontSize: "1.18rem", fontWeight: 700, color: "#18181b", marginBottom: "18px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <div className="profile-section">
+            <h3 className="profile-section__title">
               <GraduationCap size={18} color="#0a66c2" /> Education
             </h3>
 
@@ -751,14 +718,8 @@ export const PublicProfileView = ({
 
           {/* 4. Skills & Endorsements */}
           {user.skills && user.skills.length > 0 && (
-            <div style={{
-              background: "#ffffff",
-              border: "1px solid var(--border-color)",
-              borderRadius: "var(--radius-lg)",
-              padding: "24px 28px",
-              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
-            }}>
-              <h3 style={{ fontSize: "1.18rem", fontWeight: 700, color: "#18181b", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="profile-section">
+              <h3 className="profile-section__title">
                 <Sparkles size={18} color="#0a66c2" /> Skills
               </h3>
 
@@ -786,14 +747,8 @@ export const PublicProfileView = ({
 
           {/* 5. Areas of Expertise / Mentorship Domains */}
           {user.areasOfExpertise && user.areasOfExpertise.length > 0 && (
-            <div style={{
-              background: "#ffffff",
-              border: "1px solid var(--border-color)",
-              borderRadius: "var(--radius-lg)",
-              padding: "24px 28px",
-              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
-            }}>
-              <h3 style={{ fontSize: "1.18rem", fontWeight: 700, color: "#18181b", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="profile-section">
+              <h3 className="profile-section__title">
                 <Award size={18} color="#b45309" /> Mentorship & Expertise Domains
               </h3>
 
@@ -820,14 +775,8 @@ export const PublicProfileView = ({
 
           {/* 6. Student Career Goals (if role === student) */}
           {user.role === "student" && user.careerGoal && (
-            <div style={{
-              background: "#ffffff",
-              border: "1px solid var(--border-color)",
-              borderRadius: "var(--radius-lg)",
-              padding: "24px 28px",
-              boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
-            }}>
-              <h3 style={{ fontSize: "1.18rem", fontWeight: 700, color: "#18181b", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="profile-section">
+              <h3 className="profile-section__title">
                 <Compass size={18} color="#0891b2" /> Career Goal & Interests
               </h3>
               <p style={{ margin: 0, fontSize: "0.9rem", color: "#334155", lineHeight: 1.55 }}>
@@ -840,13 +789,7 @@ export const PublicProfileView = ({
         {/* Right Sidebar: Quick Details, Community Connection, Actions */}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {/* Card: Public Profile & URL */}
-          <div style={{
-            background: "#ffffff",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-lg)",
-            padding: "20px",
-            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
-          }}>
+          <div className="profile-section">
             <h4 style={{ margin: "0 0 12px", fontSize: "0.92rem", fontWeight: 700, color: "#18181b" }}>
               Public Profile & URL
             </h4>
@@ -886,13 +829,7 @@ export const PublicProfileView = ({
           </div>
 
           {/* Card: Affiliation & Community */}
-          <div style={{
-            background: "#ffffff",
-            border: "1px solid var(--border-color)",
-            borderRadius: "var(--radius-lg)",
-            padding: "20px",
-            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
-          }}>
+          <div className="profile-section">
             <h4 style={{ margin: "0 0 12px", fontSize: "0.92rem", fontWeight: 700, color: "#18181b" }}>
               Community Affiliation
             </h4>

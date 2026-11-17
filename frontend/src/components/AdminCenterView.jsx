@@ -335,56 +335,45 @@ export const AdminCenterView = ({ currentUser }) => {
   };
 
   return (
-    <div style={{ maxWidth: "1240px", margin: "0 auto", padding: "32px 20px" }}>
-      {/* Header Banner */}
-      <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "28px" }}>
-        <div style={{
-          width: "48px",
-          height: "48px",
-          borderRadius: "14px",
-          background: "#18181b",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fbf9f4",
-          boxShadow: "0 4px 14px rgba(0, 0, 0, 0.2)",
-        }}>
-          <ShieldCheck size={26} />
-        </div>
+    <div className="page-container">
+      {/* Header */}
+      <div className="responsive-page-header" style={{ marginBottom: "20px", borderBottom: "none", paddingBottom: 0 }}>
         <div>
-          <h1 style={{ fontSize: "2.1rem", fontWeight: 800, color: "#18181b", margin: 0 }}>
-            Admin Center & User Management
-          </h1>
-          <p style={{ color: "#78716c", fontSize: "0.95rem", margin: 0 }}>
-            Provision institutional accounts for students & alumni, dispatch default passwords, and verify credentials.
-          </p>
+          <div className="page-eyebrow"><ShieldCheck size={14} /> Administration</div>
+          <h1>Admin Center</h1>
+          <p>Add students and alumni, review alumni verification, and handle reported content.</p>
         </div>
       </div>
 
       {/* Main Tab Navigation */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "28px", borderBottom: "1px solid var(--border-color)", paddingBottom: "12px", overflowX: "auto", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}>
+      <div className="tabs" role="tablist" aria-label="Admin sections">
         <button
+          role="tab"
+          aria-selected={activeTab === "onboarding"}
           onClick={() => setActiveTab("onboarding")}
-          className={`btn ${activeTab === "onboarding" ? "btn-primary" : "btn-secondary"}`}
-          style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+          className={`tab${activeTab === "onboarding" ? " is-active" : ""}`}
         >
-          <UserPlus size={16} /> User Provisioning (Add Accounts)
+          <UserPlus size={16} /> Add Accounts
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === "verification"}
           onClick={() => setActiveTab("verification")}
-          className={`btn ${activeTab === "verification" ? "btn-primary" : "btn-secondary"}`}
-          style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+          className={`tab${activeTab === "verification" ? " is-active" : ""}`}
         >
-          <CheckCircle2 size={16} /> Alumni Verification Queue{openVerificationCount !== null ? ` (${openVerificationCount} open)` : ""}
+          <CheckCircle2 size={16} /> Verification Queue
+          {openVerificationCount ? <span className="chip__count">{openVerificationCount}</span> : null}
         </button>
 
         <button
+          role="tab"
+          aria-selected={activeTab === "moderation"}
           onClick={() => setActiveTab("moderation")}
-          className={`btn ${activeTab === "moderation" ? "btn-primary" : "btn-secondary"}`}
-          style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+          className={`tab${activeTab === "moderation" ? " is-active" : ""}`}
         >
-          <AlertTriangle size={16} /> Content Moderation ({reports.length})
+          <AlertTriangle size={16} /> Moderation
+          {reports.length ? <span className="chip__count">{reports.length}</span> : null}
         </button>
       </div>
 
@@ -394,56 +383,41 @@ export const AdminCenterView = ({ currentUser }) => {
       {activeTab === "onboarding" && (
         <div>
           {/* Sub-toggle: Manual vs CSV */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            marginBottom: "24px",
-            background: "#ffffff",
-            padding: "8px 16px",
-            borderRadius: "var(--radius-md)",
-            border: "1px solid var(--border-color)",
-            width: "fit-content",
-            maxWidth: "100%",
-            overflowX: "auto",
-          }}>
-            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#78716c" }}>MODE:</span>
+          <div className="segmented" style={{ gridTemplateColumns: "repeat(2, minmax(0, 180px))", width: "fit-content", maxWidth: "100%", marginBottom: "24px" }} role="group" aria-label="How to add accounts">
             <button
+              type="button"
               onClick={() => setOnboardMode("manual")}
-              className={`btn btn-sm ${onboardMode === "manual" ? "btn-primary" : "btn-secondary"}`}
+              className={`segmented__option${onboardMode === "manual" ? " is-selected" : ""}`}
+              aria-pressed={onboardMode === "manual"}
             >
-              <UserPlus size={14} /> Manual Entry
+              <UserPlus size={14} /> One person
             </button>
             <button
+              type="button"
               onClick={() => setOnboardMode("csv")}
-              className={`btn btn-sm ${onboardMode === "csv" ? "btn-primary" : "btn-secondary"}`}
+              className={`segmented__option${onboardMode === "csv" ? " is-selected" : ""}`}
+              aria-pressed={onboardMode === "csv"}
             >
-              <UploadCloud size={14} /> Bulk CSV Import
+              <UploadCloud size={14} /> CSV import
             </button>
           </div>
 
           <div className="responsive-split-grid">
             {/* Left Column: Form (Manual or CSV) */}
-            <div style={{
-              background: "#ffffff",
-              border: "1px solid var(--border-color)",
-              borderRadius: "var(--radius-lg)",
-              padding: "32px",
-              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.04)",
-            }}>
+            <div className="profile-section">
               {onboardMode === "manual" ? (
                 <>
                   <div style={{ marginBottom: "22px" }}>
-                    <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#18181b", margin: 0 }}>
-                      Manually Provision New Account
+                    <h2 style={{ fontSize: "1.2rem", margin: 0 }}>
+                      Add one account
                     </h2>
                     <p style={{ fontSize: "0.84rem", color: "#78716c", margin: "4px 0 0" }}>
-                      Create credentials for an alumnus or student. An automated email with their default password will be dispatched.
+                      Create an account for an alumnus or student. They get an email explaining how to sign in with Google.
                     </p>
                   </div>
 
                   {onboardError && (
-                    <div style={{ padding: "12px 16px", background: "rgba(190, 18, 60, 0.08)", border: "1px solid rgba(190, 18, 60, 0.25)", borderRadius: "8px", color: "#be123c", fontSize: "0.86rem", marginBottom: "20px" }}>
+                    <div className="alert alert-error" role="alert">
                       {onboardError}
                     </div>
                   )}
@@ -451,40 +425,23 @@ export const AdminCenterView = ({ currentUser }) => {
                   <form onSubmit={handleManualOnboard} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
                     {/* Role Selector: Student vs Alumnus */}
                     <div>
-                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "8px" }}>
-                        ACCOUNT ROLE
+                      <label className="field-label">
+                        Account role
                       </label>
-                      <div className="responsive-form-grid-2">
+                      <div className="segmented" style={{ gridTemplateColumns: "1fr 1fr" }} role="group" aria-label="Account role">
                         <button
                           type="button"
                           onClick={() => setManualRole("alumni")}
-                          style={{
-                            padding: "12px",
-                            borderRadius: "var(--radius-sm)",
-                            border: manualRole === "alumni" ? "2px solid #18181b" : "1px solid var(--border-color)",
-                            background: manualRole === "alumni" ? "rgba(24, 24, 27, 0.06)" : "#ffffff",
-                            color: manualRole === "alumni" ? "#18181b" : "#78716c",
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            fontSize: "0.88rem",
-                          }}
+                          className={`segmented__option${manualRole === "alumni" ? " is-selected" : ""}`}
+                          aria-pressed={manualRole === "alumni"}
                         >
-                          🎓 Alumnus / Mentor
+                          🎓 Alumnus
                         </button>
-
                         <button
                           type="button"
                           onClick={() => setManualRole("student")}
-                          style={{
-                            padding: "12px",
-                            borderRadius: "var(--radius-sm)",
-                            border: manualRole === "student" ? "2px solid #18181b" : "1px solid var(--border-color)",
-                            background: manualRole === "student" ? "rgba(24, 24, 27, 0.06)" : "#ffffff",
-                            color: manualRole === "student" ? "#18181b" : "#78716c",
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            fontSize: "0.88rem",
-                          }}
+                          className={`segmented__option${manualRole === "student" ? " is-selected" : ""}`}
+                          aria-pressed={manualRole === "student"}
                         >
                           📚 Student
                         </button>
@@ -493,7 +450,7 @@ export const AdminCenterView = ({ currentUser }) => {
 
                     {/* Full Name */}
                     <div>
-                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                      <label className="field-label">
                         Full Name *
                       </label>
                       <input
@@ -507,7 +464,7 @@ export const AdminCenterView = ({ currentUser }) => {
 
                     {/* Email */}
                     <div>
-                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                      <label className="field-label">
                         Institutional / Personal Email Address *
                       </label>
                       <input
@@ -651,7 +608,7 @@ export const AdminCenterView = ({ currentUser }) => {
                 <>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "22px", flexWrap: "wrap", gap: "10px" }}>
                     <div>
-                      <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#18181b", margin: 0 }}>
+                      <h2 style={{ fontSize: "1.2rem", margin: 0 }}>
                         Bulk Import Accounts via CSV
                       </h2>
                       <p style={{ fontSize: "0.84rem", color: "#78716c", margin: "4px 0 0" }}>
@@ -669,7 +626,7 @@ export const AdminCenterView = ({ currentUser }) => {
                   </div>
 
                   {csvError && (
-                    <div style={{ padding: "12px 16px", background: "rgba(190, 18, 60, 0.08)", border: "1px solid rgba(190, 18, 60, 0.25)", borderRadius: "8px", color: "#be123c", fontSize: "0.86rem", marginBottom: "20px" }}>
+                    <div className="alert alert-error" role="alert">
                       {csvError}
                     </div>
                   )}
@@ -740,7 +697,7 @@ export const AdminCenterView = ({ currentUser }) => {
                           disabled={onboardLoading}
                           className="btn btn-primary btn-sm"
                         >
-                          {onboardLoading ? "Importing & Auto-Enriching..." : `Provision All ${csvPreviewRows.length} Users`}
+                          {onboardLoading ? "Importing..." : `Provision All ${csvPreviewRows.length} Users`}
                         </button>
                       </div>
 
@@ -849,12 +806,7 @@ export const AdminCenterView = ({ currentUser }) => {
                   </div>
                 </div>
               ) : (
-                <div style={{
-                  background: "#ffffff",
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-lg)",
-                  padding: "24px",
-                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.04)",
+                <div className="profile-section" style={{
                 }}>
                   <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#18181b", marginBottom: "8px" }}>
                     How accounts work
@@ -1003,12 +955,7 @@ export const AdminCenterView = ({ currentUser }) => {
       {/* TAB 3: CONTENT MODERATION QUEUE                                           */}
       {/* ========================================================================= */}
       {activeTab === "moderation" && (
-        <div style={{
-          background: "#ffffff",
-          border: "1px solid var(--border-color)",
-          borderRadius: "var(--radius-lg)",
-          padding: "28px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.04)",
+        <div className="profile-section" style={{
         }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#18181b", margin: 0 }}>

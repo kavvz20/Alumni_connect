@@ -1312,3 +1312,274 @@ label {
   background-size: 800px 100% !important;
   animation: shimmer 1.4s linear infinite;
 }
+
+
+/* ========================================================= */
+/* Chat                                                      */
+/* ========================================================= */
+.chat-sidebar__head {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-color);
+  background: #ffffff;
+}
+.conv-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.conv-item:hover {
+  background: var(--bg-secondary);
+}
+.conv-item.is-active {
+  background: #ffffff;
+  border-color: var(--border-color);
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.08);
+}
+.conv-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent-amber);
+}
+.conv-item--bordered {
+  background: #ffffff;
+  border-color: var(--border-color);
+}
+.conv-item__name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.conv-item__meta {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.live-dot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+}
+.live-dot span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-subtle);
+}
+.live-dot span.is-on {
+  background: var(--accent-emerald);
+  box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.15);
+}
+.live-dot:has(.is-on) {
+  color: var(--accent-emerald);
+}
+.chat-day {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+.chat-day::before,
+.chat-day::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+.bubble-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+.bubble-row.is-grouped {
+  margin-bottom: 3px;
+}
+.bubble-row.is-me {
+  align-items: flex-end;
+}
+.bubble {
+  max-width: min(68%, 560px);
+  padding: 10px 15px;
+  border-radius: 18px 18px 18px 6px;
+  background: #ffffff;
+  color: #18181b;
+  border: 1px solid var(--border-color);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
+}
+.bubble-row.is-me .bubble {
+  border-radius: 18px 18px 6px 18px;
+  background: #18181b;
+  color: #fbf9f4;
+  border-color: #18181b;
+}
+.bubble-row.is-grouped .bubble {
+  border-radius: 18px;
+}
+.bubble-time {
+  font-size: 0.68rem;
+  color: var(--text-subtle);
+  margin-top: 4px;
+  padding: 0 6px;
+}
+@media (max-width: 640px) {
+  .bubble {
+    max-width: 85%;
+  }
+}
+
+
+/* ========================================================= */
+/* Profile pages                                             */
+/* ========================================================= */
+.profile-section {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: clamp(18px, 2.5vw, 28px);
+  box-shadow: var(--shadow-subtle);
+}
+.profile-section__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 1.08rem !important;
+  font-weight: 800;
+}
+.timeline-item {
+  display: flex;
+  gap: 16px;
+  position: relative;
+}
+.timeline-item.has-next {
+  padding-bottom: 20px;
+}
+.timeline-item.has-next::before {
+  content: "";
+  position: absolute;
+  left: 23px;
+  top: 54px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--border-color);
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+/* Save button stays visible while scrolling a long form */
+.form-savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px calc(-1 * clamp(18px, 2.5vw, 28px)) 0;
+  padding: 14px clamp(18px, 2.5vw, 28px);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--border-color);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+.form-savebar span {
+  font-size: 0.8rem;
+  color: var(--text-subtle);
+}
+@media (max-width: 640px) {
+  .form-savebar span {
+    display: none;
+  }
+  .form-savebar .btn {
+    width: 100%;
+  }
+}
+/* Side card follows the page on wide screens */
+@media (min-width: 961px) {
+  .profile-aside {
+    position: sticky;
+    top: 84px;
+  }
+}
+
+/* Underlined section tabs (admin) */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  margin-bottom: -1px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-subtle);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.tab:hover {
+  color: var(--text-main);
+}
+.tab.is-active {
+  color: var(--text-main);
+  border-bottom-color: var(--accent-amber);
+}
+.tab:focus-visible {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: -2px;
+}

@@ -31,6 +31,21 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
 
   const messagesEndRef = useRef(null);
   const socket = getSocket();
+  const [online, setOnline] = useState(Boolean(socket?.connected));
+  const [convFilter, setConvFilter] = useState("");
+
+  useEffect(() => {
+    if (!socket) return undefined;
+    const up = () => setOnline(true);
+    const down = () => setOnline(false);
+    setOnline(Boolean(socket.connected));
+    socket.on("connect", up);
+    socket.on("disconnect", down);
+    return () => {
+      socket.off("connect", up);
+      socket.off("disconnect", down);
+    };
+  }, [socket]);
 
   // 1. Fetch available community members to start new chats with
   const fetchCommunityUsers = async () => {
@@ -244,8 +259,25 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
 
   const [mobileShowChat, setMobileShowChat] = useState(Boolean(initialTarget));
 
+  const visibleConversations = conversations.filter((conv) => {
+    if (!convFilter.trim()) return true;
+    const p = getCounterpart(conv);
+    const q = convFilter.toLowerCase();
+    return p?.name?.toLowerCase().includes(q) || p?.currentCompany?.toLowerCase().includes(q);
+  });
+
+  const dayLabel = (d) => {
+    const date = new Date(d);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+    return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: date.getFullYear() === today.getFullYear() ? undefined : "numeric" });
+  };
+
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "20px 14px" }}>
+    <div className="page-container" style={{ paddingTop: "20px", paddingBottom: "20px" }}>
       {/* Container Panel: Clean White on Cream Canvas */}
       <div className="chat-container-grid">
         {/* ========================================================================= */}
@@ -259,36 +291,44 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
           height: "100%",
         }}>
           {/* Header */}
-          <div style={{
-            padding: "16px 20px",
-            borderBottom: "1px solid var(--border-color)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "#ffffff",
-          }}>
-            <div>
-              <h3 style={{ fontSize: "1.08rem", fontWeight: 800, color: "#18181b" }}>Messages</h3>
-              <span style={{ fontSize: "0.75rem", color: "#78716c" }}>
-                {conversations.length} conversation{conversations.length === 1 ? "" : "s"}
-              </span>
+          <div className="chat-sidebar__head">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+              <div>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 800 }}>Messages</h3>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-subtle)" }}>
+                  {conversations.length} conversation{conversations.length === 1 ? "" : "s"}
+                </span>
+              </div>
+
+              <button
+                onClick={() => setShowNewChatModal(true)}
+                className="btn btn-primary btn-sm"
+                title="Start a new chat with an alumnus or student"
+              >
+                <Plus size={14} /> New
+              </button>
             </div>
 
-            <button
-              onClick={() => setShowNewChatModal(true)}
-              className="btn btn-primary btn-sm"
-              style={{ padding: "6px 12px", fontSize: "0.78rem" }}
-              title="Start a new chat with an alumnus or student"
-            >
-              <Plus size={14} /> New Chat
-            </button>
+            {conversations.length > 3 && (
+              <div className="search-field search-field--wide" style={{ marginTop: "12px" }}>
+                <Search size={15} />
+                <input
+                  className="input-control"
+                  value={convFilter}
+                  onChange={(e) => setConvFilter(e.target.value)}
+                  placeholder="Search conversations"
+                  aria-label="Search conversations"
+                  style={{ minHeight: "36px", fontSize: "0.85rem" }}
+                />
+              </div>
+            )}
           </div>
 
           {/* Conversations List */}
           <div style={{ flex: 1, overflowY: "auto", padding: "10px" }}>
             {loadingConv ? (
-              <div style={{ padding: "30px 16px", textAlign: "center", color: "#78716c", fontSize: "0.85rem" }}>
-                Loading conversations...
+              <div aria-busy="true" aria-label="Loading conversations" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {[0, 1, 2, 3].map((i) => <div key={i} className="skeleton-row" style={{ height: "58px", borderRadius: "var(--radius-sm)" }} />)}
               </div>
             ) : conversations.length === 0 ? (
               <div style={{ padding: "40px 20px", textAlign: "center" }}>
@@ -320,50 +360,38 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                 </button>
               </div>
             ) : (
-              conversations.map((conv) => {
+              visibleConversations.map((conv) => {
                 const partner = getCounterpart(conv);
                 const isActive = activeConversation?._id === conv._id;
 
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={conv._id}
                     onClick={() => {
                       setActiveConversation(conv);
                       setMobileShowChat(true);
                     }}
-                    style={{
-                      padding: "12px 14px",
-                      borderRadius: "var(--radius-sm)",
-                      background: isActive ? "#ffffff" : "transparent",
-                      border: isActive ? "1.5px solid #18181b" : "1px solid transparent",
-                      boxShadow: isActive ? "0 2px 8px rgba(0, 0, 0, 0.06)" : "none",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      marginBottom: "6px",
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) e.currentTarget.style.background = "#f3efe6";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) e.currentTarget.style.background = "transparent";
-                    }}
+                    className={`conv-item${isActive ? " is-active" : ""}`}
+                    aria-current={isActive ? "true" : undefined}
                   >
-                    <Avatar user={partner} size={38} />
+                    <Avatar user={partner} size={40} />
 
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "#18181b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {partner?.name || "Participant"}
-                      </div>
-                      <div style={{ fontSize: "0.75rem", color: "#78716c", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {partner?.currentCompany ? `${partner.currentCompany} · ` : ""}{partner?.role || "Member"}
+                    <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                      <div className="conv-item__name">{partner?.name || "Participant"}</div>
+                      <div className="conv-item__meta">
+                        {partner?.currentCompany ? `${partner.currentCompany} · ` : ""}
+                        <span style={{ textTransform: "capitalize" }}>{partner?.role || "Member"}</span>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 );
               })
+            )}
+            {!loadingConv && conversations.length > 0 && visibleConversations.length === 0 && (
+              <div style={{ padding: "20px", textAlign: "center", fontSize: "0.85rem", color: "var(--text-subtle)" }}>
+                No conversations match.
+              </div>
             )}
           </div>
         </div>
@@ -406,7 +434,7 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                         {activeCounterpart?.name || "Conversation"}
                       </h3>
                       <div style={{ fontSize: "0.72rem", color: "#78716c", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {activeCounterpart?.currentRole} {activeCounterpart?.currentCompany ? `@ ${activeCounterpart.currentCompany}` : ""} ({activeCounterpart?.role})
+                        {[activeCounterpart?.currentRole, activeCounterpart?.currentCompany].filter(Boolean).join(" at ") || <span style={{ textTransform: "capitalize" }}>{activeCounterpart?.role}</span>}
                       </div>
                     </div>
                   </div>
@@ -431,15 +459,9 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                     </button>
                   )}
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      background: "#059669",
-                      display: "inline-block",
-                    }} />
-                    <span style={{ fontSize: "0.75rem", color: "#059669", fontWeight: 700 }}>Live</span>
+                  <div className="live-dot" title={online ? "Connected: messages arrive instantly" : "Reconnecting..."}>
+                    <span className={online ? "is-on" : ""} />
+                    {online ? "Live" : "Offline"}
                   </div>
                 </div>
               </div>
@@ -448,55 +470,44 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
               <div style={{
                 flex: 1,
                 overflowY: "auto",
-                padding: "24px",
+                padding: "20px clamp(14px, 3vw, 28px)",
                 display: "flex",
                 flexDirection: "column",
-                gap: "12px",
                 background: "#fbf9f4",
               }}>
                 {loadingMsgs ? (
                   <div style={{ textAlign: "center", color: "#78716c", margin: "auto" }}>
-                    Loading message history...
+                    Loading messages...
                   </div>
                 ) : messages.length === 0 ? (
                   <div style={{ textAlign: "center", color: "#78716c", margin: "auto" }}>
-                    <div style={{ fontSize: "1.8rem", marginBottom: "8px" }}>👋</div>
+                    <Avatar user={activeCounterpart} size={56} style={{ display: "flex", margin: "0 auto 12px" }} />
                     <div style={{ fontWeight: 700, color: "#18181b", marginBottom: "4px" }}>Start the conversation</div>
                     <div style={{ fontSize: "0.85rem" }}>Send a friendly message to {activeCounterpart?.name || "your peer"}.</div>
                   </div>
                 ) : (
                   messages.map((msg, i) => {
-                    const isMe = (msg.senderId?._id || msg.senderId) === currentUser?._id;
+                    const senderOf = (m) => m?.senderId?._id || m?.senderId;
+                    const isMe = senderOf(msg) === currentUser?._id;
+                    const prev = messages[i - 1];
+                    const next = messages[i + 1];
+                    const newDay = !prev || new Date(prev.sentAt).toDateString() !== new Date(msg.sentAt).toDateString();
+                    const sameAsNext = next && senderOf(next) === senderOf(msg) &&
+                      new Date(next.sentAt).toDateString() === new Date(msg.sentAt).toDateString() &&
+                      new Date(next.sentAt) - new Date(msg.sentAt) < 5 * 60 * 1000;
 
                     return (
-                      <div
-                        key={msg._id || i}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: isMe ? "flex-end" : "flex-start",
-                        }}
-                      >
-                        <div
-                          style={{
-                            maxWidth: "68%",
-                            padding: "10px 16px",
-                            borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                            background: isMe ? "#18181b" : "#ffffff",
-                            color: isMe ? "#fbf9f4" : "#18181b",
-                            border: isMe ? "none" : "1px solid rgba(0, 0, 0, 0.1)",
-                            fontSize: "0.92rem",
-                            lineHeight: 1.45,
-                            boxShadow: isMe ? "0 2px 10px rgba(0, 0, 0, 0.2)" : "0 1px 4px rgba(0, 0, 0, 0.04)",
-                          }}
-                        >
-                          {msg.text}
+                      <React.Fragment key={msg._id || i}>
+                        {newDay && <div className="chat-day"><span>{dayLabel(msg.sentAt)}</span></div>}
+                        <div className={`bubble-row${isMe ? " is-me" : ""}${sameAsNext ? " is-grouped" : ""}`}>
+                          <div className="bubble">{msg.text}</div>
+                          {!sameAsNext && (
+                            <span className="bubble-time">
+                              {new Date(msg.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          )}
                         </div>
-
-                        <span style={{ fontSize: "0.68rem", color: "#a8a29e", marginTop: "4px", padding: "0 6px" }}>
-                          {new Date(msg.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                      </div>
+                      </React.Fragment>
                     );
                   })
                 )}
@@ -520,11 +531,11 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   placeholder={`Message ${activeCounterpart?.name || "participant"}...`}
+                  aria-label="Message"
                   style={{
                     borderRadius: "var(--radius-full)",
                     paddingLeft: "18px",
                     background: "#fbf9f4",
-                    borderColor: "rgba(0, 0, 0, 0.14)",
                   }}
                 />
 
@@ -592,7 +603,8 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
 
               <button
                 onClick={() => setShowNewChatModal(false)}
-                style={{ background: "transparent", border: "none", color: "#78716c", cursor: "pointer" }}
+                className="btn btn-secondary btn-sm icon-btn"
+                aria-label="Close"
               >
                 <X size={20} />
               </button>
@@ -618,38 +630,22 @@ export const ChatView = ({ currentUser, targetUser, activeTargetUser }) => {
                 </div>
               ) : (
                 filteredCommunity.map((u) => (
-                  <div
+                  <button
+                    type="button"
                     key={u._id}
                     onClick={() => handleStartChatWithUser(u)}
-                    style={{
-                      padding: "10px 14px",
-                      borderRadius: "var(--radius-sm)",
-                      background: "#ffffff",
-                      border: "1px solid rgba(0, 0, 0, 0.08)",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "#f5f0e6")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
+                    className="conv-item conv-item--bordered"
                   >
                     <Avatar user={u} size={36} />
-
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#18181b" }}>
-                        {u.name}
-                      </div>
-                      <div style={{ fontSize: "0.75rem", color: "#78716c" }}>
-                        {u.currentCompany ? `${u.currentCompany} · ` : ""}{u.role}
+                    <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                      <div className="conv-item__name">{u.name}</div>
+                      <div className="conv-item__meta">
+                        {u.currentCompany ? `${u.currentCompany} · ` : ""}
+                        <span style={{ textTransform: "capitalize" }}>{u.role}</span>
                       </div>
                     </div>
-
-                    <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "#18181b" }}>
-                      Message &rarr;
-                    </span>
-                  </div>
+                    <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--accent-amber)" }}>Message →</span>
+                  </button>
                 ))
               )}
             </div>

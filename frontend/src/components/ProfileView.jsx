@@ -343,15 +343,10 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
   };
 
   return (
-    <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 20px" }}>
+    <div className="page-container" style={{ maxWidth: "1160px" }}>
       {/* Header Banner */}
-      <div style={{
-        background: "#ffffff",
-        border: "1px solid var(--border-color)",
-        borderRadius: "var(--radius-lg)",
-        padding: "28px 32px",
-        marginBottom: "28px",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.04)",
+      <div className="profile-section" style={{
+        marginBottom: "24px",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -362,17 +357,17 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
           {/* User Avatar */}
           <Avatar
             user={{ name, role: currentUser?.role, profilePicture }}
-            size={68}
+            size={72}
             style={{ boxShadow: "0 4px 14px rgba(0, 0, 0, 0.15)" }}
           />
 
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
-              <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#18181b", margin: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px 10px", marginBottom: "6px" }}>
+              <h1 style={{ fontSize: "clamp(1.35rem, 1vw + 1rem, 1.75rem)", margin: 0 }}>
                 {currentUser?.name}
               </h1>
               <span className={`badge badge-${currentUser?.role === "student" ? "cyan" : currentUser?.role === "admin" ? "emerald" : "amber"}`}>
-                {currentUser?.role}
+                <span style={{ textTransform: "capitalize" }}>{currentUser?.role}</span>
               </span>
               {currentUser?.role === "alumni" && (currentUser?.isVerified ? (
                 <span className="badge badge-emerald">
@@ -384,7 +379,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
             </div>
 
             <p style={{ fontSize: "0.88rem", color: "#78716c", margin: 0 }}>
-              Institutional Account: <strong>{currentUser?.email}</strong>
+              Signed in as <strong style={{ color: "var(--text-main)" }}>{currentUser?.email}</strong>
             </p>
           </div>
         </div>
@@ -449,17 +444,11 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
         {/* ========================================================================= */}
         {/* Left Column: Complete Profile Details Form                                */}
         {/* ========================================================================= */}
-        <div style={{
-          background: "#ffffff",
-          border: "1px solid var(--border-color)",
-          borderRadius: "var(--radius-lg)",
-          padding: "32px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.04)",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "22px" }}>
+        <div className="profile-section" style={{ paddingBottom: 0 }}>
+          <div className="profile-section__title" style={{ alignItems: "flex-start", marginBottom: "22px" }}>
             <User size={22} color="#18181b" />
             <div>
-              <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: "#18181b", margin: 0 }}>
+              <h2 style={{ fontSize: "1.2rem", margin: 0 }}>
                 Complete Your Profile
               </h2>
               <span style={{ fontSize: "0.82rem", color: "#78716c" }}>
@@ -469,14 +458,14 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
           </div>
 
           {profileMessage && (
-            <div style={{ padding: "12px 16px", background: "rgba(4, 120, 87, 0.08)", border: "1px solid rgba(4, 120, 87, 0.25)", borderRadius: "8px", color: "#047857", fontSize: "0.86rem", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <CheckCircle2 size={18} /> {profileMessage}
+            <div className="alert alert-success" role="status">
+              <CheckCircle2 size={18} style={{ flexShrink: 0 }} /> {profileMessage}
             </div>
           )}
 
           {profileError && (
-            <div style={{ padding: "12px 16px", background: "rgba(190, 18, 60, 0.08)", border: "1px solid rgba(190, 18, 60, 0.25)", borderRadius: "8px", color: "#be123c", fontSize: "0.86rem", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <AlertCircle size={18} /> {profileError}
+            <div className="alert alert-error" role="alert">
+              <AlertCircle size={18} style={{ flexShrink: 0 }} /> {profileError}
             </div>
           )}
 
@@ -583,7 +572,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
             {/* Full Name & Institutional Email */}
             <div className="responsive-form-grid-2">
               <div>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                <label className="field-label">
                   Full Name
                 </label>
                 <input
@@ -595,7 +584,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                <label className="field-label">
                   Email Address (Fixed)
                 </label>
                 <input
@@ -610,7 +599,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
             {/* Branch & Batch */}
             <div className="responsive-form-grid-2">
               <div>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                <label className="field-label">
                   Branch / Department
                 </label>
                 <input
@@ -628,7 +617,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                <label className="field-label">
                   Batch / Year
                 </label>
                 <input
@@ -643,7 +632,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
 
             {/* Skills */}
             <div>
-              <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+              <label className="field-label">
                 Skills & Technologies (comma separated)
               </label>
               <input
@@ -656,7 +645,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
 
             {/* Bio */}
             <div>
-              <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+              <label className="field-label">
                 Bio / Summary
               </label>
               <textarea
@@ -676,7 +665,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                 </h4>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                  <label className="field-label">
                     Career Aspirations & Target Roles
                   </label>
                   <input
@@ -688,7 +677,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                  <label className="field-label">
                     Resume URL (Drive link or RecruitSage profile)
                   </label>
                   <input
@@ -959,7 +948,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
 
                 <div className="responsive-form-grid-2">
                   <div>
-                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                    <label className="field-label">
                       Current Company
                     </label>
                     <input
@@ -971,7 +960,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                   </div>
 
                   <div>
-                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                    <label className="field-label">
                       Current Role / Title
                     </label>
                     <input
@@ -985,7 +974,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
 
                 <div className="responsive-form-grid-2">
                   <div>
-                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                    <label className="field-label">
                       Industry
                     </label>
                     <input
@@ -997,7 +986,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                   </div>
 
                   <div>
-                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                    <label className="field-label">
                       LinkedIn Profile URL
                     </label>
                     <input
@@ -1010,7 +999,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+                  <label className="field-label">
                     Areas of Expertise (comma separated)
                   </label>
                   <input
@@ -1029,7 +1018,7 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
           )}
 
             <div>
-              <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
+              <label className="field-label">
                 GitHub Profile URL (Optional)
               </label>
               <input
@@ -1040,31 +1029,27 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={profileLoading}
-              className="btn btn-primary"
-              style={{ alignSelf: "flex-start", padding: "10px 24px" }}
-            >
-              <Save size={16} /> {profileLoading ? "Saving Profile..." : "Save Profile Details"}
-            </button>
+            <div className="form-savebar">
+              <span>Changes are saved when you click Save.</span>
+              <button
+                type="submit"
+                disabled={profileLoading}
+                className="btn btn-primary"
+              >
+                <Save size={16} /> {profileLoading ? "Saving..." : "Save profile"}
+              </button>
+            </div>
           </form>
         </div>
 
         {/* ========================================================================= */}
         {/* Right Column: Change Password Card                                       */}
         {/* ========================================================================= */}
-        <div style={{
-          background: "#ffffff",
-          border: "1px solid var(--border-color)",
-          borderRadius: "var(--radius-lg)",
-          padding: "32px",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.04)",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+        <div className="profile-section profile-aside">
+          <div className="profile-section__title" style={{ alignItems: "flex-start" }}>
             <KeyRound size={22} color="#92400e" />
             <div>
-              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#18181b", margin: 0 }}>
+              <h3 style={{ fontSize: "1.08rem", margin: 0 }}>
                 {hasPassword ? "Change Password" : "Set a Password"}
               </h3>
               <span style={{ fontSize: "0.78rem", color: "#78716c" }}>
