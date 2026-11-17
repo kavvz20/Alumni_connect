@@ -5,24 +5,24 @@ import {
   updateMentorshipRequestStatus,
   scheduleMentorshipMeeting,
 } from "../controllers/mentorship-request.controller.js";
-import { verifyAuth } from "../middleware/auth.middleware.js";
+import { verifyAuth, requireCompleteProfile } from "../middleware/auth.middleware.js";
 
 const mentorshipRequestRouter = Router();
 
 mentorshipRequestRouter
   .route("/")
-  .post(verifyAuth, createMentorshipRequest)
-  .get(verifyAuth, getMentorshipRequests);
+  .post(verifyAuth, requireCompleteProfile, createMentorshipRequest)
+  .get(verifyAuth, requireCompleteProfile, getMentorshipRequests);
 
 mentorshipRequestRouter.patch(
   "/:requestId/status",
-  verifyAuth,
+  verifyAuth, requireCompleteProfile,
   updateMentorshipRequestStatus
 );
 
 mentorshipRequestRouter.patch(
   "/:requestId/schedule",
-  verifyAuth,
+  verifyAuth, requireCompleteProfile,
   scheduleMentorshipMeeting
 );
 

@@ -4,13 +4,13 @@ import {
   getEvents,
   getEventById,
 } from "../controllers/event.controller.js";
-import { verifyAuth } from "../middleware/auth.middleware.js";
+import { verifyAuth, requireCompleteProfile } from "../middleware/auth.middleware.js";
 
 const eventRouter = Router();
 
 eventRouter
   .route("/")
-  .post(verifyAuth, createEvent)
+  .post(verifyAuth, requireCompleteProfile, createEvent)
   .get(getEvents);
 
 eventRouter.get("/:eventId", getEventById);

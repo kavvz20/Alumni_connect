@@ -74,7 +74,7 @@ const getAlumni = async (req, res) => {
       });
     }
 
-    const filter = { role: "alumni" };
+    const filter = { role: "alumni", profileCompleted: true }; // unfinished profiles are not listed
 
     if (search?.trim()) {
       filter.$text = { $search: search.trim() };
@@ -183,6 +183,7 @@ const matchAlumniMentor = async (req, res) => {
     // Fetch all alumni available for mentorship calls
     const candidates = await User.find({
       role: "alumni",
+      profileCompleted: true,
       availableForMentorshipCalls: true,
     }).select(PUBLIC_USER_EXCLUDE);
 

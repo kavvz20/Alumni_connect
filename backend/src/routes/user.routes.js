@@ -9,7 +9,7 @@ import {
   deleteUser,
 } from "../controllers/user.controller.js";
 import { passwordLogin, passwordRegister } from "../controllers/auth.controller.js";
-import { verifyAuth, requireRole } from "../middleware/auth.middleware.js";
+import { verifyAuth, optionalAuth, requireRole } from "../middleware/auth.middleware.js";
 
 const userRouter = Router();
 
@@ -20,7 +20,7 @@ userRouter.post("/login", passwordLogin);
 userRouter.get("/", verifyAuth, getAllUsers);
 userRouter.post("/onboard", verifyAuth, requireRole("admin"), onboardUser);
 userRouter.post("/bulk-onboard", verifyAuth, requireRole("admin"), bulkOnboardUsers);
-userRouter.get("/:userId", getUserProfile);
+userRouter.get("/:userId", optionalAuth, getUserProfile);
 userRouter.patch("/:userId", verifyAuth, updateUserProfile);
 userRouter.delete("/:userId", verifyAuth, requireRole("admin"), deleteUser);
 userRouter.patch("/:userId/verify", verifyAuth, requireRole("admin"), verifyAlumni);

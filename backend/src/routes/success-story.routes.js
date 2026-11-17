@@ -4,13 +4,13 @@ import {
   getSuccessStories,
   getSuccessStoryById,
 } from "../controllers/success-story.controller.js";
-import { verifyAuth } from "../middleware/auth.middleware.js";
+import { verifyAuth, requireCompleteProfile } from "../middleware/auth.middleware.js";
 
 const successStoryRouter = Router();
 
 successStoryRouter
   .route("/")
-  .post(verifyAuth, createSuccessStory)
+  .post(verifyAuth, requireCompleteProfile, createSuccessStory)
   .get(getSuccessStories);
 
 successStoryRouter.get("/:storyId", getSuccessStoryById);

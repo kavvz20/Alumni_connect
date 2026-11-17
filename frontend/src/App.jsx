@@ -25,10 +25,16 @@ import {
 } from "./components/Modals";
 
 // Route protection guards
+// Alumni can only use the app once their profile is complete (the backend enforces the same rule)
+const needsProfileCompletion = (user) => Boolean(user) && user.role === "alumni" && !user.profileCompleted && !user.isAdmin;
+
 const RequireAuth = ({ user, children }) => {
   const location = useLocation();
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+  if (needsProfileCompletion(user) && location.pathname !== "/profile") {
+    return <Navigate to="/profile" replace />;
   }
   // If admin tries to access student-only pages, redirect to /admin
   if (
@@ -55,7 +61,7 @@ const RequireAdmin = ({ user, children }) => {
 
 const LoginRoute = ({ user, children }) => {
   if (user) {
-    return <Navigate to={user.role === "admin" ? "/admin" : "/alumni"} replace />;
+    return <Navigate to={user.role === "admin" ? "/admin" : needsProfileCompletion(user) ? "/profile" : "/alumni"} replace />;
   }
   return children;
 };
@@ -157,7 +163,7 @@ export function App() {
     handleSelectUser(user);
     fetchUsers();
     if (user.role === "admin") navigate("/admin");
-    else if (isNewUser && user.role === "alumni") navigate("/profile");
+    else if (needsProfileCompletion(user) || (isNewUser && user.role === "alumni")) navigate("/profile");
     else navigate("/alumni");
   };
 

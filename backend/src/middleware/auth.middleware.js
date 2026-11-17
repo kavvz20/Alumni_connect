@@ -87,4 +87,23 @@ const requireRole = (...roles) => {
   };
 };
 
-export { verifyAuth, optionalAuth, requireRole };
+/** True when this account is an alumnus who has not finished their profile yet (admins are never blocked). */
+const hasIncompleteAlumniProfile = (user) =>
+  Boolean(user) && user.role === "alumni" && !user.profileCompleted && !isAuthorizedAdmin(user);
+
+/**
+ * Alumni must complete their profile (name, LinkedIn URL, batch, department) before using the
+ * community features. Must run after verifyAuth.
+ */
+const requireCompleteProfile = (req, res, next) => {
+  if (hasIncompleteAlumniProfile(req.user)) {
+    return res.status(403).json({
+      success: false,
+      code: "PROFILE_INCOMPLETE",
+      message: "Complete your profile (name, LinkedIn URL, batch and department) to use this feature.",
+    });
+  }
+  next();
+};
+
+export { verifyAuth, optionalAuth, requireRole, requireCompleteProfile, hasIncompleteAlumniProfile };

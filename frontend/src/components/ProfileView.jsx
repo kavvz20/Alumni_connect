@@ -416,6 +416,26 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
         </div>
       </div>
 
+      {currentUser.role === "alumni" && !currentUser.profileCompleted && !currentUser.isAdmin && (
+        <div
+          role="alert"
+          style={{
+            marginBottom: "20px",
+            padding: "14px 18px",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid #f5c26b",
+            background: "#fff8e6",
+            color: "#7a4b00",
+            fontSize: "0.9rem",
+            lineHeight: 1.5,
+          }}
+        >
+          <strong>Complete your profile to continue.</strong> Add your full name, LinkedIn profile URL,
+          graduation batch and department, then save. Until then you can't use the rest of the portal and
+          you won't appear in the alumni directory.
+        </div>
+      )}
+
       <VerificationStatusCard user={currentUser} />
 
       <div className="responsive-split-grid">

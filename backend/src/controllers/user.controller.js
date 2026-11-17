@@ -48,6 +48,10 @@ const getAllUsers = async (req, res) => {
     const { role } = req.query;
     const filter = {};
     if (role) filter.role = role;
+    // Alumni with unfinished profiles are only visible to the admin
+    if (!isAuthorizedAdmin(req.user)) {
+      filter.$or = [{ role: { $ne: "alumni" } }, { profileCompleted: true }];
+    }
 
     const users = await User.find(filter)
       .select("-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord")
@@ -79,6 +83,13 @@ const getUserProfile = async (req, res) => {
 
     const user = await User.findById(userId).select("-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord");
     if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    // An alumnus with an unfinished profile is hidden from everyone except themselves and the admin
+    const isSelf = req.user && req.user._id.equals(user._id);
+    const hidden = user.role === "alumni" && !user.profileCompleted && !isSelf && !isAuthorizedAdmin(req.user);
+    if (hidden) {
       return res.status(404).json({
         success: false,
         message: "User not found.",

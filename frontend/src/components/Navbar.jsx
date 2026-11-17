@@ -40,6 +40,10 @@ export const Navbar = ({
     if (currentUser?.role === "admin") {
       return tab.path === "/admin" || tab.path === "/events";
     }
+    // Alumni with an unfinished profile only get the profile page until it is complete
+    if (currentUser?.role === "alumni" && !currentUser.profileCompleted && !currentUser.isAdmin) {
+      return tab.path === "/profile";
+    }
     // A student/alumni account that is also the admin (ADMIN_EMAIL) sees both
     return !tab.adminOnly || Boolean(currentUser?.isAdmin);
   });
@@ -73,7 +77,7 @@ export const Navbar = ({
           role="button"
           tabIndex={0}
           aria-label="Alumni Connect Home"
-          onClick={() => navigate(currentUser?.role === "admin" ? "/admin" : "/alumni")}
+          onClick={() => navigate(currentUser?.role === "admin" ? "/admin" : currentUser?.role === "alumni" && !currentUser.profileCompleted && !currentUser.isAdmin ? "/profile" : "/alumni")}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();

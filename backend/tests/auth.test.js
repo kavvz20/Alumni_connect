@@ -157,3 +157,25 @@ describe("LinkedIn URL fetching", () => {
     assert.match(result.message, /PDF/);
   });
 });
+
+describe("requireCompleteProfile", async () => {
+  const { requireCompleteProfile } = await import("../src/middleware/auth.middleware.js");
+  const run = (user) => {
+    let status = null;
+    let passed = false;
+    const res = { status: (s) => ((status = s), { json: () => {} }) };
+    requireCompleteProfile({ user }, res, () => (passed = true));
+    return { status, passed };
+  };
+
+  it("blocks alumni whose profile is incomplete", () => {
+    assert.deepEqual(run({ role: "alumni", email: "a@gmail.com", profileCompleted: false }), { status: 403, passed: false });
+  });
+
+  it("lets complete alumni, students and the admin email through", () => {
+    assert.equal(run({ role: "alumni", email: "a@gmail.com", profileCompleted: true }).passed, true);
+    assert.equal(run({ role: "student", email: "s@thapar.edu", profileCompleted: false }).passed, true);
+    assert.equal(run({ role: "alumni", email: "owner.admin@gmail.com", profileCompleted: false }).passed, true);
+    assert.equal(run(undefined).passed, true);
+  });
+});

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { Conversation, Message, User } from "../models/index.js";
 import { verifySessionToken } from "../services/auth.service.js";
+import { hasIncompleteAlumniProfile } from "../middleware/auth.middleware.js";
 
 const roomName = (conversationId) => `conversation:${conversationId}`;
 const isValidId = (id) => mongoose.isValidObjectId(id);
@@ -28,8 +29,12 @@ const initializeChatSocket = (io) => {
       const token = socket.handshake.auth?.token;
       if (!token) return next(new Error("Authentication required."));
       const payload = verifySessionToken(token);
-      if (!isValidId(payload?.sub) || !(await User.exists({ _id: payload.sub }))) {
+      const user = isValidId(payload?.sub) ? await User.findById(payload.sub).select("email role profileCompleted") : null;
+      if (!user) {
         return next(new Error("Invalid session."));
+      }
+      if (hasIncompleteAlumniProfile(user)) {
+        return next(new Error("Complete your profile to use chat."));
       }
       socket.data.userId = payload.sub;
       next();
