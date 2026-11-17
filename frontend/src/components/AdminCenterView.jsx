@@ -551,7 +551,7 @@ export const AdminCenterView = ({ currentUser }) => {
                     {manualRole === "alumni" && (
                       <div style={{
                         background: "#f8fafc",
-                        border: "1px solid #e7e5e4",
+                        border: "1px solid rgba(26, 26, 26, 0.09)",
                         borderRadius: "8px",
                         padding: "14px 16px",
                         display: "flex",
@@ -567,7 +567,7 @@ export const AdminCenterView = ({ currentUser }) => {
                         />
 
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
-                          <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1c1917", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "#18181b", display: "flex", alignItems: "center", gap: "6px" }}>
                             <Sparkles size={14} color="#0a66c2" /> Auto-Fill Alumnus from LinkedIn
                           </label>
                           <span style={{ fontSize: "0.74rem", color: "#78716c" }}>

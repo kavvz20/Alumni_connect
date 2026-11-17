@@ -423,9 +423,9 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
             marginBottom: "20px",
             padding: "14px 18px",
             borderRadius: "var(--radius-sm)",
-            border: "1px solid #f5c26b",
-            background: "#fff8e6",
-            color: "#7a4b00",
+            border: "1px solid rgba(146, 64, 14, 0.25)",
+            background: "rgba(146, 64, 14, 0.06)",
+            color: "#92400e",
             fontSize: "0.9rem",
             lineHeight: 1.5,
           }}

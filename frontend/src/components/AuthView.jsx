@@ -92,47 +92,47 @@ export const AuthView = ({ onAuthSuccess }) => {
         width: "100%",
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))",
-        gap: "36px",
+        gap: "clamp(32px, 5vw, 72px)",
         alignItems: "center",
       }}>
         {/* ========================================================================= */}
         {/* Left Side: Product Branding & Institutional Pillars                      */}
         {/* ========================================================================= */}
-        <div>
+        <div className="auth-hero">
           <div style={{
             display: "inline-flex",
             alignItems: "center",
             gap: "8px",
-            padding: "6px 16px",
+            padding: "5px 14px",
             background: "rgba(180, 83, 9, 0.08)",
             border: "1px solid rgba(180, 83, 9, 0.2)",
             borderRadius: "var(--radius-full)",
             color: "#92400e",
-            fontSize: "0.82rem",
+            fontSize: "0.75rem",
             fontWeight: 700,
             textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            marginBottom: "16px",
+            letterSpacing: "0.1em",
+            marginBottom: "20px",
           }}>
-            <Sparkles size={16} /> Thapar Alumni Ecosystem
+            <Sparkles size={14} /> Thapar Alumni Ecosystem
           </div>
 
           <h1 style={{
             fontSize: "clamp(2rem, 5vw, 3rem)",
             fontWeight: 800,
             lineHeight: 1.15,
-            marginBottom: "16px",
+            marginBottom: "18px",
             color: "#18181b",
           }}>
-            Bridging Students with Alumni
+            Bridging students with <span style={{ color: "#92400e" }}>alumni</span>
           </h1>
 
-          <p style={{ fontSize: "1rem", color: "#524f4a", lineHeight: 1.6, marginBottom: "28px" }}>
+          <p style={{ fontSize: "1.08rem", color: "#524f4a", lineHeight: 1.65, marginBottom: "36px", maxWidth: "520px" }}>
             An official, institution-managed ecosystem for 1-on-1 career mentorship, internal job referrals, peer forums, and verified alumni networking.
           </p>
 
           {/* 3 Core Pillars */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+          <div className="auth-pillars">
             <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
               <div style={{
                 width: "42px",
@@ -149,9 +149,9 @@ export const AuthView = ({ onAuthSuccess }) => {
                 <ShieldCheck size={22} />
               </div>
               <div>
-                <h4 style={{ fontSize: "1.02rem", fontWeight: 700, color: "#18181b" }}>Admin-Provisioned Accounts</h4>
+                <h4 style={{ fontSize: "1.02rem", fontWeight: 700, color: "#18181b" }}>Verified Identities</h4>
                 <p style={{ fontSize: "0.85rem", color: "#78716c" }}>
-                  All accounts are verified and provisioned directly by the university administration to guarantee authentic identities.
+                  Everyone signs in with Google, and every alumni profile is reviewed by the Alumni Relations Cell before it is marked verified.
                 </p>
               </div>
             </div>
@@ -211,20 +211,20 @@ export const AuthView = ({ onAuthSuccess }) => {
           background: "#ffffff",
           border: "1px solid var(--border-color)",
           borderRadius: "var(--radius-lg)",
-          padding: "36px",
-          boxShadow: "0 10px 40px rgba(0, 0, 0, 0.06)",
+          padding: "clamp(24px, 4vw, 40px)",
+          boxShadow: "var(--shadow-subtle)",
         }}>
           <div style={{ marginBottom: "24px" }}>
             <h2 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#18181b", marginBottom: "6px" }}>
               Sign In
             </h2>
-            <p style={{ fontSize: "0.88rem", color: "#78716c" }}>
+            <p style={{ fontSize: "0.92rem", color: "#78716c" }}>
               Choose your role, then continue with Google or sign in with your email and password.
             </p>
           </div>
 
           {/* Role selector (the server still decides the actual role) */}
-          <div role="radiogroup" aria-label="Sign in as" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "16px" }}>
+          <div role="radiogroup" aria-label="Sign in as" className="segmented" style={{ marginBottom: "16px" }}>
             {ROLE_OPTIONS.map(({ value, label, Icon }) => {
               const selected = role === value;
               return (
@@ -234,22 +234,9 @@ export const AuthView = ({ onAuthSuccess }) => {
                   role="radio"
                   aria-checked={selected}
                   onClick={() => setRole(value)}
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "4px",
-                    padding: "10px 6px",
-                    borderRadius: "var(--radius-sm)",
-                    border: selected ? "2px solid #18181b" : "1px solid var(--border-color)",
-                    background: selected ? "#fbf9f4" : "#ffffff",
-                    color: selected ? "#18181b" : "#78716c",
-                    fontWeight: selected ? 700 : 500,
-                    fontSize: "0.84rem",
-                    cursor: "pointer",
-                  }}
+                  className={`segmented__option${selected ? " is-selected" : ""}`}
                 >
-                  <Icon size={18} />
+                  <Icon size={16} />
                   {label}
                 </button>
               );

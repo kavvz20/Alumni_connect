@@ -251,7 +251,7 @@ export const AIMentorMatchView = ({ currentUser, onOpenMentorshipModal, onOpenRe
       )}
 
       {error && (
-        <div style={{ padding: "16px", background: "rgba(190, 18, 60, 0.06)", border: "1px solid rgba(190, 18, 60, 0.22)", borderRadius: "var(--radius-sm)", color: "#9f1239", marginBottom: "24px" }}>
+        <div style={{ padding: "16px", background: "rgba(190, 18, 60, 0.06)", border: "1px solid rgba(190, 18, 60, 0.22)", borderRadius: "var(--radius-sm)", color: "#be123c", marginBottom: "24px" }}>
           {error}
         </div>
       )}

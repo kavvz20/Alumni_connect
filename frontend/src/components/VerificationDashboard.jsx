@@ -17,7 +17,7 @@ const FILTERS = [
 const SOURCE_LABEL = { admin_manual: "Added by admin", admin_csv: "Admin CSV import", self_registered: "Self-registered" };
 
 const thStyle = { padding: "12px 14px" };
-const tdStyle = { padding: "14px", fontSize: "0.85rem", color: "#524f4a", verticalAlign: "top" };
+const tdStyle = { padding: "14px 16px", fontSize: "0.86rem", color: "#524f4a", verticalAlign: "middle" };
 const sectionTitle = { fontSize: "0.82rem", fontWeight: 800, color: "#18181b", textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 8px" };
 
 const StatusBadge = ({ status }) => {
@@ -381,33 +381,34 @@ export const VerificationDashboard = ({ onDeleteUser, onCountsChange }) => {
   };
 
   return (
-    <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "var(--radius-lg)", padding: "28px", boxShadow: "0 4px 20px rgba(0, 0, 0, 0.04)" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "6px" }}>
-        <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#18181b", margin: 0 }}>Alumni Verification Requests</h2>
+    <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "var(--radius-lg)", padding: "clamp(20px, 3vw, 32px)", boxShadow: "var(--shadow-subtle)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", marginBottom: "8px" }}>
+        <h2 style={{ fontWeight: 800, color: "#18181b", margin: 0 }}>Alumni Verification Requests</h2>
         <button type="button" onClick={rescoreAll} disabled={rescoring} className="btn btn-secondary btn-sm" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
           <RefreshCw size={14} className={rescoring ? "spin-animation" : undefined} /> Recompute all scores
         </button>
       </div>
-      <p style={{ fontSize: "0.82rem", color: "#78716c", margin: "0 0 12px", lineHeight: 1.5 }}>{SCORE_DISCLAIMER}</p>
+      <p style={{ fontSize: "0.9rem", color: "#78716c", margin: "0 0 20px", lineHeight: 1.6, maxWidth: "820px" }}>{SCORE_DISCLAIMER}</p>
       <ScoringStatus info={modelInfo} />
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center", marginBottom: "16px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center", margin: "20px 0 16px" }}>
         {FILTERS.map((f) => (
           <button
             key={f.value}
             type="button"
             onClick={() => setFilter(f.value)}
             aria-pressed={filter === f.value}
-            className={`btn btn-sm ${filter === f.value ? "btn-primary" : "btn-secondary"}`}
+            className={`chip${filter === f.value ? " active" : ""}`}
           >
-            {f.label} ({countFor(f.value)})
+            {f.label}
+            <span className="chip__count">{countFor(f.value)}</span>
           </button>
         ))}
-        <div style={{ position: "relative", marginLeft: "auto", minWidth: "min(100%, 220px)" }}>
-          <Search size={15} style={{ position: "absolute", left: "10px", top: "11px", color: "#8c857b" }} />
+        <div style={{ position: "relative", marginLeft: "auto", minWidth: "min(100%, 260px)" }}>
+          <Search size={16} style={{ position: "absolute", left: "13px", top: "14px", color: "#8c857b" }} />
           <input
             className="input-control"
-            style={{ paddingLeft: "32px" }}
+            style={{ paddingLeft: "38px" }}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, email, company"
@@ -416,12 +417,12 @@ export const VerificationDashboard = ({ onDeleteUser, onCountsChange }) => {
         </div>
       </div>
 
-      {error && <div role="alert" style={{ color: "#be123c", fontSize: "0.85rem", marginBottom: "12px" }}>{error}</div>}
+      {error && <div role="alert" className="alert alert-error">{error}</div>}
 
-      <div style={{ overflowX: "auto" }}>
+      <div className="table-responsive-wrapper">
         <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left" }}>
           <thead>
-            <tr style={{ borderBottom: "1px solid var(--border-color)", color: "#78716c", fontSize: "0.78rem", textTransform: "uppercase" }}>
+            <tr style={{ borderBottom: "1px solid var(--border-color)" }}>
               <th style={thStyle}>Alumnus</th>
               <th style={thStyle}>LinkedIn</th>
               <th style={thStyle}>Education / Grad. year</th>
@@ -434,11 +435,14 @@ export const VerificationDashboard = ({ onDeleteUser, onCountsChange }) => {
           <tbody>
             {!loading && items.length === 0 && (
               <tr>
-                <td colSpan={7} style={{ ...tdStyle, textAlign: "center", padding: "28px" }}>No alumni in this list.</td>
+                <td colSpan={7} style={{ ...tdStyle, textAlign: "center", padding: "48px 16px", color: "#78716c" }}>
+                  <strong style={{ display: "block", color: "#18181b", marginBottom: "4px" }}>Nothing here</strong>
+                  No alumni match this filter{search ? " and search" : ""}.
+                </td>
               </tr>
             )}
             {items.map((u) => (
-              <tr key={u._id} style={{ borderBottom: "1px solid rgba(0, 0, 0, 0.05)" }}>
+              <tr key={u._id} style={{ borderBottom: "1px solid var(--border-color)" }}>
                 <td style={tdStyle}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <Avatar user={{ ...u, role: "alumni" }} size={36} borderRadius="10px" />
@@ -464,7 +468,7 @@ export const VerificationDashboard = ({ onDeleteUser, onCountsChange }) => {
                   )}
                 </td>
                 <td style={{ ...tdStyle, textAlign: "right", whiteSpace: "nowrap" }}>
-                  <button type="button" onClick={() => setReviewId(u._id)} className="btn btn-primary btn-sm" style={{ fontSize: "0.8rem", marginRight: "8px" }}>
+                  <button type="button" onClick={() => setReviewId(u._id)} className="btn btn-primary btn-sm" style={{ marginRight: "8px" }}>
                     Review
                   </button>
                   <button
@@ -472,8 +476,8 @@ export const VerificationDashboard = ({ onDeleteUser, onCountsChange }) => {
                     onClick={async () => {
                       if (await onDeleteUser({ ...u, role: "alumni" })) load();
                     }}
-                    className="btn btn-secondary btn-sm"
-                    style={{ color: "#be123c", borderColor: "rgba(190, 18, 60, 0.25)", padding: "6px 9px", display: "inline-flex", alignItems: "center" }}
+                    className="btn btn-secondary btn-sm icon-btn"
+                    style={{ color: "#be123c" }}
                     title={`Delete ${u.name}'s account`}
                     aria-label={`Delete ${u.name}'s account`}
                   >

@@ -56,7 +56,7 @@ export const Navbar = ({
       background: "rgba(251, 249, 244, 0.97)",
       backdropFilter: "blur(20px)",
       borderBottom: "1px solid var(--border-color)",
-      boxShadow: "0 2px 14px rgba(28, 25, 23, 0.06)",
+      boxShadow: "0 1px 0 rgba(28, 25, 23, 0.02)",
     }}>
       {/* ========================================================================= */}
       {/* 1st Tier (Main Top Navbar): Logo, Branding, User Profile & Auth Controls  */}
@@ -68,7 +68,7 @@ export const Navbar = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        height: "60px",
+        height: "64px",
         borderBottom: currentUser ? "1px solid rgba(0, 0, 0, 0.06)" : "none",
         gap: "12px",
       }}>
@@ -228,7 +228,7 @@ export const Navbar = ({
             padding: "0 24px",
             display: "flex",
             alignItems: "center",
-            height: "46px",
+            height: "52px",
             overflowX: "auto",
             scrollbarWidth: "none",
           }}>
@@ -237,7 +237,7 @@ export const Navbar = ({
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
+                gap: "4px",
               }}
             >
               {visibleTabs.map((tab) => {
@@ -255,18 +255,18 @@ export const Navbar = ({
                       display: "flex",
                       alignItems: "center",
                       gap: "7px",
-                      padding: "6px 14px",
-                      borderRadius: "var(--radius-sm)",
+                      padding: "7px 14px",
+                      borderRadius: "var(--radius-full)",
                       background: isActive ? "#18181b" : "transparent",
                       color: isActive ? "#fbf9f4" : "#44403c",
                       border: isActive ? "1px solid #18181b" : "1px solid transparent",
                       fontFamily: "var(--font-heading)",
-                      fontSize: "0.85rem",
-                      fontWeight: isActive ? 600 : 500,
+                      fontSize: "0.86rem",
+                      fontWeight: isActive ? 700 : 500,
                       cursor: "pointer",
                       transition: "all 0.15s ease",
                       whiteSpace: "nowrap",
-                      boxShadow: isActive ? "0 2px 8px rgba(0, 0, 0, 0.15)" : "none",
+                      boxShadow: isActive ? "0 2px 6px rgba(0, 0, 0, 0.12)" : "none",
                     }}
                   >
                     <Icon size={15} color={isActive ? "#fbf9f4" : "#57534e"} />

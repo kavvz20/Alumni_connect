@@ -116,7 +116,7 @@ export const ScoreBadge = ({ score, size = "sm" }) => {
     score.method !== "ml" && Array.isArray(score.checks) && score.checks.length > 0 && score.checks.every((c) => c.result === "missing");
   if (noEvidence) {
     return (
-      <span className="badge" style={{ background: "#f5f5f4", color: "#78716c", border: "1px solid #e7e5e4" }} title="Nothing to check yet: no LinkedIn PDF or profile details.">
+      <span className="badge" style={{ background: "#f5f5f4", color: "#78716c", border: "1px solid rgba(26, 26, 26, 0.09)" }} title="Nothing to check yet: no LinkedIn PDF or profile details.">
         No evidence yet
       </span>
     );

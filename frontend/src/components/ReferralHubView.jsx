@@ -91,7 +91,7 @@ export const ReferralHubView = ({
 
       {/* Error */}
       {error && (
-        <div style={{ padding: "16px", background: "rgba(190, 18, 60, 0.06)", border: "1px solid rgba(190, 18, 60, 0.22)", borderRadius: "8px", color: "#9f1239", marginBottom: "20px" }}>
+        <div style={{ padding: "16px", background: "rgba(190, 18, 60, 0.06)", border: "1px solid rgba(190, 18, 60, 0.22)", borderRadius: "8px", color: "#be123c", marginBottom: "20px" }}>
           {error}
         </div>
       )}

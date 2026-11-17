@@ -193,7 +193,7 @@ export const PublicProfileView = ({
                 padding: "6px 12px",
                 fontSize: "0.8rem",
                 fontWeight: 600,
-                color: "#1c1917",
+                color: "#18181b",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -664,13 +664,13 @@ export const PublicProfileView = ({
                       width: "48px",
                       height: "48px",
                       borderRadius: "10px",
-                      background: "linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)",
-                      border: "1px solid #d6d3d1",
+                      background: "linear-gradient(135deg, #f5f5f4 0%, #f3efe6 100%)",
+                      border: "1px solid #a8a29e",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       fontWeight: 800,
-                      color: "#1c1917",
+                      color: "#18181b",
                       fontSize: "1.1rem",
                       flexShrink: 0,
                     }}>
@@ -764,12 +764,12 @@ export const PublicProfileView = ({
                     key={idx}
                     style={{
                       background: "#f8fafc",
-                      border: "1px solid #e7e5e4",
+                      border: "1px solid rgba(26, 26, 26, 0.09)",
                       borderRadius: "20px",
                       padding: "6px 14px",
                       fontSize: "0.84rem",
                       fontWeight: 600,
-                      color: "#1c1917",
+                      color: "#18181b",
                       transition: "all 0.15s ease",
                     }}
                   >
@@ -843,13 +843,13 @@ export const PublicProfileView = ({
             padding: "20px",
             boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
           }}>
-            <h4 style={{ margin: "0 0 12px", fontSize: "0.92rem", fontWeight: 700, color: "#1c1917" }}>
+            <h4 style={{ margin: "0 0 12px", fontSize: "0.92rem", fontWeight: 700, color: "#18181b" }}>
               Public Profile & URL
             </h4>
             <div style={{
               padding: "8px 10px",
               background: "#f8fafc",
-              border: "1px solid #e7e5e4",
+              border: "1px solid rgba(26, 26, 26, 0.09)",
               borderRadius: "6px",
               fontSize: "0.76rem",
               color: "#78716c",
@@ -889,7 +889,7 @@ export const PublicProfileView = ({
             padding: "20px",
             boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
           }}>
-            <h4 style={{ margin: "0 0 12px", fontSize: "0.92rem", fontWeight: 700, color: "#1c1917" }}>
+            <h4 style={{ margin: "0 0 12px", fontSize: "0.92rem", fontWeight: 700, color: "#18181b" }}>
               Community Affiliation
             </h4>
 

@@ -161,10 +161,12 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
             fontSize: "0.85rem",
             color: isVerified ? "var(--accent-emerald)" : "var(--text-muted)",
             cursor: "pointer",
-            background: isVerified ? "rgba(16, 185, 129, 0.12)" : "rgba(255, 255, 255, 0.05)",
-            padding: "8px 14px",
+            background: isVerified ? "rgba(4, 120, 87, 0.08)" : "#ffffff",
+            padding: "0 14px",
+            minHeight: "44px",
+            fontWeight: 600,
             borderRadius: "var(--radius-sm)",
-            border: `1px solid ${isVerified ? "rgba(16, 185, 129, 0.3)" : "var(--border-color)"}`,
+            border: `1px solid ${isVerified ? "rgba(4, 120, 87, 0.25)" : "rgba(24, 24, 27, 0.16)"}`,
             flexShrink: 0,
           }}>
             <input
@@ -208,95 +210,71 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
 
       {/* Directory Grid */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "60px 0", color: "var(--text-muted)" }}>
-          Loading alumni network...
+        <div className="responsive-cards-grid" aria-busy="true" aria-label="Loading alumni">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="glass-panel skeleton-card" />
+          ))}
+        </div>
+      ) : alumniList.length === 0 ? (
+        <div className="empty-state">
+          <Search size={28} />
+          <h3>No alumni match these filters</h3>
+          <p>Try a broader search, or clear the filters to see everyone.</p>
         </div>
       ) : (
-        <div className="responsive-cards-grid">
-          {alumniList.map((alumnus) => (
-            <div key={alumnus._id} className="glass-panel glass-panel-hover" style={{ padding: "24px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-              <div>
-                {/* Header badges */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "16px" }}>
-                  {alumnus.isVerified && (
-                    <span className="badge badge-emerald">
-                      <CheckCircle2 size={12} /> Verified Alumni
-                    </span>
-                  )}
-                  {alumnus.availableForMentorshipCalls && (
-                    <span className="badge badge-indigo">
-                      Open to Mentor
-                    </span>
-                  )}
-                  {alumnus.willingToRefer && (
-                    <span className="badge badge-amber">
-                      Willing to Refer
-                    </span>
-                  )}
-                </div>
-
-                {/* Profile row */}
+        <>
+          <div className="results-meta">
+            Showing <strong>{alumniList.length}</strong> {alumniList.length === 1 ? "alumnus" : "alumni"}
+          </div>
+          <div className="responsive-cards-grid">
+            {alumniList.map((alumnus) => (
+              <article key={alumnus._id} className="glass-panel glass-panel-hover alumni-card">
+                {/* Identity */}
                 <div
+                  className="alumni-card__identity"
                   onClick={() => navigate(`/profile/${alumnus._id}`)}
-                  style={{ display: "flex", gap: "14px", marginBottom: "16px", cursor: "pointer" }}
-                  title="Click to view LinkedIn-style profile"
+                  title="View profile"
                 >
-                  <Avatar
-                    user={alumnus}
-                    size={54}
-                    borderRadius="16px"
-                  />
-
+                  <Avatar user={alumnus} size={56} borderRadius="16px" />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <h3 style={{ fontSize: "1.15rem", fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                        {alumnus.name}
-                      </h3>
-                    </div>
-                    <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--accent-amber)" }}>
-                      {alumnus.currentRole} {alumnus.currentCompany ? `@ ${alumnus.currentCompany}` : ""}
-                    </div>
-                    <div style={{ fontSize: "0.78rem", color: "var(--text-subtle)" }}>
-                      {alumnus.branch} · Batch of {alumnus.batch}
+                    <h3 className="alumni-card__name">
+                      <span>{alumnus.name}</span>
+                      {alumnus.isVerified && (
+                        <CheckCircle2 size={16} color="#047857" aria-label="Verified alumnus" style={{ flexShrink: 0 }} />
+                      )}
+                    </h3>
+                    {(alumnus.currentRole || alumnus.currentCompany) && (
+                      <div className="alumni-card__role">
+                        {alumnus.currentRole}
+                        {alumnus.currentCompany ? <span> · {alumnus.currentCompany}</span> : null}
+                      </div>
+                    )}
+                    <div className="alumni-card__meta">
+                      {[alumnus.branch, alumnus.batch ? `Class of ${alumnus.batch}` : null].filter(Boolean).join(" · ")}
                     </div>
                   </div>
                 </div>
 
-                {alumnus.bio && (
-                  <p style={{
-                    fontSize: "0.86rem",
-                    color: "var(--text-muted)",
-                    marginBottom: "16px",
-                    lineHeight: 1.45,
-                    display: "-webkit-box",
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}>
-                    {alumnus.bio}
-                  </p>
+                {alumnus.bio && <p className="alumni-card__bio">{alumnus.bio}</p>}
+
+                {(alumnus.skills || []).length > 0 && (
+                  <div className="tag-list">
+                    {alumnus.skills.slice(0, 4).map((s, idx) => (
+                      <span key={idx} className="tag">{s}</span>
+                    ))}
+                    {alumnus.skills.length > 4 && <span className="tag tag--more">+{alumnus.skills.length - 4}</span>}
+                  </div>
                 )}
 
-                {/* Skills/Expertise */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "18px" }}>
-                  {(alumnus.skills || []).slice(0, 4).map((s, idx) => (
-                    <span key={idx} style={{
-                      background: "rgba(255, 255, 255, 0.05)",
-                      border: "1px solid var(--border-color)",
-                      borderRadius: "6px",
-                      padding: "3px 8px",
-                      fontSize: "0.74rem",
-                      color: "var(--text-muted)",
-                    }}>
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
+                {(alumnus.availableForMentorshipCalls || alumnus.willingToRefer) && (
+                  <div className="alumni-card__offers">
+                    {alumnus.availableForMentorshipCalls && <span className="badge badge-indigo">Open to mentor</span>}
+                    {alumnus.willingToRefer && <span className="badge badge-amber">Gives referrals</span>}
+                  </div>
+                )}
 
-              {/* Action Buttons */}
-              <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "16px" }}>
-                <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
+                {/* Actions */}
+                <div className="alumni-card__actions">
                   {alumnus.availableForMentorshipCalls && (
                     <button
                       type="button"
@@ -305,10 +283,9 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                       className="btn btn-primary btn-sm"
                       style={{ flex: 1 }}
                     >
-                      <Calendar size={14} /> Request Call
+                      <Calendar size={14} /> Request call
                     </button>
                   )}
-
                   {alumnus.willingToRefer && (
                     <button
                       type="button"
@@ -320,33 +297,41 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                       <Briefcase size={14} /> Referral
                     </button>
                   )}
-                </div>
-
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button
-                    type="button"
-                    aria-label={`View profile of ${alumnus.name}`}
-                    onClick={() => navigate(`/profile/${alumnus._id}`)}
-                    className="btn btn-secondary btn-sm"
-                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
-                  >
-                    <User size={14} /> View Profile
-                  </button>
-
+                  {!alumnus.availableForMentorshipCalls && !alumnus.willingToRefer && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/profile/${alumnus._id}`)}
+                      className="btn btn-secondary btn-sm"
+                      style={{ flex: 1 }}
+                    >
+                      <User size={14} /> View profile
+                    </button>
+                  )}
+                  {(alumnus.availableForMentorshipCalls || alumnus.willingToRefer) && (
+                    <button
+                      type="button"
+                      aria-label={`View profile of ${alumnus.name}`}
+                      title="View profile"
+                      onClick={() => navigate(`/profile/${alumnus._id}`)}
+                      className="btn btn-secondary btn-sm icon-btn"
+                    >
+                      <User size={15} />
+                    </button>
+                  )}
                   <button
                     type="button"
                     aria-label={`Chat with ${alumnus.name}`}
+                    title="Chat"
                     onClick={() => onStartChat(alumnus)}
-                    className="btn btn-secondary btn-sm"
-                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                    className="btn btn-secondary btn-sm icon-btn"
                   >
-                    <MessageSquare size={14} /> Chat
+                    <MessageSquare size={15} />
                   </button>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
