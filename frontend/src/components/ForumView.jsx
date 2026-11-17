@@ -101,7 +101,7 @@ export const ForumView = ({ currentUser, onOpenAskModal }) => {
             </h1>
 
             <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "0.82rem", color: "var(--text-subtle)" }}>
-              <span>Asked by <strong style={{ color: "#fff" }}>{activePost.authorId?.name || "Student"}</strong></span>
+              <span>Asked by <strong style={{ color: "var(--text-main)" }}>{activePost.authorId?.name || "Student"}</strong></span>
               <span>·</span>
               <span>{new Date(activePost.createdAt).toLocaleDateString()}</span>
             </div>
@@ -141,7 +141,7 @@ export const ForumView = ({ currentUser, onOpenAskModal }) => {
 
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <strong style={{ fontSize: "0.95rem", color: "#fff" }}>{comment.authorId?.name}</strong>
+                        <strong style={{ fontSize: "0.95rem", color: "var(--text-main)" }}>{comment.authorId?.name}</strong>
                         {comment.authorId?.role === "alumni" && (
                           <span className="badge badge-amber" style={{ fontSize: "0.68rem" }}>
                             Alumni
@@ -190,8 +190,8 @@ export const ForumView = ({ currentUser, onOpenAskModal }) => {
           ) : (
             <div style={{
               padding: "16px 20px",
-              background: "rgba(99, 102, 241, 0.1)",
-              border: "1px solid rgba(99, 102, 241, 0.25)",
+              background: "rgba(146, 64, 14, 0.06)",
+              border: "1px solid rgba(146, 64, 14, 0.2)",
               borderRadius: "var(--radius-sm)",
               color: "var(--text-muted)",
               fontSize: "0.88rem",
@@ -294,7 +294,7 @@ export const ForumView = ({ currentUser, onOpenAskModal }) => {
                       ))}
                     </div>
 
-                    <h3 style={{ fontSize: "1.15rem", fontWeight: 700, marginBottom: "8px", color: "#fff" }}>
+                    <h3 style={{ fontSize: "1.15rem", fontWeight: 700, marginBottom: "8px", color: "var(--text-main)" }}>
                       {post.question}
                     </h3>
 

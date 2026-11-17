@@ -82,18 +82,7 @@ export const ReferralHubView = ({
           <button
             key={st}
             onClick={() => setFilterStatus(st)}
-            style={{
-              padding: "7px 16px",
-              borderRadius: "var(--radius-sm)",
-              border: filterStatus === st ? "1px solid var(--accent-amber)" : "1px solid var(--border-color)",
-              background: filterStatus === st ? "rgba(245, 158, 11, 0.15)" : "rgba(255, 255, 255, 0.04)",
-              color: filterStatus === st ? "#fbbf24" : "var(--text-muted)",
-              fontFamily: "var(--font-heading)",
-              fontSize: "0.85rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              textTransform: "capitalize",
-            }}
+            className={`chip${filterStatus === st ? " active" : ""}`} style={{ textTransform: "capitalize" }}
           >
             {st || "All Applications"}
           </button>
@@ -102,7 +91,7 @@ export const ReferralHubView = ({
 
       {/* Error */}
       {error && (
-        <div style={{ padding: "16px", background: "rgba(244, 63, 94, 0.15)", borderRadius: "8px", color: "#fda4af", marginBottom: "20px" }}>
+        <div style={{ padding: "16px", background: "rgba(190, 18, 60, 0.06)", border: "1px solid rgba(190, 18, 60, 0.22)", borderRadius: "8px", color: "#9f1239", marginBottom: "20px" }}>
           {error}
         </div>
       )}
@@ -142,8 +131,8 @@ export const ReferralHubView = ({
                     <Avatar user={counterpart} size={48} borderRadius="14px" />
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                        <Building size={16} color="#fbbf24" />
-                        <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "#fff" }}>
+                        <Building size={16} color="#92400e" />
+                        <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-main)" }}>
                           {item.companyName}
                         </span>
                         <span style={{ fontSize: "0.85rem", color: "var(--text-subtle)" }}>
@@ -179,7 +168,7 @@ export const ReferralHubView = ({
                     href={item.jobLink}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", color: "#a5b4fc" }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", color: "var(--accent-cyan)" }}
                   >
                     <ExternalLink size={14} /> Open Portal Job Posting
                   </a>
@@ -188,7 +177,7 @@ export const ReferralHubView = ({
                     href={item.resumeUrl}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", color: "#6ee7b7" }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", color: "var(--accent-emerald)" }}
                   >
                     <FileText size={14} /> View Verified Resume (RecruitSage)
                   </a>

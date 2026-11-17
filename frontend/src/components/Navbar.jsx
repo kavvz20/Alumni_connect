@@ -247,6 +247,7 @@ export const Navbar = ({
                   <button
                     key={tab.path}
                     type="button"
+                    className="nav-tab"
                     aria-current={isActive ? "page" : undefined}
                     aria-label={tab.label}
                     onClick={() => navigate(tab.path)}

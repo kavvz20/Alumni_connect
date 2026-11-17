@@ -159,7 +159,7 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
             alignItems: "center",
             gap: "8px",
             fontSize: "0.85rem",
-            color: isVerified ? "#6ee7b7" : "var(--text-muted)",
+            color: isVerified ? "var(--accent-emerald)" : "var(--text-muted)",
             cursor: "pointer",
             background: isVerified ? "rgba(16, 185, 129, 0.12)" : "rgba(255, 255, 255, 0.05)",
             padding: "8px 14px",
@@ -253,7 +253,7 @@ export const AlumniDirectoryView = ({ currentUser, onOpenMentorshipModal, onOpen
                         {alumnus.name}
                       </h3>
                     </div>
-                    <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "#fbbf24" }}>
+                    <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--accent-amber)" }}>
                       {alumnus.currentRole} {alumnus.currentCompany ? `@ ${alumnus.currentCompany}` : ""}
                     </div>
                     <div style={{ fontSize: "0.78rem", color: "var(--text-subtle)" }}>

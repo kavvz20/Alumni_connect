@@ -551,7 +551,7 @@ export const AdminCenterView = ({ currentUser }) => {
                     {manualRole === "alumni" && (
                       <div style={{
                         background: "#f8fafc",
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid #e7e5e4",
                         borderRadius: "8px",
                         padding: "14px 16px",
                         display: "flex",
@@ -567,10 +567,10 @@ export const AdminCenterView = ({ currentUser }) => {
                         />
 
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
-                          <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1e293b", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1c1917", display: "flex", alignItems: "center", gap: "6px" }}>
                             <Sparkles size={14} color="#0a66c2" /> Auto-Fill Alumnus from LinkedIn
                           </label>
-                          <span style={{ fontSize: "0.74rem", color: "#64748b" }}>
+                          <span style={{ fontSize: "0.74rem", color: "#78716c" }}>
                             Auto-populates Name, Company, Role, Batch & Skills
                           </span>
                         </div>
@@ -601,7 +601,7 @@ export const AdminCenterView = ({ currentUser }) => {
                               <><Upload size={13} /> Upload LinkedIn PDF (Recommended)</>
                             )}
                           </button>
-                          <span style={{ fontSize: "0.74rem", color: "#64748b" }}>
+                          <span style={{ fontSize: "0.74rem", color: "#78716c" }}>
                             From LinkedIn &rarr; More (...) &rarr; Save to PDF
                           </span>
                         </div>
@@ -673,7 +673,7 @@ export const AdminCenterView = ({ currentUser }) => {
                               })()}
                             </div>
                             {manualScrapedData.skills && manualScrapedData.skills.length > 0 && (
-                              <div style={{ fontSize: "0.74rem", color: "#64748b" }}>
+                              <div style={{ fontSize: "0.74rem", color: "#78716c" }}>
                                 ⚡ Skills: {manualScrapedData.skills.slice(0, 6).join(", ")}
                               </div>
                             )}

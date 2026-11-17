@@ -112,6 +112,15 @@ export const ScoreBadge = ({ score, size = "sm" }) => {
   if (!score || typeof score.value !== "number") {
     return <span className="badge" style={{ background: "#f5f5f4", color: "#78716c" }}>Not scored</span>;
   }
+  const noEvidence =
+    score.method !== "ml" && Array.isArray(score.checks) && score.checks.length > 0 && score.checks.every((c) => c.result === "missing");
+  if (noEvidence) {
+    return (
+      <span className="badge" style={{ background: "#f5f5f4", color: "#78716c", border: "1px solid #e7e5e4" }} title="Nothing to check yet: no LinkedIn PDF or profile details.">
+        No evidence yet
+      </span>
+    );
+  }
   const pct = Math.round(score.value * 100);
   const tone = pct >= 75 ? "badge-emerald" : pct >= 40 ? "badge-amber" : "badge-rose";
   const method = score.method === "ml" ? `ML model ${score.version || ""}`.trim() : "Rule-based evidence score";

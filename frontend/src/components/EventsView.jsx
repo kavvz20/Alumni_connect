@@ -59,18 +59,7 @@ export const EventsView = ({ currentUser, onOpenCreateEventModal }) => {
             <button
               key={tf}
               onClick={() => setTimeframe(tf)}
-              style={{
-                padding: "7px 16px",
-                borderRadius: "var(--radius-sm)",
-                border: timeframe === tf ? "1px solid var(--accent-primary)" : "1px solid var(--border-color)",
-                background: timeframe === tf ? "rgba(99, 102, 241, 0.2)" : "rgba(255, 255, 255, 0.04)",
-                color: timeframe === tf ? "#fff" : "var(--text-muted)",
-                fontFamily: "var(--font-heading)",
-                fontSize: "0.85rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                textTransform: "capitalize",
-              }}
+              className={`chip${timeframe === tf ? " active" : ""}`} style={{ textTransform: "capitalize" }}
             >
               {tf ? `${tf} Events` : "All Time"}
             </button>

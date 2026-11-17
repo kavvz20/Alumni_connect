@@ -168,7 +168,7 @@ export const PublicProfileView = ({
             style={{
               background: "transparent",
               border: "none",
-              color: "#475569",
+              color: "#524f4a",
               fontSize: "0.88rem",
               fontWeight: 600,
               cursor: "pointer",
@@ -193,7 +193,7 @@ export const PublicProfileView = ({
                 padding: "6px 12px",
                 fontSize: "0.8rem",
                 fontWeight: 600,
-                color: "#1e293b",
+                color: "#1c1917",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -230,7 +230,7 @@ export const PublicProfileView = ({
         {/* Cover Banner with Thapar Network branding */}
         <div style={{
           height: "190px",
-          background: "linear-gradient(135deg, #091e42 0%, #0a4d8c 45%, #0284c7 85%, #38bdf8 100%)",
+          background: "linear-gradient(135deg, #091e42 0%, #0a4d8c 45%, #0284c7 85%, #0369a1 100%)",
           position: "relative",
           padding: "16px 24px",
           display: "flex",
@@ -481,18 +481,18 @@ export const PublicProfileView = ({
               gap: "16px",
               flexWrap: "wrap",
               fontSize: "0.86rem",
-              color: "#64748b",
+              color: "#78716c",
               marginBottom: "14px",
             }}>
               <span style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                <MapPin size={15} color="#94a3b8" /> Patiala, Punjab, India
+                <MapPin size={15} color="#a8a29e" /> Patiala, Punjab, India
               </span>
               <span style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                <Building size={15} color="#94a3b8" /> Thapar Institute of Engineering & Technology
+                <Building size={15} color="#a8a29e" /> Thapar Institute of Engineering & Technology
               </span>
               {user.batch && (
                 <span style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                  <GraduationCap size={15} color="#94a3b8" /> Class of {user.batch}
+                  <GraduationCap size={15} color="#a8a29e" /> Class of {user.batch}
                 </span>
               )}
             </div>
@@ -535,8 +535,8 @@ export const PublicProfileView = ({
 
               {user.industry && (
                 <span style={{
-                  background: "#f1f5f9",
-                  color: "#475569",
+                  background: "#f5f5f4",
+                  color: "#524f4a",
                   borderRadius: "20px",
                   padding: "4px 12px",
                   fontSize: "0.78rem",
@@ -554,7 +554,7 @@ export const PublicProfileView = ({
               gap: "14px",
               flexWrap: "wrap",
               paddingTop: "14px",
-              borderTop: "1px solid #f1f5f9",
+              borderTop: "1px solid #f5f5f4",
               fontSize: "0.82rem",
             }}>
               {user.email && (
@@ -576,7 +576,7 @@ export const PublicProfileView = ({
                   title="Click to copy email address"
                 >
                   <Mail size={14} /> {user.email}
-                  {copiedEmail ? <Check size={12} color="#059669" /> : <Copy size={12} color="#94a3b8" />}
+                  {copiedEmail ? <Check size={12} color="#059669" /> : <Copy size={12} color="#a8a29e" />}
                 </button>
               )}
 
@@ -656,7 +656,7 @@ export const PublicProfileView = ({
                       gap: "16px",
                       position: "relative",
                       paddingBottom: idx !== experienceItems.length - 1 ? "18px" : "0",
-                      borderBottom: idx !== experienceItems.length - 1 ? "1px solid #f1f5f9" : "none",
+                      borderBottom: idx !== experienceItems.length - 1 ? "1px solid #f5f5f4" : "none",
                     }}
                   >
                     {/* Company Initial / Logo Circle */}
@@ -664,13 +664,13 @@ export const PublicProfileView = ({
                       width: "48px",
                       height: "48px",
                       borderRadius: "10px",
-                      background: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)",
-                      border: "1px solid #cbd5e1",
+                      background: "linear-gradient(135deg, #f5f5f4 0%, #e7e5e4 100%)",
+                      border: "1px solid #d6d3d1",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       fontWeight: 800,
-                      color: "#1e293b",
+                      color: "#1c1917",
                       fontSize: "1.1rem",
                       flexShrink: 0,
                     }}>
@@ -678,17 +678,17 @@ export const PublicProfileView = ({
                     </div>
 
                     <div style={{ flex: 1 }}>
-                      <h4 style={{ margin: 0, fontSize: "1.02rem", fontWeight: 700, color: "#0f172a" }}>
+                      <h4 style={{ margin: 0, fontSize: "1.02rem", fontWeight: 700, color: "#141416" }}>
                         {item.role || "Software Professional"}
                       </h4>
                       <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "#0a66c2", marginTop: "2px" }}>
                         {item.company}
                       </div>
-                      <div style={{ fontSize: "0.78rem", color: "#64748b", marginTop: "2px" }}>
+                      <div style={{ fontSize: "0.78rem", color: "#78716c", marginTop: "2px" }}>
                         {item.dates || "Present"}
                       </div>
                       {item.description && (
-                        <p style={{ margin: "6px 0 0", fontSize: "0.84rem", color: "#475569", lineHeight: 1.5 }}>
+                        <p style={{ margin: "6px 0 0", fontSize: "0.84rem", color: "#524f4a", lineHeight: 1.5 }}>
                           {item.description}
                         </p>
                       )}
@@ -697,7 +697,7 @@ export const PublicProfileView = ({
                 ))}
               </div>
             ) : (
-              <div style={{ color: "#64748b", fontSize: "0.86rem" }}>
+              <div style={{ color: "#78716c", fontSize: "0.86rem" }}>
                 No past experience recorded yet.
               </div>
             )}
@@ -732,13 +732,13 @@ export const PublicProfileView = ({
               </div>
 
               <div>
-                <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "#0f172a" }}>
+                <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700, color: "#141416" }}>
                   Thapar Institute of Engineering & Technology
                 </h4>
                 <div style={{ fontSize: "0.9rem", color: "#334155", marginTop: "3px" }}>
                   Bachelor of Technology - B.Tech, {user.branch || "Engineering"}
                 </div>
-                <div style={{ fontSize: "0.8rem", color: "#64748b", marginTop: "2px" }}>
+                <div style={{ fontSize: "0.8rem", color: "#78716c", marginTop: "2px" }}>
                   {user.batch ? `${user.batch - 4} - ${user.batch}` : "2020 - 2024"} · Patiala, Punjab
                 </div>
               </div>
@@ -764,12 +764,12 @@ export const PublicProfileView = ({
                     key={idx}
                     style={{
                       background: "#f8fafc",
-                      border: "1px solid #e2e8f0",
+                      border: "1px solid #e7e5e4",
                       borderRadius: "20px",
                       padding: "6px 14px",
                       fontSize: "0.84rem",
                       fontWeight: 600,
-                      color: "#1e293b",
+                      color: "#1c1917",
                       transition: "all 0.15s ease",
                     }}
                   >
@@ -843,16 +843,16 @@ export const PublicProfileView = ({
             padding: "20px",
             boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
           }}>
-            <h4 style={{ margin: "0 0 12px", fontSize: "0.92rem", fontWeight: 700, color: "#1e293b" }}>
+            <h4 style={{ margin: "0 0 12px", fontSize: "0.92rem", fontWeight: 700, color: "#1c1917" }}>
               Public Profile & URL
             </h4>
             <div style={{
               padding: "8px 10px",
               background: "#f8fafc",
-              border: "1px solid #e2e8f0",
+              border: "1px solid #e7e5e4",
               borderRadius: "6px",
               fontSize: "0.76rem",
-              color: "#64748b",
+              color: "#78716c",
               wordBreak: "break-all",
               marginBottom: "10px",
             }}>
@@ -889,28 +889,28 @@ export const PublicProfileView = ({
             padding: "20px",
             boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
           }}>
-            <h4 style={{ margin: "0 0 12px", fontSize: "0.92rem", fontWeight: 700, color: "#1e293b" }}>
+            <h4 style={{ margin: "0 0 12px", fontSize: "0.92rem", fontWeight: 700, color: "#1c1917" }}>
               Community Affiliation
             </h4>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "0.84rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "#78716c" }}>
                 <span>University</span>
-                <strong style={{ color: "#0f172a" }}>TIET Patiala</strong>
+                <strong style={{ color: "#141416" }}>TIET Patiala</strong>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "#78716c" }}>
                 <span>Department</span>
-                <strong style={{ color: "#0f172a" }}>{user.branch || "Engineering"}</strong>
+                <strong style={{ color: "#141416" }}>{user.branch || "Engineering"}</strong>
               </div>
               {user.batch && (
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "#78716c" }}>
                   <span>Graduation Class</span>
-                  <strong style={{ color: "#0f172a" }}>{user.batch}</strong>
+                  <strong style={{ color: "#141416" }}>{user.batch}</strong>
                 </div>
               )}
-              <div style={{ display: "flex", justifyContent: "space-between", color: "#64748b" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "#78716c" }}>
                 <span>Alumni Verification</span>
-                <strong style={{ color: user.isVerified ? "#059669" : "#64748b" }}>
+                <strong style={{ color: user.isVerified ? "#059669" : "#78716c" }}>
                   {user.isVerified ? "✅ Verified" : "Standard"}
                 </strong>
               </div>
@@ -926,10 +926,10 @@ export const PublicProfileView = ({
               padding: "20px",
               textAlign: "center",
             }}>
-              <h4 style={{ margin: "0 0 6px", fontSize: "0.98rem", fontWeight: 800, color: "#0f172a" }}>
+              <h4 style={{ margin: "0 0 6px", fontSize: "0.98rem", fontWeight: 800, color: "#141416" }}>
                 Connect with {user.name}
               </h4>
-              <p style={{ margin: "0 0 14px", fontSize: "0.8rem", color: "#475569" }}>
+              <p style={{ margin: "0 0 14px", fontSize: "0.8rem", color: "#524f4a" }}>
                 Reach out for career advice, mentorship calls, or industry referral discussions.
               </p>
               <button

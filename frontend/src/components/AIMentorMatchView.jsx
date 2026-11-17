@@ -95,7 +95,7 @@ export const AIMentorMatchView = ({ currentUser, onOpenMentorshipModal, onOpenRe
           fontSize: "2.8rem",
           fontWeight: 800,
           marginBottom: "12px",
-          background: "linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%)",
+          background: "linear-gradient(135deg, #18181b 35%, #92400e 100%)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
         }}>
@@ -114,7 +114,7 @@ export const AIMentorMatchView = ({ currentUser, onOpenMentorshipModal, onOpenRe
           right: "-60px",
           width: "200px",
           height: "200px",
-          background: "radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(180, 83, 9, 0.12) 0%, transparent 70%)",
           pointerEvents: "none",
         }} />
 
@@ -251,7 +251,7 @@ export const AIMentorMatchView = ({ currentUser, onOpenMentorshipModal, onOpenRe
       )}
 
       {error && (
-        <div style={{ padding: "16px", background: "rgba(244, 63, 94, 0.15)", border: "1px solid rgba(244, 63, 94, 0.3)", borderRadius: "var(--radius-sm)", color: "#fda4af", marginBottom: "24px" }}>
+        <div style={{ padding: "16px", background: "rgba(190, 18, 60, 0.06)", border: "1px solid rgba(190, 18, 60, 0.22)", borderRadius: "var(--radius-sm)", color: "#9f1239", marginBottom: "24px" }}>
           {error}
         </div>
       )}
@@ -285,12 +285,12 @@ export const AIMentorMatchView = ({ currentUser, onOpenMentorshipModal, onOpenRe
                     display: "flex",
                     alignItems: "center",
                     gap: "6px",
-                    background: "rgba(99, 102, 241, 0.15)",
-                    border: "1px solid rgba(99, 102, 241, 0.3)",
+                    background: "rgba(146, 64, 14, 0.08)",
+                    border: "1px solid rgba(146, 64, 14, 0.25)",
                     padding: "3px 10px",
                     borderRadius: "var(--radius-full)",
                   }}>
-                    <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#a5b4fc" }}>{matchScore}%</span>
+                    <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--accent-amber)" }}>{matchScore}%</span>
                     <span style={{ fontSize: "0.7rem", color: "var(--text-subtle)", textTransform: "uppercase" }}>Match</span>
                   </div>
                 </div>
@@ -308,7 +308,7 @@ export const AIMentorMatchView = ({ currentUser, onOpenMentorshipModal, onOpenRe
                         <CheckCircle2 size={16} color="#10b981" title="Admin Verified Alumni" />
                       )}
                     </div>
-                    <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "#fbbf24" }}>
+                    <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--accent-amber)" }}>
                       {alumnus.currentRole} {alumnus.currentCompany ? `@ ${alumnus.currentCompany}` : ""}
                     </div>
                     <div style={{ fontSize: "0.78rem", color: "var(--text-subtle)" }}>

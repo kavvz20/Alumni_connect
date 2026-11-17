@@ -64,16 +64,7 @@ export const SuccessStoriesView = ({ currentUser, onOpenSubmitStoryModal }) => {
           <button
             key={c.id}
             onClick={() => setCategory(c.id)}
-            style={{
-              padding: "7px 16px",
-              borderRadius: "var(--radius-sm)",
-              border: category === c.id ? "1px solid var(--accent-amber)" : "1px solid var(--border-color)",
-              background: category === c.id ? "rgba(245, 158, 11, 0.15)" : "rgba(255, 255, 255, 0.04)",
-              color: category === c.id ? "#fbbf24" : "var(--text-muted)",
-              fontSize: "0.85rem",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
+            className={`chip${category === c.id ? " active" : ""}`}
           >
             {c.label}
           </button>
@@ -107,7 +98,7 @@ export const SuccessStoriesView = ({ currentUser, onOpenSubmitStoryModal }) => {
                 </span>
               </div>
 
-              <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "12px", color: "#fff" }}>
+              <h2 style={{ fontSize: "1.4rem", fontWeight: 700, marginBottom: "12px", color: "var(--text-main)" }}>
                 {story.title}
               </h2>
 
@@ -132,7 +123,7 @@ export const SuccessStoriesView = ({ currentUser, onOpenSubmitStoryModal }) => {
                 </div>
 
                 <div>
-                  <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "#fff" }}>
+                  <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text-main)" }}>
                     {story.authorId?.name}
                   </div>
                   <div style={{ fontSize: "0.76rem", color: "var(--text-subtle)" }}>

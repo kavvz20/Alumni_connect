@@ -83,16 +83,7 @@ export const OpportunitiesView = ({
               <button
                 key={t.id}
                 onClick={() => setSelectedType(t.id)}
-                style={{
-                  padding: "7px 14px",
-                  borderRadius: "var(--radius-sm)",
-                  border: selectedType === t.id ? "1px solid var(--accent-primary)" : "1px solid var(--border-color)",
-                  background: selectedType === t.id ? "rgba(99, 102, 241, 0.2)" : "rgba(255, 255, 255, 0.04)",
-                  color: selectedType === t.id ? "#fff" : "var(--text-muted)",
-                  fontSize: "0.84rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
+                className={`chip${selectedType === t.id ? " active" : ""}`}
               >
                 {t.label}
               </button>

@@ -146,7 +146,7 @@ export const MentorshipRequestModal = ({
             {/* Mentor Preview Card */}
             {activeMentor && (
               <div style={{
-                background: "rgba(255, 255, 255, 0.04)",
+                background: "var(--bg-surface)",
                 border: "1px solid var(--border-color)",
                 borderRadius: "var(--radius-md)",
                 padding: "14px 16px",
@@ -471,7 +471,7 @@ export const ReferralRequestModal = ({
           ) : activeAlumnus ? (
             <div
               style={{
-                background: "rgba(255, 255, 255, 0.04)",
+                background: "var(--bg-surface)",
                 border: "1px solid var(--border-color)",
                 borderRadius: "var(--radius-md)",
                 padding: "12px 14px",

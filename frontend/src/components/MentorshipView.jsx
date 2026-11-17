@@ -70,18 +70,7 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
           <button
             key={st}
             onClick={() => setFilterStatus(st)}
-            style={{
-              padding: "7px 16px",
-              borderRadius: "var(--radius-sm)",
-              border: filterStatus === st ? "1px solid var(--accent-primary)" : "1px solid var(--border-color)",
-              background: filterStatus === st ? "rgba(99, 102, 241, 0.2)" : "rgba(255, 255, 255, 0.04)",
-              color: filterStatus === st ? "#fff" : "var(--text-muted)",
-              fontFamily: "var(--font-heading)",
-              fontSize: "0.85rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              textTransform: "capitalize",
-            }}
+            className={`chip${filterStatus === st ? " active" : ""}`} style={{ textTransform: "capitalize" }}
           >
             {st || "All Requests"}
           </button>
@@ -90,7 +79,7 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
 
       {/* Error */}
       {error && (
-        <div style={{ padding: "16px", background: "rgba(244, 63, 94, 0.15)", borderRadius: "8px", color: "#fda4af", marginBottom: "20px" }}>
+        <div style={{ padding: "16px", background: "rgba(190, 18, 60, 0.06)", border: "1px solid rgba(190, 18, 60, 0.22)", borderRadius: "8px", color: "#9f1239", marginBottom: "20px" }}>
           {error}
         </div>
       )}
@@ -180,7 +169,7 @@ export const MentorshipView = ({ currentUser, onScheduleMeeting, onOpenNewReques
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                       <Video size={20} color="#10b981" />
                       <div>
-                        <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "#6ee7b7" }}>
+                        <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--accent-emerald)" }}>
                           Scheduled for: {new Date(req.meetingScheduledAt).toLocaleString()}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
