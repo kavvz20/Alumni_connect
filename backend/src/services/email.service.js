@@ -1,32 +1,24 @@
 /**
- * Email Notification Service for User Provisioning
- * Dispatches onboarding credentials with default passwords.
- * If SMTP environment variables are not set, logs the dispatch to console
- * and provides structured delivery status.
+ * Welcome email for accounts created by the admin.
+ * There is no password in it: the person signs in with Google using this email address,
+ * which proves the address is theirs. If SMTP is not configured the message is only logged.
  */
 
-export const sendCredentialsEmail = async ({ name, email, role, defaultPassword, loginUrl = "http://localhost:5173/login" }) => {
-  const subject = `Welcome to Alumni Connect, ${name}! Your Account Credentials`;
+export const sendCredentialsEmail = async ({ name, email, role, loginUrl = process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL.replace(/\/+$/, "")}/login` : "http://localhost:5173/login" }) => {
+  const subject = `Welcome to Alumni Connect, ${name}!`;
   const body = `
 Dear ${name},
 
-Your official institutional account for the Thapar Alumni Connect platform has been provisioned by the Placement and Alumni Relations Cell.
+The Placement and Alumni Relations Cell has created your ${role === "alumni" ? "alumni" : "student"} account on the Thapar Alumni Connect platform.
 
-Account Details:
-- Role: ${role.toUpperCase()}
-- Login Email: ${email}
-- Default Password: ${defaultPassword}
-- Portal URL: ${loginUrl}
+How to sign in:
+1. Open ${loginUrl}
+2. Choose "${role === "alumni" ? "Alumni" : "Student"}" and click "Continue with Google".
+3. Pick the Google account for ${email}. Your account is linked automatically.
 
-How to sign in (either option works for the same account):
-- Click "Continue with Google" and choose the Google account for ${email}, or
-- Sign in with your email and the default password above.
-
-Next Steps:
-1. Visit the portal at ${loginUrl} and sign in.
-2. Go to your Profile section to complete your professional details and change your default password.${
+You can set a password later from your Profile page if you also want to sign in with email and password.${
     role === "alumni"
-      ? "\n3. Upload your LinkedIn profile PDF (LinkedIn > More > Save to PDF) so your alumni status can be verified."
+      ? "\n\nPlease complete your profile and upload your LinkedIn profile PDF (LinkedIn > More > Save to PDF) so your alumni status can be verified."
       : ""
   }
 
@@ -45,7 +37,6 @@ Thapar Institute of Engineering and Technology
     success: true,
     deliveredTo: email,
     subject,
-    defaultPassword,
     dispatchedAt: new Date().toISOString(),
     channel: process.env.SMTP_HOST ? "smtp" : "system_simulated",
   };

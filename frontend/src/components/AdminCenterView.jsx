@@ -41,7 +41,6 @@ export const AdminCenterView = ({ currentUser }) => {
   const [manualName, setManualName] = useState("");
   const [manualEmail, setManualEmail] = useState("");
   const [manualLinkedin, setManualLinkedin] = useState("");
-  const [manualDefaultPassword, setManualDefaultPassword] = useState("Thapar@2026");
 
   const [onboardLoading, setOnboardLoading] = useState(false);
   const [onboardSuccess, setOnboardSuccess] = useState(null);
@@ -196,7 +195,6 @@ export const AdminCenterView = ({ currentUser }) => {
       name: manualName.trim(),
       email: manualEmail.trim().toLowerCase(),
       linkedinUrl: manualRole === "alumni" && manualLinkedin.trim() ? manualLinkedin.trim() : undefined,
-      defaultPassword: manualDefaultPassword.trim() || "Thapar@2026",
       // With a PDF, the server uses its own signed parse result; otherwise only the found fields are sent.
       evidenceToken: manualRole === "alumni" && manualEvidenceToken ? manualEvidenceToken : undefined,
       enrichmentData:
@@ -233,11 +231,11 @@ export const AdminCenterView = ({ currentUser }) => {
   // =========================================================================
   const handleDownloadCsvTemplate = () => {
     // batch, branch and degree are optional institutional records that alumni LinkedIn data is checked against
-    const csvContent = "name,email,role,linkedinUrl,batch,branch,degree\n" +
-      "Priya Sharma,priya.sharma@gmail.com,alumni,https://linkedin.com/in/priyasharma,2019,Computer Engineering,BE\n" +
-      "Aarav Gupta,aarav.gupta@thapar.edu,student,,,,\n" +
-      "Devansh Verma,devansh.verma@gmail.com,alumni,https://linkedin.com/in/devanshverma,2016,Mechanical Engineering,BE\n" +
-      "Rhea Malhotra,rhea.malhotra@thapar.edu,student,,,,\n";
+    const csvContent = "name,email,role,linkedinUrl,batch,branch,degree,currentCompany,currentRole\n" +
+      "Priya Sharma,priya.sharma@gmail.com,alumni,https://linkedin.com/in/priyasharma,2019,Computer Engineering,BE,Google,Software Engineer\n" +
+      "Aarav Gupta,aarav.gupta@thapar.edu,student,,,,,,\n" +
+      "Devansh Verma,devansh.verma@gmail.com,alumni,https://linkedin.com/in/devanshverma,2016,Mechanical Engineering,BE,,\n" +
+      "Rhea Malhotra,rhea.malhotra@thapar.edu,student,,,,,,\n";
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -634,20 +632,8 @@ export const AdminCenterView = ({ currentUser }) => {
                       </div>
                     )}
 
-                    {/* Default Password */}
-                    <div>
-                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>
-                        Assigned Default Password
-                      </label>
-                      <input
-                        className="input-control"
-                        value={manualDefaultPassword}
-                        onChange={(e) => setManualDefaultPassword(e.target.value)}
-                        placeholder="Thapar@2026"
-                      />
-                      <span style={{ fontSize: "0.75rem", color: "#78716c", marginTop: "4px", display: "block" }}>
-                        Users will sign in with this default password and update it in their Profile section.
-                      </span>
+                    <div className="alert" style={{ background: "#fbf9f4", border: "1px solid var(--border-color)", color: "#524f4a", fontSize: "0.82rem", margin: 0 }}>
+                      No password is created. The person signs in with <strong>Continue with Google</strong> using this email, and the account is linked automatically.
                     </div>
 
                     <button
@@ -656,7 +642,7 @@ export const AdminCenterView = ({ currentUser }) => {
                       className="btn btn-primary"
                       style={{ padding: "12px", marginTop: "8px", width: "100%" }}
                     >
-                      {onboardLoading ? "Provisioning & Emailing..." : `Provision ${manualRole === "alumni" ? "Alumnus" : "Student"} & Send Email`}
+                      {onboardLoading ? "Creating account..." : `Create ${manualRole === "alumni" ? "Alumnus" : "Student"} Account`}
                     </button>
                   </form>
                 </>
@@ -702,7 +688,7 @@ export const AdminCenterView = ({ currentUser }) => {
                       Select or Drop CSV File
                     </h4>
                     <p style={{ fontSize: "0.82rem", color: "#78716c", marginBottom: "8px" }}>
-                      Accepted format: <code>.csv</code> with headers <code>name,email,role,linkedinUrl</code>
+                      Required columns: <code>name,email,role</code>. Optional: <code>linkedinUrl,batch,branch,degree,currentCompany,currentRole</code>
                     </p>
                     <div style={{
                       display: "inline-flex",
@@ -717,7 +703,7 @@ export const AdminCenterView = ({ currentUser }) => {
                       fontWeight: 600,
                       marginBottom: "16px",
                     }}>
-                      <Sparkles size={13} /> Alumni rows with a LinkedIn URL will be automatically enriched with their Company, Role, Skills & Bio!
+                      <Sparkles size={13} /> LinkedIn URLs are saved, not fetched. Alumni add their details by uploading their LinkedIn PDF after their first sign-in, and batch/branch/degree are used to verify them.
                     </div>
 
                     <input
@@ -816,10 +802,10 @@ export const AdminCenterView = ({ currentUser }) => {
                   boxShadow: "0 8px 30px rgba(4, 120, 87, 0.12)",
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#047857", fontWeight: 800, marginBottom: "12px" }}>
-                    <CheckCircle2 size={20} /> Account Provisioned Successfully!
+                    <CheckCircle2 size={20} /> Account Created
                   </div>
                   <p style={{ fontSize: "0.82rem", color: "#524f4a", lineHeight: 1.4, marginBottom: "16px" }}>
-                    Credentials have been generated and dispatched to the user's inbox:
+                    Ask them to sign in with <strong>Continue with Google</strong> using this email:
                   </p>
 
                   <div style={{ background: "#fbf9f4", padding: "14px", borderRadius: "var(--radius-sm)", border: "1px solid rgba(0,0,0,0.08)", fontSize: "0.82rem", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
@@ -832,17 +818,14 @@ export const AdminCenterView = ({ currentUser }) => {
                     <div>
                       <span style={{ color: "#78716c" }}>Role:</span> <span className="badge badge-amber">{onboardSuccess.user.role}</span>
                     </div>
-                    <div>
-                      <span style={{ color: "#78716c" }}>Default Password:</span> <code style={{ background: "#ffffff", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(0,0,0,0.1)", fontWeight: 700 }}>{onboardSuccess.defaultPassword}</code>
-                    </div>
                   </div>
 
                   <button
-                    onClick={() => handleCopyCredentials(`Email: ${onboardSuccess.user.email}\nPassword: ${onboardSuccess.defaultPassword}\nPortal: ${typeof window !== 'undefined' ? window.location.origin : ''}/login`)}
+                    onClick={() => handleCopyCredentials(`Your Alumni Connect account is ready.\nSign in at ${typeof window !== 'undefined' ? window.location.origin : ''}/login with "Continue with Google" using ${onboardSuccess.user.email}.`)}
                     className="btn btn-secondary btn-sm"
                     style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                   >
-                    {copied ? <><Check size={14} color="#047857" /> Copied to Clipboard!</> : <><Copy size={14} /> Copy Credentials</>}
+                    {copied ? <><Check size={14} color="#047857" /> Copied to Clipboard!</> : <><Copy size={14} /> Copy sign-in instructions</>}
                   </button>
                 </div>
               ) : csvImportResult ? (
@@ -859,10 +842,10 @@ export const AdminCenterView = ({ currentUser }) => {
                   <div style={{ fontSize: "0.85rem", color: "#524f4a", lineHeight: 1.5, marginBottom: "14px" }}>
                     <div>&bull; <strong>{csvImportResult.createdCount}</strong> accounts provisioned</div>
                     <div>&bull; <strong>{csvImportResult.duplicateCount}</strong> duplicates skipped</div>
-                    <div>&bull; Default password: <code>Thapar@2026</code></div>
+                    <div>&bull; They sign in with <strong>Continue with Google</strong> using their email</div>
                   </div>
                   <div style={{ fontSize: "0.78rem", color: "#78716c" }}>
-                    All provisioned users have been sent automated credential notices.
+                    No passwords were created, so nobody can sign in to these accounts without access to the email's Google account.
                   </div>
                 </div>
               ) : (
@@ -874,10 +857,10 @@ export const AdminCenterView = ({ currentUser }) => {
                   boxShadow: "0 4px 20px rgba(0, 0, 0, 0.04)",
                 }}>
                   <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "#18181b", marginBottom: "8px" }}>
-                    Onboarding Policy
+                    How accounts work
                   </h4>
                   <p style={{ fontSize: "0.82rem", color: "#524f4a", lineHeight: 1.5, margin: 0 }}>
-                    In accordance with institutional security guidelines, public self-registration is closed. Accounts are strictly provisioned by the Administrator. Default passwords must be changed upon first login.
+                    Everyone signs in with Google, which proves the email is theirs. Accounts you create here have no password; the person signs in with Google using that email and is linked to this record automatically. Students can also join on their own with an @thapar.edu Google account, and alumni with any Google account (they start as Not verified).
                   </p>
                 </div>
               )}

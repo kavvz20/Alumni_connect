@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { User } from "../models/index.js";
 import { sendCredentialsEmail } from "../services/email.service.js";
-import { scrapeLinkedInData } from "../services/linkedin-scraper.service.js";
 import { isAuthorizedAdmin, toSafeUser } from "../services/auth.service.js";
 import { buildEvidenceRecord, profileFieldsFromEvidence, verifyEvidenceToken } from "../services/evidence.service.js";
 import {
@@ -279,7 +278,7 @@ const verifyAlumni = async (req, res) => {
 const onboardUser = async (req, res) => {
   try {
 
-    const { role, name, email, linkedinUrl, defaultPassword } = req.body;
+    const { role, name, email, linkedinUrl } = req.body;
 
     if (!role || !name || !email) {
       return res.status(400).json({
@@ -315,9 +314,6 @@ const onboardUser = async (req, res) => {
       }
     }
 
-    const passwordToUse = (defaultPassword && defaultPassword.trim()) || "Thapar@2026";
-    const hashedPassword = await bcrypt.hash(passwordToUse, 10);
-
     // LinkedIn PDF uploaded by the admin: use the server-signed parse result (found/inferred fields only).
     let evidenceRecord = null;
     if (role === "alumni" && req.body.evidenceToken) {
@@ -344,32 +340,12 @@ const onboardUser = async (req, res) => {
       if (alumniEnrichment.education) alumniEnrichment.education = sanitizeEducation(alumniEnrichment.education);
     }
 
-    if (role === "alumni" && linkedinUrl?.trim() && Object.keys(alumniEnrichment).length === 0) {
-      try {
-        const scrapeResult = await scrapeLinkedInData(linkedinUrl.trim());
-        if (scrapeResult?.success && scrapeResult.data) {
-          const d = scrapeResult.data;
-          alumniEnrichment = {
-            currentCompany: d.currentCompany || undefined,
-            currentRole: d.currentRole || undefined,
-            industry: d.industry || "Technology",
-            skills: Array.isArray(d.skills) && d.skills.length > 0 ? d.skills : undefined,
-            areasOfExpertise: Array.isArray(d.areasOfExpertise) && d.areasOfExpertise.length > 0 ? d.areasOfExpertise : undefined,
-            bio: d.bio || undefined,
-            profilePicture: d.profilePicture || undefined,
-          };
-        }
-      } catch (err) {
-        console.warn("LinkedIn auto-enrichment warning on manual onboard:", err.message);
-      }
-    }
-
     const newUser = await User.create({
       ...alumniEnrichment,
       role,
       name: name.trim(),
       email: normalizedEmail,
-      password: hashedPassword,
+      // No password: the person signs in with Google using this email, which proves it is theirs.
       linkedinUrl: role === "alumni" && linkedinUrl ? linkedinUrl.trim() : undefined,
       profileSource: "admin_manual",
       ...(role === "alumni" && {
@@ -386,7 +362,6 @@ const onboardUser = async (req, res) => {
       name: newUser.name,
       email: newUser.email,
       role: newUser.role,
-      defaultPassword: passwordToUse,
     });
 
     const safeUser = newUser.toObject();
@@ -396,11 +371,10 @@ const onboardUser = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: `Account for ${newUser.name} provisioned successfully. Credentials emailed.${Object.keys(alumniEnrichment).length > 0 ? " (Profile auto-enriched from LinkedIn)" : ""}`,
+      message: `Account for ${newUser.name} created. They sign in with Google using ${newUser.email}.`,
       data: {
         user: safeUser,
-        defaultPassword: passwordToUse,
-        enrichedFromLinkedIn: Object.keys(alumniEnrichment).length > 0,
+        filledFromLinkedinPdf: Boolean(evidenceRecord),
       },
     });
   } catch (error) {
@@ -428,8 +402,6 @@ const bulkOnboardUsers = async (req, res) => {
 
     const created = [];
     const duplicates = [];
-    const defaultPassword = "Thapar@2026";
-    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
     for (const record of users) {
       const name = record.name?.trim();
@@ -449,8 +421,7 @@ const bulkOnboardUsers = async (req, res) => {
         continue;
       }
 
-      // Auto-scrape LinkedIn profile details for alumni if linkedinUrl is provided
-      let alumniEnrichment = {};
+      // LinkedIn URLs are stored on the record (and checked against the alumnus's own PDF later), not fetched.
       const cleanLinkedin = role === "alumni" && record.linkedinUrl ? record.linkedinUrl.trim() : undefined;
 
       if (cleanLinkedin) {
@@ -468,34 +439,23 @@ const bulkOnboardUsers = async (req, res) => {
       // Optional institutional columns from the CSV (batch, branch, degree)
       const adminRecord = role === "alumni" ? adminRecordFrom(record) : undefined;
 
-      if (cleanLinkedin) {
-        try {
-          const scrapeResult = await scrapeLinkedInData(cleanLinkedin);
-          if (scrapeResult?.success && scrapeResult.data) {
-            const d = scrapeResult.data;
-            alumniEnrichment = {
-              currentCompany: record.currentCompany?.trim() || d.currentCompany || undefined,
-              currentRole: record.currentRole?.trim() || d.currentRole || undefined,
-              industry: record.industry?.trim() || d.industry || "Technology",
-              skills: Array.isArray(d.skills) && d.skills.length > 0 ? d.skills : undefined,
-              areasOfExpertise: Array.isArray(d.areasOfExpertise) && d.areasOfExpertise.length > 0 ? d.areasOfExpertise : undefined,
-              bio: record.bio?.trim() || d.bio || undefined,
-              profilePicture: d.profilePicture || undefined,
-            };
-          }
-        } catch (enrichErr) {
-          console.warn(`LinkedIn auto-enrichment warning for ${email}:`, enrichErr.message);
+      // Optional profile columns provided by the admin in the CSV
+      const csvProfile = {};
+      if (role === "alumni") {
+        for (const key of ["currentCompany", "currentRole", "industry", "bio"]) {
+          const value = typeof record[key] === "string" ? record[key].trim() : "";
+          if (value) csvProfile[key] = value;
         }
       }
 
       let newUser;
       try {
         newUser = await User.create({
-          ...alumniEnrichment,
+          ...csvProfile,
           role,
           name,
           email,
-          password: hashedPassword,
+          // No password: they sign in with Google using this email.
           linkedinUrl: cleanLinkedin,
           profileSource: "admin_csv",
           ...(adminRecord?.batch && { batch: adminRecord.batch }),
@@ -507,20 +467,13 @@ const bulkOnboardUsers = async (req, res) => {
         continue;
       }
 
-      await sendCredentialsEmail({
-        name,
-        email,
-        role,
-        defaultPassword,
-      });
+      await sendCredentialsEmail({ name, email, role });
 
       created.push({
         _id: newUser._id,
         name: newUser.name,
         email: newUser.email,
         role: newUser.role,
-        defaultPassword,
-        enrichedFromLinkedIn: Object.keys(alumniEnrichment).length > 0,
         currentCompany: newUser.currentCompany,
         currentRole: newUser.currentRole,
       });
