@@ -201,6 +201,17 @@ VITE_FIREBASE_APP_ID=...
    to the OAuth client's **Authorized redirect URIs** in Google Cloud console → APIs & Services →
    Credentials, and redeploy. Keep `alumniconnect-bed11.firebaseapp.com` for local development.
 
+#### LinkedIn profile photo ("Use LinkedIn photo" button)
+Uses LinkedIn's official **Sign In with LinkedIn using OpenID Connect** API (no scraping). The user approves on
+LinkedIn; the backend downloads their LinkedIn photo, stores it as their profile picture and remembers the
+connected LinkedIn account (one LinkedIn account per user). It does not provide job history or education; those
+still come from the LinkedIn PDF.
+1. Create an app at <https://www.linkedin.com/developers> (it must be linked to a LinkedIn Page).
+2. **Products** → add **Sign In with LinkedIn using OpenID Connect**.
+3. **Auth** → **Authorized redirect URLs** → add `https://<your-backend>/api/v1/linkedin/callback`.
+4. Set on the backend: `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDIN_REDIRECT_URI` (the URL from step 3)
+   and `FRONTEND_URL` (e.g. `https://alumni-connect-thapar.vercel.app`). The button appears once these are set.
+
 #### How sign-in works
 - Everyone can use **Continue with Google** or **email + password**. Both log into the same account (matched by email), and the backend issues one session token (`Authorization: Bearer …`).
 - **Admin** access is granted only to `ADMIN_EMAIL`, checked on the server. Selecting "Admin" on the login page grants nothing by itself.

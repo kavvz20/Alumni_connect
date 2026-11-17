@@ -83,6 +83,14 @@ const userSchema = new mongoose.Schema({
   linkedinUrl: String,
   githubUrl: String,
   profilePicture: { type: String, default: "" },
+  // LinkedIn account connected through "Sign In with LinkedIn" (official API, used for the profile photo)
+  linkedinAccount: {
+    sub: { type: String },
+    name: { type: String },
+    email: { type: String },
+    emailVerified: { type: Boolean },
+    connectedAt: { type: Date },
+  },
   bio: String,
 
   currentCompany: String,
@@ -162,6 +170,7 @@ userSchema.index({
   currentRole: 1,
 });
 userSchema.index({ linkedinUrl: 1 }, { sparse: true });
+userSchema.index({ "linkedinAccount.sub": 1 }, { sparse: true });
 userSchema.index({ role: 1, "verification.status": 1 });
 
 export const User = mongoose.model("User", userSchema);

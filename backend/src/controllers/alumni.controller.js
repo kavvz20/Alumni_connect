@@ -5,7 +5,7 @@ import { scrapeLinkedInData } from "../services/linkedin-scraper.service.js";
 import { parseLinkedInPdfBuffer, parseLinkedInPdfText } from "../services/linkedin-pdf-parser.service.js";
 
 // Never expose credentials or verification evidence in public listings.
-const PUBLIC_USER_EXCLUDE = "-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord";
+const PUBLIC_USER_EXCLUDE = "-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord -linkedinAccount.sub -linkedinAccount.email";
 
 const asExactCaseInsensitiveMatch = (value) =>
   new RegExp(`^${value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");

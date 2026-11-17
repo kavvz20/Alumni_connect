@@ -12,6 +12,7 @@ import reportRouter from "./routes/report.routes.js";
 import successStoryRouter from "./routes/success-story.routes.js";
 import userRouter from "./routes/user.routes.js";
 import verificationRouter from "./routes/verification.routes.js";
+import linkedinRouter from "./routes/linkedin.routes.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use((req, res, next) => {
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/verification", verificationRouter);
+app.use("/api/v1/linkedin", linkedinRouter);
 app.use("/api/v1/alumni", alumniRouter);
 app.use("/api/v1/mentorship-requests", mentorshipRequestRouter);
 app.use("/api/v1/referral-requests", referralRequestRouter);

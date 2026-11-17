@@ -120,6 +120,10 @@ export const api = {
   rescoreVerification: (userId) => request(`/verification/${userId}/rescore`, { method: "POST" }),
   rescoreAllVerifications: () => request("/verification/rescore-all", { method: "POST" }),
   getMyVerification: () => request("/verification/me"),
+
+  // "Connect LinkedIn" (official LinkedIn sign-in; applies the LinkedIn profile photo)
+  getLinkedinConnectStatus: () => request("/linkedin/status"),
+  startLinkedinConnect: () => request("/linkedin/connect"),
   getVerificationModelInfo: () => request("/verification/model"),
 
   // Users

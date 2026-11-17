@@ -57,6 +57,11 @@ export const toSafeUser = (user) => {
   obj.isAdmin = isAdminEmail(obj.email); // admin rights on top of the account's own role
   delete obj.password;
   delete obj.firebaseUid;
+  if (obj.linkedinAccount?.sub) {
+    obj.linkedinAccount = { name: obj.linkedinAccount.name, connectedAt: obj.linkedinAccount.connectedAt, connected: true };
+  } else {
+    delete obj.linkedinAccount;
+  }
   delete obj.__v;
   if (obj.verification) {
     // Users see their own status and evidence, but not admin-only notes (other accounts, institutional record).

@@ -53,7 +53,7 @@ const getAllUsers = async (req, res) => {
     }
 
     const users = await User.find(filter)
-      .select("-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord")
+      .select("-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord -linkedinAccount.sub -linkedinAccount.email")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -80,7 +80,7 @@ const getUserProfile = async (req, res) => {
       });
     }
 
-    const user = await User.findById(userId).select("-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord");
+    const user = await User.findById(userId).select("-password -firebaseUid -__v -verification.evidence -verification.flags -verification.adminRecord -linkedinAccount.sub -linkedinAccount.email");
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found." });
     }

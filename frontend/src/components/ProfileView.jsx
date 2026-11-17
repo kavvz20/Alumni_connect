@@ -28,6 +28,16 @@ import { VerificationStatusCard, EducationEditor, ExperienceEditor } from "./Alu
 import { usableParsedFields } from "../services/parsedProfile";
 import { DEPARTMENTS } from "../constants/institution";
 
+// Result of returning from LinkedIn (?linkedin=...)
+const LINKEDIN_RESULT = {
+  connected: { ok: true, text: "LinkedIn connected. Your LinkedIn profile photo is now your profile picture." },
+  no_photo: { ok: true, text: "LinkedIn connected, but your LinkedIn account has no profile photo to use." },
+  cancelled: { ok: false, text: "LinkedIn connection was cancelled." },
+  in_use: { ok: false, text: "That LinkedIn account is already connected to another Alumni Connect user." },
+  expired: { ok: false, text: "The LinkedIn connection took too long. Please try again." },
+  error: { ok: false, text: "Could not connect LinkedIn. Please try again." },
+};
+
 export const ProfileView = ({ currentUser, onUserUpdated }) => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -36,6 +46,32 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
   // General Profile State
   const [name, setName] = useState(currentUser?.name || "");
   const [profilePicture, setProfilePicture] = useState(currentUser?.profilePicture || "");
+  const [linkedinConfigured, setLinkedinConfigured] = useState(false);
+  const [linkedinBusy, setLinkedinBusy] = useState(false);
+  const [linkedinResult, setLinkedinResult] = useState(() => {
+    if (typeof window === "undefined") return null;
+    return LINKEDIN_RESULT[new URLSearchParams(window.location.search).get("linkedin")] || null;
+  });
+
+  // Show the button only when the server has LinkedIn keys; clear ?linkedin= from the address bar
+  useEffect(() => {
+    api.getLinkedinConnectStatus().then((r) => setLinkedinConfigured(Boolean(r?.data?.configured))).catch(() => {});
+    if (new URLSearchParams(window.location.search).has("linkedin")) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
+
+  const handleConnectLinkedin = async () => {
+    setLinkedinBusy(true);
+    setLinkedinResult(null);
+    try {
+      const res = await api.startLinkedinConnect();
+      window.location.assign(res.data.url);
+    } catch (err) {
+      setLinkedinResult({ ok: false, text: err.message || "Could not start the LinkedIn connection." });
+      setLinkedinBusy(false);
+    }
+  };
   const [branch, setBranch] = useState(currentUser?.branch || "");
   const [batch, setBatch] = useState(currentUser?.batch || "");
   const [skills, setSkills] = useState(
@@ -469,6 +505,24 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                       <Upload size={13} /> Upload Image File
                     </button>
 
+                    {linkedinConfigured && (
+                      <button
+                        type="button"
+                        onClick={handleConnectLinkedin}
+                        disabled={linkedinBusy}
+                        className="btn btn-secondary btn-sm"
+                        style={{ color: "#0a66c2", display: "flex", alignItems: "center", gap: "6px" }}
+                        title="Sign in to LinkedIn to use your LinkedIn profile photo. Save any unsaved changes first."
+                      >
+                        <span style={{ fontWeight: 900, fontSize: "0.85rem", lineHeight: 1 }}>in</span>
+                        {linkedinBusy
+                          ? "Opening LinkedIn..."
+                          : currentUser?.linkedinAccount?.connected
+                            ? "Refresh photo from LinkedIn"
+                            : "Use LinkedIn photo"}
+                      </button>
+                    )}
+
                     {profilePicture && (
                       <button
                         type="button"
@@ -489,6 +543,11 @@ export const ProfileView = ({ currentUser, onUserUpdated }) => {
                       </button>
                     )}
                   </div>
+                  {linkedinResult && (
+                    <div role="status" className={`alert ${linkedinResult.ok ? "alert-success" : "alert-error"}`} style={{ margin: 0, fontSize: "0.8rem", padding: "8px 12px" }}>
+                      {linkedinResult.text}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
